@@ -15,6 +15,11 @@ export default new Router({
       name: 'home',
       component: Home
     },
+    { 
+      path: '/search',
+      name: 'searchPage',
+      component: () => import(/* webpackChunkName: "search" */ './views/SearchPage.vue'),
+    },
     {
       path: '/compounds',
       name: 'compounds',
