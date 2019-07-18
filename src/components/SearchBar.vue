@@ -18,7 +18,7 @@
             <b-button class= "search-button" size="sm" text="Button" @click="goToSearch">Search</b-button>
         </b-input-group-append>
       </b-input-group>
-      <ul v-show="suggestions.length>1"
+      <ul v-show="suggestions.length>0"
       class="autocomplete-results">
         <li v-for="(suggestion, i) in suggestions"
         :key="i"
