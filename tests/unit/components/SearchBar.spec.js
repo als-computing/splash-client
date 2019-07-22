@@ -1,13 +1,12 @@
 import BootstrapVue from 'bootstrap-vue'
 import VueRouter from 'vue-router'
 import { mount, shallowMount, createLocalVue } from '@vue/test-utils';
-import SearchBar from '@/components/SearchBar.vue';
 import responses from './responses.js'
-import axios from 'axios'
+import mockAxios from 'axios'
+import SearchBar from '@/components/SearchBar.vue';
 const util = require('util')
 const flushPromises = require('flush-promises')
 
-jest.mock('axios')
 
 const localVue = createLocalVue();
 
@@ -34,38 +33,38 @@ describe('SearchBar Component', () => {
     })
 
     it('given an input with autocomplete response calls axios once and passes correct URL endpoint and input data to axios', (done) => {
-        axios.post.mockReturnValue(Promise.resolve(responses.s))
+        mockAxios.post.mockReturnValue(Promise.resolve(responses.s))
         const searchInputTextField = wrapper.find({ name: "BFormInput" })
         searchInputTextField.element.value = 's'
         searchInputTextField.trigger('input')
         wrapper.vm.$nextTick(() => {
-            expect(axios.post).toHaveBeenCalledTimes(1)
-            expect(axios.post.mock.calls[0][0]).toBe('/research_experiments/_search')
-            expect(axios.post.mock.calls[0][1].suggest.text).toBe('s')
+            expect(mockAxios.post).toHaveBeenCalledTimes(1)
+            expect(mockAxios.post.mock.calls[0][0]).toBe('/research_experiments/_search')
+            expect(mockAxios.post.mock.calls[0][1].suggest.text).toBe('s')
             done()
         })
     })
 
     it('given an input with no autosuggestions in the response calls axios again and passes URL endpoint and input data with fuzzy search', (done) => {
-        axios.post.mockReset()
-        axios.post.mockReturnValue(Promise.resolve(responses.fdNoSuggestions))
+        mockAxios.post.mockReset()
+        mockAxios.post.mockReturnValue(Promise.resolve(responses.fdNoSuggestions))
         const searchInputTextField = wrapper.find({ name: "BFormInput" })
         searchInputTextField.element.value = 'fd'
         searchInputTextField.trigger('input')
         wrapper.vm.$nextTick(() => {
-            expect(axios.post).toHaveBeenCalledTimes(2)
-            expect(axios.post.mock.calls[1][0]).toBe('/research_experiments/_search')
-            expect(axios.post.mock.calls[1][1].suggest.text).toBe('fd')
-            Object.keys(axios.post.mock.calls[1][1].suggest).forEach((key, index) => {
-                if (!axios.post.mock.calls[1][1].suggest[key].hasOwnProperty['completion']) return;
-                expect(axios.post.mock.calls[1][1].suggest[key].completion).toEqual(expect.objectContaining({ fuzzy: {} }));
+            expect(mockAxios.post).toHaveBeenCalledTimes(2)
+            expect(mockAxios.post.mock.calls[1][0]).toBe('/research_experiments/_search')
+            expect(mockAxios.post.mock.calls[1][1].suggest.text).toBe('fd')
+            Object.keys(mockAxios.post.mock.calls[1][1].suggest).forEach((key, index) => {
+                if (!mockAxios.post.mock.calls[1][1].suggest[key].hasOwnProperty['completion']) return;
+                expect(mockAxios.post.mock.calls[1][1].suggest[key].completion).toEqual(expect.objectContaining({ fuzzy: {} }));
             });
             done()
         })
     })
 
     it('given 9 autosuggestions in the response, renders an autocomplete menu with all suggestions', (done) => {
-        axios.post.mockReturnValue(Promise.resolve(responses.s))
+        mockAxios.post.mockReturnValue(Promise.resolve(responses.s))
         const searchInputTextField = wrapper.find({ name: "BFormInput" })
         searchInputTextField.element.value = 's'
         searchInputTextField.trigger('input')
@@ -95,7 +94,7 @@ describe('SearchBar Component', () => {
     })
 
     it('given 13 autosuggestions in the response, renders an autocomplete menu with 10 suggestions', async (done) => {
-        axios.post.mockReturnValue(Promise.resolve(responses.moreThanTen))
+        mockAxios.post.mockReturnValue(Promise.resolve(responses.moreThanTen))
         const searchInputTextField = wrapper.find({ name: "BFormInput" })
         searchInputTextField.element.value = 'm'
         searchInputTextField.trigger('input')
@@ -126,7 +125,7 @@ describe('SearchBar Component', () => {
     });
 
     it('no results are activated by default', async (done) => {
-        axios.post.mockReturnValue(Promise.resolve(responses.s))
+        mockAxios.post.mockReturnValue(Promise.resolve(responses.s))
         const searchInputTextField = wrapper.find({ name: "BFormInput" })
         searchInputTextField.element.value = 's'
         searchInputTextField.trigger('input')
@@ -138,7 +137,7 @@ describe('SearchBar Component', () => {
     });
 
     it('activates the first result on the press of the down arrow', async (done) => {
-        axios.post.mockReturnValue(Promise.resolve(responses.s))
+        mockAxios.post.mockReturnValue(Promise.resolve(responses.s))
         const searchInputTextField = wrapper.find({ name: "BFormInput" })
         searchInputTextField.element.value = 's'
         searchInputTextField.trigger('input')
@@ -153,7 +152,7 @@ describe('SearchBar Component', () => {
     });
 
     it('activates the last result on the press of the up arrow', async (done) => {
-        axios.post.mockReturnValue(Promise.resolve(responses.s))
+        mockAxios.post.mockReturnValue(Promise.resolve(responses.s))
         const searchInputTextField = wrapper.find({ name: "BFormInput" })
         searchInputTextField.element.value = 's'
         searchInputTextField.trigger('input')
@@ -169,7 +168,7 @@ describe('SearchBar Component', () => {
     });
 
     it('activated item disappears then loops to the top on two down arrow presses at the bottom of the suggestion menu', async (done) => {
-        axios.post.mockReturnValue(Promise.resolve(responses.s))
+        mockAxios.post.mockReturnValue(Promise.resolve(responses.s))
         const searchInputTextField = wrapper.find({ name: "BFormInput" })
         searchInputTextField.element.value = 's'
         searchInputTextField.trigger('input')
@@ -191,7 +190,7 @@ describe('SearchBar Component', () => {
     })
 
     it('activated item disappears then loops to the bottom on two up arrow presses from the top of the suggestion menu', async(done) => {
-        axios.post.mockReturnValue(Promise.resolve(responses.s))
+        mockAxios.post.mockReturnValue(Promise.resolve(responses.s))
         const searchInputTextField = wrapper.find({ name: "BFormInput" })
         searchInputTextField.element.value = 's'
         searchInputTextField.trigger('input')
@@ -212,8 +211,8 @@ describe('SearchBar Component', () => {
         done();
     })
 
-    it('vanishes the suggestion menu on press of esc key', async () => {axios.post.mockReturnValue(Promise.resolve(responses.s))
-        axios.post.mockReturnValue(Promise.resolve(responses.s))
+    it('vanishes the suggestion menu on press of esc key', async () => {
+        mockAxios.post.mockReturnValue(Promise.resolve(responses.s))
         const searchInputTextField = wrapper.find({ name: "BFormInput" })
         searchInputTextField.element.value = 's'
         searchInputTextField.trigger('input')

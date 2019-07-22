@@ -46,11 +46,13 @@
 
 <script>
 import SearchBar from "@/components/SearchBar.vue";
-
-const axios = require("axios");
-
-axios.defaults.baseURL = "http://127.0.0.1:9200";
-axios.defaults.headers.post["Content-Type"] = "application/json";
+import axios from 'axios';
+    var axiosInst = axios.create({
+        baseURL: "http://127.0.0.1:9200/",
+        headers: {
+            'Content-Type': "application/json"
+        }
+    })
 
 export default {
   name: "SearchPage",
@@ -105,7 +107,7 @@ export default {
         }
         page = Number(this.currPageComputed);
 
-        axios
+        axiosInst
           .post("/research_experiments/_search", {
             from: (page - 1) * 10,
             query: {
@@ -157,7 +159,7 @@ export default {
 
             // if no results, query again but this time allow fuzziness
             if (this.searchResults.length === 0) {
-              return axios.post("/research_experiments/_search", {
+              return axiosInst.post("/research_experiments/_search", {
                 from: (page - 1) * 10,
                 query: {
                   multi_match: {

@@ -33,10 +33,14 @@
 </template>
 
 <script>
-const axios = require('axios');
 
-axios.defaults.baseURL = 'http://127.0.0.1:9200';
-axios.defaults.headers.post['Content-Type'] = 'application/json';
+import axios from 'axios';
+var axiosInst = axios.create({
+    baseURL: "http://127.0.0.1:9200/",
+    headers: {
+        'Content-Type': "application/json"
+    }
+})
 export default {
   name: 'SearchBar',
   data() {
@@ -48,7 +52,7 @@ export default {
   },
   methods: {
     updateSuggestions() {
-      axios.post('/research_experiments/_search',
+        axiosInst.post('/research_experiments/_search',
         {
           _source: ['researcherNameSuggestions.options.text', 'experimentNameSuggestions.options.text', 'groupNameSuggestions.options.text', 'solutesSuggestions.options.text', 'polymerSuggestions.options.text', 'institutionSuggestions.options.text'],
           suggest: {
@@ -114,7 +118,7 @@ export default {
         // if no results perform a fuzzy query,
         // it's equal to 1 because the displayed input is always part of the suggested results
         if (this.suggestions.length === 0) {
-          return axios.post('/research_experiments/_search',
+          return axiosInst.post('/research_experiments/_search',
             {
               _source: ['researcherNameSuggestions.options.text', 'experimentNameSuggestions.options.text', 'groupNameSuggestions.options.text', 'solutesSuggestions.options.text', 'polymerSuggestions.options.text', 'institutionSuggestions.options.text'],
               suggest: {
