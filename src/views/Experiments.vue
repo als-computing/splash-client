@@ -18,33 +18,41 @@
         data() {
             return {
                 fields: [
-                    {
-                      key:  'name'
-                    }, 
-                    {
-                        key: 'trials[0].polymer',
-                    }, 
-                    {
-                        key:'technique.name',
-                    } 
-                    /*'solutes_present'*/, 
-                    'researcher.name', 
-                    'experiment_metadata.gap', 
-                    'researcher.institution'],
+                    
+                    'name',
+                    'polymer',
+                    'technique',
+                    'solutes_present', 
+                    'researcher', 
+                    'gap', 
+                    'institution'],
                 experiments:[],
                 errors:[],
             }
         },
         created(){
             axiosInst.get('/experiments')
-            .then(response=>{
-                this.experiments = response.data
+            .then(response =>{
+                this.organizeData(response.data)
             })
             .catch(e =>{
-               // this.errors.put(e)
+              console.log(e)
             });
         },
         methods:{
+            organizeData(data){
+                data.forEach((elem)=> {
+                    this.experiments.push({
+                        name: elem.name,
+                        technique: elem.technique.name,
+                        polymer: elem.trials[0].membrane_or_polymer,
+                        solutes_present: elem.trials[0].solutes_present.toString().replace(/,/g, " "),
+                        researcher: elem.researcher.name,
+                        gap: elem.experiment_metadata.gap,
+                        institution: elem.researcher.institution,
+                    })
+                })
+        },
             rowClickHandler: function(experiment){
                 //TODO
                 return
