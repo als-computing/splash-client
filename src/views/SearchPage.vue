@@ -1,34 +1,25 @@
 <template>
   <div class="search-page">
     <h3 v-if="noResults" class="pt-4">Sorry, we couldn't find anything</h3>
-    <div v-if="searchResults.length!=0" id="search-results" class="col-lg-6 ml-sm-4 ml-xs-0">
+    <div v-if="searchResults.length!=0" id="search-results" class="container-fluid">
       <div class="search-result" v-for="(result, i) in searchResults" :key="i">
-        <h4>{{result.experimentName}}</h4>
-        <table class="table table-borderless small-table mw-100">
-          <tr>
-            <td>
-              <b>Researcher</b>: {{result.researcherName}}
-            </td>
-            <td>
-              <b>Group</b>: {{result.researcherGroup}}
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              <b>Polymer</b>: {{result.polymer}}
-            </td>
-            <td>
-              <b>Institution</b>: {{result.researcherInstitution}}
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <b>Solutes Present</b>:
-              <span v-for="(solute, i) in result.solutesPresent" v-bind:key="i">{{ solute }},</span>
-            </td>
-          </tr>
-        </table>
+        <div class="row">
+            <div class="col-xl-6 ml-sm-4 ml-xs-0">
+                <h4>{{result.experimentName}}</h4>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <p><b>Researcher</b>: {{result.researcherName}}</p>
+                        <p><b>Group</b>: {{result.researcherGroup}}</p>
+                        <p><b>Solutes Present</b>:
+                        <span v-for="(solute, i) in result.solutesPresent" v-bind:key="i">{{ solute }},</span></p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p><b>Polymer</b>: {{result.polymer}}</p>
+                        <p><b>Institution</b>: {{result.researcherInstitution}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
       </div>
     </div>
 
@@ -239,15 +230,5 @@ export default {
   color: black;
   font-size: small;
 }
-.table {
-  box-sizing: border-box;
-  display: table;
-}
-tr {
-  border: none;
-}
 
-.small-table>tr>td {
-  padding: 0%;
-}
 </style>
