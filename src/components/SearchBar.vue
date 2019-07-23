@@ -15,13 +15,12 @@
         @keydown.esc="handleEsc">
         </b-form-input>
         <b-input-group-append>
-            <b-button size="sm" text="Button" @click="goToSearch">Search</b-button>
+            <b-button class= "search-button" size="sm" text="Button" @click="goToSearch">Search</b-button>
         </b-input-group-append>
       </b-input-group>
-      <ul v-show="suggestions.length>1"
+      <ul v-show="suggestions.length>0"
       class="autocomplete-results">
         <li v-for="(suggestion, i) in suggestions"
-        v-show="i!=0"
         :key="i"
         class="autocomplete-result dropdown-item"
         :class="{ 'is-active': i === arrowCounter, 'fuzzy': isFuzzy(i) }"
@@ -34,65 +33,61 @@
 </template>
 
 <script>
-const axios = require('axios');
 
-axios.defaults.baseURL = 'http://127.0.0.1:9200';
-axios.defaults.headers.post['Content-Type'] = 'application/json';
+import axios from 'axios';
+var axiosInst = axios.create({
+    baseURL: "http://127.0.0.1:9200/",
+    headers: {
+        'Content-Type': "application/json"
+    }
+})
 export default {
   name: 'SearchBar',
   data() {
     return {
-      displayedSearchInput: this.displayedSearchInputProp,
       suggestions: [],
-      arrowCounter: 0,
+      arrowCounter: -1,
+      displayedSearchInput: '',
     };
-  },
-  props: {
-    displayedSearchInputProp: String,
   },
   methods: {
     updateSuggestions() {
-      axios.post('/research_experiments/_search',
+        axiosInst.post('/research_experiments/_search',
         {
-          _source: ['researcher.name', 'name', 'researcher.group', 'trials.solutes_present', 'trials.membrane_or_polymer', 'researcher.institution'],
+          _source: ['researcherNameSuggestions.options.text', 'experimentNameSuggestions.options.text', 'groupNameSuggestions.options.text', 'solutesSuggestions.options.text', 'polymerSuggestions.options.text', 'institutionSuggestions.options.text'],
           suggest: {
+            text: this.displayedSearchInput,
             researcherNameSuggestions: {
-              prefix: this.displayedSearchInput,
               completion: {
                 field: 'researcher.name.autocomplete',
                 skip_duplicates: true,
               },
             },
             experimentNameSuggestions: {
-              prefix: this.displayedSearchInput,
               completion: {
                 field: 'name.autocomplete',
                 skip_duplicates: true,
               },
             },
             groupNameSuggestions: {
-              prefix: this.displayedSearchInput,
               completion: {
                 field: 'researcher.group.autocomplete',
                 skip_duplicates: true,
               },
             },
             solutesSuggestions: {
-              prefix: this.displayedSearchInput,
               completion: {
                 field: 'trials.solutes_present.autocomplete',
                 skip_duplicates: true,
               },
             },
             polymerSuggestions: {
-              prefix: this.displayedSearchInput,
               completion: {
                 field: 'trials.membrane_or_polymer.autocomplete',
                 skip_duplicates: true,
               },
             },
             institutionSuggestions: {
-              prefix: this.displayedSearchInput,
               completion: {
                 field: 'researcher.institution.autocomplete',
                 skip_duplicates: true,
@@ -100,6 +95,7 @@ export default {
             },
           },
         }).then((res) => {
+        //console.log(res)
         this.destroySuggestions();
         res.data.suggest.researcherNameSuggestions[0].options.forEach((element) => {
           this.suggestions.push(element.text.toLowerCase());
@@ -121,13 +117,14 @@ export default {
         });
         // if no results perform a fuzzy query,
         // it's equal to 1 because the displayed input is always part of the suggested results
-        if (this.suggestions.length === 1) {
-          return axios.post('/research_experiments/_search',
+        if (this.suggestions.length === 0) {
+          return axiosInst.post('/research_experiments/_search',
             {
-              _source: ['researcher.name', 'name', 'researcher.group', 'trials.solutes_present', 'trials.membrane_or_polymer', 'researcher.institution'],
+              _source: ['researcherNameSuggestions.options.text', 'experimentNameSuggestions.options.text', 'groupNameSuggestions.options.text', 'solutesSuggestions.options.text', 'polymerSuggestions.options.text', 'institutionSuggestions.options.text'],
               suggest: {
+                text: this.displayedSearchInput,
                 researcherNameSuggestions: {
-                  prefix: this.displayedSearchInput,
+  
                   completion: {
                     field: 'researcher.name.autocomplete',
                     fuzzy: {},
@@ -135,7 +132,7 @@ export default {
                   },
                 },
                 experimentNameSuggestions: {
-                  prefix: this.displayedSearchInput,
+  
                   completion: {
                     field: 'name.autocomplete',
                     fuzzy: {},
@@ -143,7 +140,7 @@ export default {
                   },
                 },
                 groupNameSuggestions: {
-                  prefix: this.displayedSearchInput,
+  
                   completion: {
                     field: 'researcher.group.autocomplete',
                     fuzzy: {},
@@ -151,7 +148,7 @@ export default {
                   },
                 },
                 solutesSuggestions: {
-                  prefix: this.displayedSearchInput,
+  
                   completion: {
                     field: 'trials.solutes_present.autocomplete',
                     fuzzy: {},
@@ -159,7 +156,7 @@ export default {
                   },
                 },
                 polymerSuggestions: {
-                  prefix: this.displayedSearchInput,
+  
                   completion: {
                     field: 'trials.membrane_or_polymer.autocomplete',
                     fuzzy: {},
@@ -167,7 +164,7 @@ export default {
                   },
                 },
                 institutionSuggestions: {
-                  prefix: this.displayedSearchInput,
+  
                   completion: {
                     field: 'researcher.institution.autocomplete',
                     fuzzy: {},
@@ -212,7 +209,7 @@ export default {
     },
     cutSuggestions() {
       if (this.suggestions.length > 10) {
-        this.suggestions = this.suggestions.slice(0, 11);
+        this.suggestions = this.suggestions.slice(0, 10);
         return true;
       }
       return false;
@@ -220,15 +217,13 @@ export default {
     onArrowDown() {
       if (this.arrowCounter < this.suggestions.length - 1) {
         this.arrowCounter = this.arrowCounter + 1;
-        // this.displayedSearchInput = this.suggestions[this.arrowCounter];
       } else {
-        this.arrowCounter = 0;
+        this.arrowCounter = -1;
       }
     },
     onArrowUp() {
-      if (this.arrowCounter > 0) {
+      if (this.arrowCounter >= 0) {
         this.arrowCounter = this.arrowCounter - 1;
-        // this.displayedSearchInput = this.suggestions[this.arrowCounter];
       } else {
         this.arrowCounter = this.suggestions.length - 1;
       }
@@ -265,8 +260,8 @@ export default {
       return false;
     },
     destroySuggestions() {
-      this.suggestions = [this.displayedSearchInput];
-      this.arrowCounter = 0;
+      this.suggestions = [];
+      this.arrowCounter = -1;
     },
 
   },

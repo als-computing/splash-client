@@ -14,6 +14,7 @@
     "bootstrap-vue": "^2.0.0-rc.12",
     "chart.js": "^2.8.0",
     "d3": "^5.9.2",
+    "flush-promises": "^1.0.2",
     "jquery": "^3.4.1",
     "vue": "^2.6.6",
     "vue-chartjs": "^3.4.2",
@@ -22,12 +23,12 @@
     "vuex": "^3.1.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^3.9.2",
+    "@vue/cli-plugin-babel": "^3.4.0",
     "@vue/cli-plugin-unit-jest": "^3.9.0",
-    "@vue/cli-service": "^3.9.2",
+    "@vue/cli-service": "^3.7.0",
     "@vue/test-utils": "1.0.0-beta.29",
     "babel-core": "7.0.0-bridge.0",
-    "babel-jest": "^24.8.0",
+    "babel-jest": "^23.6.0",
     "vue-bokeh": "^0.2.0",
     "vue-cli-plugin-bootstrap": "^1.0.0-alpha.1",
     "vue-template-compiler": "^2.5.21",
