@@ -1,10 +1,10 @@
 <template>
   <div class="search-page">
     <h3 v-if="noResults" class="pt-4">Sorry, we couldn't find anything</h3>
-    <div v-if="searchResults.length!=0" id="search-results" class="col-sm-4">
+    <div v-if="searchResults.length!=0" id="search-results" class="col-lg-6 ml-sm-4 ml-xs-0">
       <div class="search-result" v-for="(result, i) in searchResults" :key="i">
         <h4>{{result.experimentName}}</h4>
-        <table class="table table-borderless small-table">
+        <table class="table table-borderless small-table mw-100">
           <tr>
             <td>
               <b>Researcher</b>: {{result.researcherName}}
@@ -240,7 +240,6 @@ export default {
   font-size: small;
 }
 .table {
-  width: 100%;
   box-sizing: border-box;
   display: table;
 }
