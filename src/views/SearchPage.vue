@@ -25,12 +25,13 @@
 
     <div class="footer navbar fixed-bottom justify-content-center">
       <b-pagination-nav
-        v-if="totalPages > 1 && currPageAsync != 0"
+        v-if="totalPages > 1 && currPageOnNextTick != 0"
         :link-gen="linkGen"
         :number-of-pages="totalPages"
-        :value="currPageAsync"
+        :value="currPageOnNextTick"
         use-router
       />
+     
     </div>
   </div>
 </template>
@@ -56,11 +57,11 @@ export default {
       totalPages: 0,
       noResults: false,
       /* For some reason we need two separate current page references
-      currPageAsync is referenced by the b-pagination-nav component
+      currPageOnNextTick is referenced by the b-pagination-nav component
       it is updated on nextTick inside the search function. If we don't do this, and I really have no idea why
       the b-pagination-nav will go crazy and be buggy, maybe it has something to do with
       the DOM cycle being weird? */
-      currPageAsync: 0
+      currPageOnNextTick: 0
     };
   },
   computed: {
@@ -95,6 +96,7 @@ export default {
             path: "search",
             query: { query: this.$route.query.query, page: 1 }
           });
+          return;
         }
         page = Number(this.currPageComputed);
 
@@ -122,7 +124,7 @@ export default {
             /* this is where we update the current page that is referenced 
           by b-pagination-nav to prevent buggy behavior */
             this.$nextTick().then(() => {
-              this.currPageAsync = this.$route.query.page;
+              this.currPageOnNextTick = this.$route.query.page;
             });
             this.searchResults = [];
 
