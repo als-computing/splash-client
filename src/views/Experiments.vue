@@ -1,8 +1,16 @@
 <template>
   <div>
     <b-table striped hover :items="experiments" :fields="fields" responsive="true" @row-clicked="rowClickHandler">
-     
     </b-table>
+    <div class="footer navbar fixed-bottom justify-content-center">
+      <b-pagination-nav
+        v-if="totalPages > 1 && currPageOnNextTick != 0"
+        :link-gen="linkGen"
+        :number-of-pages="totalPages"
+        :value="currPageOnNextTick"
+        use-router
+      />
+     </div>
   </div>
 </template>
 
@@ -18,7 +26,6 @@
         data() {
             return {
                 fields: [
-                    
                     'name',
                     'polymer',
                     'technique',
@@ -26,22 +33,69 @@
                     'researcher', 
                     'gap', 
                     'institution'],
+                totalPages: 0,
                 experiments:[],
-                errors:[],
+                currPageOnNextTick: 0,
+                RESULTS_PER_PAGE: 10,
+            }
+        },
+        computed: {
+            currPageComputed() {
+                return this.$route.query.page;
             }
         },
         created(){
-            axiosInst.get('/experiments')
-            .then(response =>{
-                this.organizeData(response.data)
-            })
-            .catch(e =>{
-              console.log(e)
-            });
+           //console.log("created")
+           this.retrieveData()
+        },
+        watch: {
+            $route() {
+                //console.log("watched")
+                this.retrieveData()
+            }
         },
         methods:{
+            linkGen(pageNum) {
+                return {
+                    path: "/experiments",
+                    query: {
+                    query: this.$route.query.query,
+                    page: pageNum
+                    }
+                };
+            },
+            retrieveData() {
+                this.experiments =[];
+                let page;
+                if (
+                !this.currPageComputed ||
+                !Number.isInteger(Number(this.currPageComputed)) ||
+                Number(this.currPageComputed) <= 0
+                ) {
+                this.$router.replace({
+                    path: "experiments",
+                    query: { query: this.$route.query.query, page: 1 }
+                });
+                // IMPORTANT, this makes sure axios doesn't get called twice when redirecting
+                return;
+                }
+                page = Number(this.currPageComputed);
+                axiosInst.get('/experiments?page='+ page)
+                .then(response =>{
+                    this.organizeData(response.data)
+
+                })
+                .catch(e =>{
+                    console.log(e)
+                });
+                
+                this.$nextTick().then(() => {
+                    this.currPageOnNextTick = Number(this.$route.query.page);
+                });
+            },
             organizeData(data){
-                data.forEach((elem)=> {
+                this.totalPages = data.total_results/this.RESULTS_PER_PAGE;
+                data.results.forEach((elem)=> {
                     this.experiments.push({
                         name: elem.name,
                         technique: elem.technique.name,
@@ -63,8 +117,5 @@
 </script>
 
 <style>
-#edit-container {
-  margin: 5px;
-  height: 40px
-}
+
 </style>
