@@ -40,7 +40,7 @@
 import SearchBar from "@/components/SearchBar.vue";
 import axios from 'axios';
     var axiosInst = axios.create({
-        baseURL: "http://127.0.0.1:9200/",
+        baseURL: "/search",
         headers: {
             'Content-Type': "application/json"
         }
