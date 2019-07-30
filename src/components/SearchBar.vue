@@ -1,6 +1,6 @@
 <template>
-<!--I got most of this code from here https://alligator.io/vuejs/vue-autocomplete-component/ -->
-  <div class="search-component col-md-4 col-6 mx-auto">
+<!--I got some of the search code from here https://alligator.io/vuejs/vue-autocomplete-component/ -->
+  <div class="search-component col-lg-5 mx-auto">
     <div class="search-bar-pink">
       <b-input-group>
         <b-form-input

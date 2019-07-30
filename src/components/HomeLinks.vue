@@ -16,8 +16,8 @@
             </b-nav>
            
            <b-nav>
-              <b-nav-item v-bind:to="'/'">
-                <b-card>Simulations </b-card>
+              <b-nav-item v-bind:to="'/experiments'">
+                <b-card>Experiments </b-card>
               </b-nav-item>
             </b-nav>
           

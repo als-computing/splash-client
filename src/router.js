@@ -58,6 +58,11 @@ export default new Router({
       path: '/runschartjs/:name',
       name: 'runschartjs',
       component: () => import(/* webpackChunkName: "run" */ './views/RunData.vue')
+    },
+    { 
+        path: '/experiments',
+        name: 'experiments',
+        component: () => import(/* webpackChunkName: "experiments" */ './views/Experiments.vue')
     }
   ]
 })
