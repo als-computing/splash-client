@@ -277,8 +277,8 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   .search-bar-pink input[type=text]:focus:not([readonly]) {
-    border: 1px solid #f48fb1;
-    box-shadow: 0 0 0 1px #f48fb1;
+    border: 1px solid #23afc2;
+    box-shadow: 0 0 0 1px #23afc2;
   }
 
   .search-bar {
