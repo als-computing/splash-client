@@ -4,7 +4,16 @@ const LicensePlugin = require('webpack-license-plugin');
 module.exports = {
     configureWebpack: {
         plugins: [new LicensePlugin()]
+    },
 
+    devServer: {
+        proxy: {
+        '^/api': {
+            target: "http://127.0.0.1:5000",
+            logLevel: 'debug',
+            ws: true,
+            changeOrigin: true
+        }
     }
-
-    }
+  }
+}
