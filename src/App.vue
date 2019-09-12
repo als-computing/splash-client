@@ -2,6 +2,7 @@
   <div id="app">
     <b-navbar toggleable="lg" type="dark" variant="dark">
         <b-navbar-brand href="#">Splash</b-navbar-brand>
+        <router-link to="/about">About</router-link><span v-if="isLoggedIn"> | <a @click="logout">Logout</a></span>
 
         <b-navbar-toggle target="nav_collapse" />
 
@@ -23,9 +24,30 @@
 <script>
 import SearchBar from './components/SearchBar.vue'
 export default {
+  computed : {
+    isLoggedIn : function(){ return this.$store.getters.isLoggedIn}
+  },
+  methods: {
+    logout: function () {
+      this.$store.dispatch('logout')
+      .then(() => {
+        this.$router.push('/login')
+      })
+    }
+  },
   components: {
     SearchBar,
-  }  
+  }, 
+  created: function () {
+    this.$http.interceptors.response.use(undefined, function (err) {
+      return new Promise(function (resolve, reject) {
+        if (err.status === 401 && err.config && !err.config.__isRetryRequest) {
+          this.$store.dispatch(logout)
+        }
+        throw err;
+      });
+    });
+  }
 }
 </script>
 

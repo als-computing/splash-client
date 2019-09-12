@@ -8,13 +8,18 @@ module.exports = {
     },
 
     devServer: {
+        allowedHosts: [
+            'teocali',
+        'teocali.dhcp.lbl.gov'],
         proxy: {
         '^/api': {
             target: "http://127.0.0.1:5000",
             logLevel: 'debug',
             ws: true,
-            changeOrigin: true
-        }
+            changeOrigin: true,
+            
+        },
+        
     }
   }
 }

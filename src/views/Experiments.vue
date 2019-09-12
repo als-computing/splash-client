@@ -1,5 +1,6 @@
 <template>
   <div>
+    <b-button v-bind:to="'/new-experiment'">New Experiment</b-button>
     <b-table striped hover :items="experiments" :fields="fields" responsive="true" @row-clicked="rowClickHandler">
     </b-table>
     <div class="footer navbar fixed-bottom justify-content-center">
@@ -15,13 +16,7 @@
 </template>
 
 <script>
-    import axios from 'axios';
-    var axiosInst = axios.create({
-        baseURL: "/api",
-        headers: {
-            'Content-Type': "application/json"
-        }
-        })
+   
     export default {
         data() {
             return {
@@ -68,19 +63,19 @@
                 this.experiments =[];
                 let page;
                 if (
-                !this.currPageComputed ||
-                !Number.isInteger(Number(this.currPageComputed)) ||
-                Number(this.currPageComputed) <= 0
+                    !this.currPageComputed ||
+                    !Number.isInteger(Number(this.currPageComputed)) ||
+                    Number(this.currPageComputed) <= 0
                 ) {
-                this.$router.replace({
-                    path: "experiments",
-                    query: { query: this.$route.query.query, page: 1 }
-                });
-                // IMPORTANT, this makes sure axios doesn't get called twice when redirecting
-                return;
+                    this.$router.replace({
+                        path: "experiments",
+                        query: { query: this.$route.query.query, page: 1 }
+                    });
+                    // IMPORTANT, this makes sure axios doesn't get called twice when redirecting
+                    return;
                 }
                 page = Number(this.currPageComputed);
-                axiosInst.get('/experiments?page='+ page)
+                this.$api.get('/experiments?page='+ page)
                 .then(response =>{
                     this.organizeData(response.data)
 
@@ -106,11 +101,12 @@
                         institution: elem.researcher.institution,
                     })
                 })
-        },
+            },
             rowClickHandler: function(experiment){
                 //TODO
                 return
             },
+         
         }
     }
     
