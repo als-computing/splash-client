@@ -3,7 +3,7 @@ import Router from 'vue-router'
 
 
 import routes from './routes.js'
-import store from './store.js'
+import store from './store/store.js'
 
 Vue.use(Router)
 

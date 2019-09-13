@@ -1,8 +1,9 @@
 import BootstrapVue from 'bootstrap-vue'
 import VueRouter from 'vue-router'
+import store from '@/store/store'
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import App from '@/App.vue';
-//import SearchBar from '@/components/SearchBar.vue';
+// import SearchBar from '@/components/SearchBar.vue';
 
 
 const localVue = createLocalVue();
@@ -15,6 +16,7 @@ describe('App.vue (Search Page)', () => {
   const wrapper = shallowMount(App, {
     localVue,
     router,
+    store
   });
 
   it('renders the Search Bar component', () => {
