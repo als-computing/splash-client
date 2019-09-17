@@ -11,7 +11,7 @@
 
 <script>
 export default {
- 
+  
     data(){
         return {
             email : "",
@@ -19,9 +19,14 @@ export default {
         }
     },
     mounted() {
+      if (!window.gapi) {
+          console.log('"https://apis.google.com/js/api:client.js" needs to be included as a <script>.')
+          return
+        }
+
       //setup the google login script here so that it's available when mounted
       let googleScript = document.createElement('script')
-      googleScript.setAttribute('src', 'https://apis.google.com/js/platform.js')
+      googleScript.setAttribute('src', 'https://apis.google.com/js/api:client.js')
       document.head.appendChild(googleScript)
       window.gapi.signin2.render('google-signin-button', {
         onsuccess: this.onSignIn,

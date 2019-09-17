@@ -1,26 +1,21 @@
-console.log("in test")
-// import { mount, createLocalVue } from '@vue/test-utils'
-// import VueRouter from 'vue-router'
-// import mockRouter from './mockRouter'
-// import flushPromises from 'flush-promises'
-// import { toHaveRouteName } from 'vue-test-utils-helpers'
-// import Login from '@/components/Login.vue'
-// import loginService from '@/services/loginService'
+import { shallowMount, mount, createLocalVue } from "@vue/test-utils"
+import App from "@/App.vue"
+import VueRouter from "vue-router"
+import Login from "@/views/Login.vue"
+import routes from "@/routes.js"
+import BootstrapVue from 'bootstrap-vue'
+const localVue = createLocalVue()
+localVue.use(VueRouter)
+localVue.use(BootstrapVue)
 
-// it('should navigate to Home on successful login', async () => {
-//   loginService.isLoginValid = jest.fn().mockResolvedValue(true)
-//   const localVue = createLocalVue()
+describe("App", () => {
+    it("renders a child component via routing", () => {
+      const router = new VueRouter({ routes })
+      const wrapper = mount(App, { localVue, router })
   
-//   localVue.use(VueRouter)
-//   const router = mockRouter.mock()
+      router.push("/login")
   
-//   const wrapper = mount(Login, {
-//     localVue,
-//     router
-//   })
+      expect(wrapper.find(Login).exists()).toBe(true)
+    })
+  })
   
-//   wrapper.find('button').trigger('click')
-//   await flushPromises()
-  
-//   expect(wrapper).toHaveRouteName('Dashboard')
-// })
