@@ -13,27 +13,28 @@
 
 <script>
 
-import ReadField from '@/components/ReadField.vue'
+import ReadField from '@/components/ReadField.vue';
 
 import axios from 'axios';
-var axiosInst = axios.create({
-    baseURL: "/api",
-    headers: {
-        'Content-Type': "application/json"
-    }
-})
-export default {
-    data() {
-        return {
-            experiment: {}
-        }
-    }, 
-    async submit() {
-        let result = await axiosInst.post('experiments', this.experiment);
-        
 
-        this.$router.push("/search?"+this.foobar);
-    }
-    
-}
+const axiosInst = axios.create({
+  baseURL: '/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+export default {
+  data() {
+    return {
+      experiment: {},
+    };
+  },
+  async submit() {
+    const result = await axiosInst.post('experiments', this.experiment);
+
+
+    this.$router.push(`/search?${this.foobar}`);
+  },
+
+};
 </script>

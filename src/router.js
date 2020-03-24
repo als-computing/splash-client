@@ -1,25 +1,25 @@
-import Vue from 'vue'
-import Router from 'vue-router'
+import Vue from 'vue';
+import Router from 'vue-router';
 
 
-import routes from './routes.js'
-import store from './store/store.js'
+import routes from './routes.js';
+import store from './store/store.js';
 
-Vue.use(Router)
+Vue.use(Router);
 
-let router = new Router({
-  routes
-})
+const router = new Router({
+  routes,
+});
 
 router.beforeEach((to, from, next) => {
-  if(to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (store.getters.isLoggedIn) {
-      next()
-      return
+      next();
+      return;
     }
-    next('/login') 
+    next('/login');
   } else {
-    next() 
+    next();
   }
-})
-export default router
+});
+export default router;

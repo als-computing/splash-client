@@ -31,25 +31,26 @@
         :value="currPageOnNextTick"
         use-router
       />
-     
+
     </div>
   </div>
 </template>
 
 <script>
-import SearchBar from "@/components/SearchBar.vue";
+import SearchBar from '@/components/SearchBar.vue';
 import axios from 'axios';
-    var axiosInst = axios.create({
-        baseURL: "/search",
-        headers: {
-            'Content-Type': "application/json"
-        }
-    })
+
+const axiosInst = axios.create({
+  baseURL: '/search',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export default {
-  name: "SearchPage",
+  name: 'SearchPage',
   components: {
-    SearchBar
+    SearchBar,
   },
   data() {
     return {
@@ -61,7 +62,7 @@ export default {
       it is updated on nextTick inside the search function. If we don't do this, and I really have no idea why
       the b-pagination-nav will go crazy and be buggy, maybe it has something to do with
       the DOM cycle being weird? */
-      currPageOnNextTick: 0
+      currPageOnNextTick: 0,
     };
   },
   computed: {
@@ -69,59 +70,59 @@ export default {
     when it makes a request to elastic */
     currPageComputed() {
       return this.$route.query.page;
-    }
+    },
   },
   methods: {
     linkGen(pageNum) {
       return {
-        path: "/search/",
+        path: '/search/',
         query: {
           query: this.$route.query.query,
-          page: pageNum
-        }
+          page: pageNum,
+        },
       };
     },
 
     search() {
       this.searchResults = [];
       let page;
-      if (!this.$route.query.query) this.$router.replace("/");
+      if (!this.$route.query.query) this.$router.replace('/');
       else {
         if (
-          !this.currPageComputed ||
-          !Number.isInteger(Number(this.currPageComputed)) ||
-          Number(this.currPageComputed) <= 0
+          !this.currPageComputed
+          || !Number.isInteger(Number(this.currPageComputed))
+          || Number(this.currPageComputed) <= 0
         ) {
           this.$router.replace({
-            path: "search",
-            query: { query: this.$route.query.query, page: 1 }
+            path: 'search',
+            query: { query: this.$route.query.query, page: 1 },
           });
           return;
         }
         page = Number(this.currPageComputed);
 
         axiosInst
-          .post("/research_experiments/_search", {
+          .post('/research_experiments/_search', {
             from: (page - 1) * 10,
             query: {
               multi_match: {
                 query: this.$route.query.query,
                 fields: [
-                  "name",
-                  "researcher.name",
-                  "researcher.group",
-                  "researcher.institution",
-                  "trials.solutes_present",
-                  "trials.membrane_or_polymer"
+                  'name',
+                  'researcher.name',
+                  'researcher.group',
+                  'researcher.institution',
+                  'trials.solutes_present',
+                  'trials.membrane_or_polymer',
                 ],
-                minimum_should_match: "3<90%"
-              }
-            }
+                minimum_should_match: '3<90%',
+              },
+            },
           })
-          .then(res => {
+          .then((res) => {
             // TODO: investigate more than 10,000 results edge case with elasticsearch
 
-            /* this is where we update the current page that is referenced 
+            /* this is where we update the current page that is referenced
           by b-pagination-nav to prevent buggy behavior */
             this.$nextTick().then(() => {
               this.currPageOnNextTick = this.$route.query.page;
@@ -129,15 +130,14 @@ export default {
             this.searchResults = [];
 
             this.totalPages = Math.ceil(res.data.hits.total.value / 10);
-            res.data.hits.hits.forEach(element => {
+            res.data.hits.hits.forEach((element) => {
               const result = {};
               // eslint-disable-next-line no-underscore-dangle
               result.experimentName = element._source.name;
               // eslint-disable-next-line no-underscore-dangle
               result.researcherName = element._source.researcher.name;
               // eslint-disable-next-line no-underscore-dangle
-              result.researcherInstitution =
-                element._source.researcher.institution;
+              result.researcherInstitution = element._source.researcher.institution;
               // eslint-disable-next-line no-underscore-dangle
               result.solutesPresent = element._source.trials[0].solutes_present.slice();
               // eslint-disable-next-line no-underscore-dangle
@@ -152,44 +152,43 @@ export default {
 
             // if no results, query again but this time allow fuzziness
             if (this.searchResults.length === 0) {
-              return axiosInst.post("/research_experiments/_search", {
+              return axiosInst.post('/research_experiments/_search', {
                 from: (page - 1) * 10,
                 query: {
                   multi_match: {
                     query: this.$route.query.query,
                     fields: [
-                      "name",
-                      "researcher.name",
-                      "researcher.group",
-                      "researcher.institution",
-                      "trials.solutes_present",
-                      "trial.membrane_or_polymer"
+                      'name',
+                      'researcher.name',
+                      'researcher.group',
+                      'researcher.institution',
+                      'trials.solutes_present',
+                      'trial.membrane_or_polymer',
                     ],
-                    fuzziness: "AUTO",
-                    minimum_should_match: "3<90%"
-                  }
-                }
+                    fuzziness: 'AUTO',
+                    minimum_should_match: '3<90%',
+                  },
+                },
               });
             }
             // signify that we do not need a fuzzy query
             return 0;
           })
-          .then(res => {
+          .then((res) => {
             // No need to perform a display fuzzy results
             if (res === 0) {
               return Promise.resolve();
             }
             this.totalPages = Math.ceil(res.data.hits.total.value / 10);
             this.searchResults = [];
-            res.data.hits.hits.forEach(element => {
+            res.data.hits.hits.forEach((element) => {
               const result = {};
               // eslint-disable-next-line no-underscore-dangle
               result.experimentName = element._source.name;
               // eslint-disable-next-line no-underscore-dangle
               result.researcherName = element._source.researcher.name;
               // eslint-disable-next-line no-underscore-dangle
-              result.researcherInstitution =
-                element._source.researcher.institution;
+              result.researcherInstitution = element._source.researcher.institution;
               // eslint-disable-next-line no-underscore-dangle
               result.solutesPresent = element._source.trials[0].solutes_present.slice();
               // eslint-disable-next-line no-underscore-dangle
@@ -201,8 +200,8 @@ export default {
             if (this.searchResults.length === 0) this.noResults = true;
             return Promise.resolve();
           })
-          .catch(error => {
-            if ("request" in error && "config" in error) {
+          .catch((error) => {
+            if ('request' in error && 'config' in error) {
               console.log(error);
               console.log(error.response);
             } else {
@@ -210,19 +209,19 @@ export default {
             }
           }); // TODO: better catch statement
       }
-    }
+    },
   },
   watch: {
     $route() {
       this.noResults = false;
       this.search();
-    }
+    },
   },
 
   mounted() {
     this.noResults = false;
     this.search();
-  }
+  },
 };
 </script>
 

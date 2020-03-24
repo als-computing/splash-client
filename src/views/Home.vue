@@ -8,12 +8,12 @@
 
 <script>
 // @ is an alias to /src
-import HomeLinks from '@/components/HomeLinks.vue'
+import HomeLinks from '@/components/HomeLinks.vue';
 
 export default {
   name: 'home',
   components: {
-    HomeLinks
-  }
-}
+    HomeLinks,
+  },
+};
 </script>

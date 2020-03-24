@@ -15,9 +15,9 @@
 
         </b-card-group>
     </b-jumbotron>
-    <b-jumbotron> 
+    <b-jumbotron>
         <h2>Experiments</h2>
-        
+
         <b-container class="bv-example-row">
         <b-row>
             <b-table striped hover :items="compound.experiments" :fields="experiment_fields" responsive="true" @row-clicked="rowClickHandler"/>
@@ -25,8 +25,8 @@
 
         </b-row>
         </b-container>
-       
-    
+
+
     </b-jumbotron>
   <b-jumbotron>
       {{compound.documentation}}
@@ -36,41 +36,40 @@
 
 <script>
 
-import ExperimentLineChart from '@/components/ExperimentLineChart.vue'
-import ReadField from '@/components/ReadField.vue'
+import ExperimentLineChart from '@/components/ExperimentLineChart.vue';
+import ReadField from '@/components/ReadField.vue';
 
 export default {
-     
-   data() {
-        return {
-            experiment_fields: ['type', 'researcher', 'date'],
-            compound: {},
-            experiments: [],
-            open_experiment: {},
-            errors:[]
-        }
-    },
-    created(){
-        this.$api.get(this.$compounds_url + "/" + this.$route.params.name)
-        .then(response=>{
-            this.compound = response.data;
-            this.open_experiment = response.data.experiments[0];
-        })
-        .catch(e =>{
-            //this.errors.put(e)
-        });
-    },
-    methods:{
-        rowClickHandler: function(experiment){
-            //this.$router.push({path: '/experiments/xas/' + experiment.run})
-           this.open_experiment = experiment;
-        }
-    },
-    components:{
-        ReadField, ExperimentLineChart
-    },
 
-   
-    
-}
+  data() {
+    return {
+      experiment_fields: ['type', 'researcher', 'date'],
+      compound: {},
+      experiments: [],
+      open_experiment: {},
+      errors: [],
+    };
+  },
+  created() {
+    this.$api.get(`${this.$compounds_url}/${this.$route.params.name}`)
+      .then((response) => {
+        this.compound = response.data;
+        this.open_experiment = response.data.experiments[0];
+      })
+      .catch((e) => {
+        // this.errors.put(e)
+      });
+  },
+  methods: {
+    rowClickHandler(experiment) {
+      // this.$router.push({path: '/experiments/xas/' + experiment.run})
+      this.open_experiment = experiment;
+    },
+  },
+  components: {
+    ReadField, ExperimentLineChart,
+  },
+
+
+};
 </script>

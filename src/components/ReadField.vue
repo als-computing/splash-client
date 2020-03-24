@@ -5,17 +5,17 @@
         <b-card-text>{{value}}</b-card-text>
       </b-card>
     </div>
-      
+
 </template>
 
 <script>
 export default {
   name: 'ReadField',
   props: {
-      name: null,
-      value: null
-  }
-}
+    name: null,
+    value: null,
+  },
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

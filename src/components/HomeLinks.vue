@@ -2,26 +2,25 @@
   <div>
     <div>
         <b-card-group deck>
-          
+
              <b-nav>
               <b-nav-item v-bind:to="'/compounds'">
                 <b-card>Compounds </b-card>
               </b-nav-item>
              </b-nav>
-          
+
             <b-nav>
               <b-nav-item v-bind:to="'/'">
                 <b-card>Techniques </b-card>
               </b-nav-item>
             </b-nav>
-           
+
            <b-nav>
               <b-nav-item v-bind:to="'/experiments'">
                 <b-card>Experiments </b-card>
               </b-nav-item>
             </b-nav>
-          
-          
+
 
         </b-card-group>
       </div>
@@ -32,8 +31,8 @@
                 <b-card>People </b-card>
               </b-nav-item>
             </b-nav>
-       
-  
+
+
          <b-nav>
               <b-nav-item v-bind:to="'/'">
                 <b-card>Publications </b-card>
@@ -54,8 +53,8 @@ export default {
   name: 'HomeLinks',
   props: {
 
-  }
-}
+  },
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

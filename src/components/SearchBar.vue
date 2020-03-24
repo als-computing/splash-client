@@ -35,12 +35,13 @@
 <script>
 
 import axios from 'axios';
-var axiosInst = axios.create({
-    baseURL: "/search",
-    headers: {
-        'Content-Type': "application/json"
-    }
-})
+
+const axiosInst = axios.create({
+  baseURL: '/search',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 export default {
   name: 'SearchBar',
   data() {
@@ -52,7 +53,7 @@ export default {
   },
   methods: {
     updateSuggestions() {
-        axiosInst.post('/research_experiments/_search',
+      axiosInst.post('/research_experiments/_search',
         {
           _source: ['researcherNameSuggestions.options.text', 'experimentNameSuggestions.options.text', 'groupNameSuggestions.options.text', 'solutesSuggestions.options.text', 'polymerSuggestions.options.text', 'institutionSuggestions.options.text'],
           suggest: {
@@ -95,7 +96,7 @@ export default {
             },
           },
         }).then((res) => {
-        //console.log(res)
+        // console.log(res)
         this.destroySuggestions();
         res.data.suggest.researcherNameSuggestions[0].options.forEach((element) => {
           this.suggestions.push(element.text.toLowerCase());
@@ -124,7 +125,7 @@ export default {
               suggest: {
                 text: this.displayedSearchInput,
                 researcherNameSuggestions: {
-  
+
                   completion: {
                     field: 'researcher.name.autocomplete',
                     fuzzy: {},
@@ -132,7 +133,7 @@ export default {
                   },
                 },
                 experimentNameSuggestions: {
-  
+
                   completion: {
                     field: 'name.autocomplete',
                     fuzzy: {},
@@ -140,7 +141,7 @@ export default {
                   },
                 },
                 groupNameSuggestions: {
-  
+
                   completion: {
                     field: 'researcher.group.autocomplete',
                     fuzzy: {},
@@ -148,7 +149,7 @@ export default {
                   },
                 },
                 solutesSuggestions: {
-  
+
                   completion: {
                     field: 'trials.solutes_present.autocomplete',
                     fuzzy: {},
@@ -156,7 +157,7 @@ export default {
                   },
                 },
                 polymerSuggestions: {
-  
+
                   completion: {
                     field: 'trials.membrane_or_polymer.autocomplete',
                     fuzzy: {},
@@ -164,7 +165,7 @@ export default {
                   },
                 },
                 institutionSuggestions: {
-  
+
                   completion: {
                     field: 'researcher.institution.autocomplete',
                     fuzzy: {},
@@ -216,14 +217,14 @@ export default {
     },
     onArrowDown() {
       if (this.arrowCounter < this.suggestions.length - 1) {
-        this.arrowCounter = this.arrowCounter + 1;
+        this.arrowCounter += 1;
       } else {
         this.arrowCounter = -1;
       }
     },
     onArrowUp() {
       if (this.arrowCounter >= 0) {
-        this.arrowCounter = this.arrowCounter - 1;
+        this.arrowCounter -= 1;
       } else {
         this.arrowCounter = this.suggestions.length - 1;
       }

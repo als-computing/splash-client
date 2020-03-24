@@ -8,9 +8,9 @@
 
         <b-collapse is-nav id="nav_collapse">
           <b-navbar-nav>
-            
+
             <b-nav-item v-bind:to="'/'">Home</b-nav-item>
-           
+
           </b-navbar-nav>
         </b-collapse>
     </b-navbar>
@@ -22,23 +22,24 @@
 </template>
 
 <script>
-import SearchBar from './components/SearchBar.vue'
+import SearchBar from './components/SearchBar.vue';
+
 export default {
-  //TODO remove to get unit testing to work...will undo 
+  // TODO remove to get unit testing to work...will undo
   // computed : {
   //   isLoggedIn : function(){ return this.$store.getters.isLoggedIn}
   // },
   methods: {
-    logout: function () {
+    logout() {
       this.$store.dispatch('logout')
-      .then(() => {
-        this.$router.push('/login')
-      })
-    }
+        .then(() => {
+          this.$router.push('/login');
+        });
+    },
   },
   components: {
     SearchBar,
-  }, 
+  },
 //   created: function () {
 //     this.$http.interceptors.response.use(undefined, function (err) {
 //       return new Promise(function (resolve, reject) {
@@ -49,7 +50,7 @@ export default {
 //       });
 //     });
 //   }
-}
+};
 </script>
 
 
