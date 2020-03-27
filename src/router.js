@@ -28,41 +28,22 @@ export default new Router({
       // which is lazy-loaded when the route is visited.
       component: () => import(/* webpackChunkName: "compounds" */ './views/Compounds.vue')
     },
-    {
-      path: '/runs/:name',
-      name: 'runs',
-      component: () => import(/* webpackChunkName: "run" */ './views/RunDataCJS.vue')
-    },
-    {
-      path: '/bokeh/:uid',
-      name: 'bokeh',
-      component: () => import(/* webpackChunkName: "run" */ './views/RunDataBokeh.vue')
-    },
-    {
-      path: '/bokehjs/:uid',
-      name: 'bokehjs',
-      component: () => import(/* webpackChunkName: "run" */ './views/RunDataBokehAllJS.vue')
-    },
-    {
-      path: '/rund3/:uid',
-      name: 'rund3',
-      component: () => import(/* webpackChunkName: "run" */ './views/RunDataD3.vue')
-    },
+  
     {
       path: '/compound/:name',
       name: 'compound',
       component: () => import(/* webpackChunkName: "compound" */ './views/Compound.vue')
       //component: Compound
     },
-    {
-      path: '/runschartjs/:name',
-      name: 'runschartjs',
-      component: () => import(/* webpackChunkName: "run" */ './views/RunData.vue')
-    },
+
     { 
         path: '/experiments',
         name: 'experiments',
         component: () => import(/* webpackChunkName: "experiments" */ './views/Experiments.vue')
+    },
+    {
+        path: '/api',
+      
     }
   ]
 })
