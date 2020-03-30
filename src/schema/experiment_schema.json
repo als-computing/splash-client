@@ -1,0 +1,126 @@
+{
+    "definitions": {},
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://example.com/root.json",
+    "type": "object",
+    "title": "The Root Schema",
+    "required": [
+      "name",
+      "technique",
+      "experiment_metadata",
+      "researcher",
+      "experimental_conditions",
+      "trials"
+    ],
+    "properties": {
+      "name": {
+        "$id": "#/properties/name",
+        "type": "string",
+        "title": "The Name Schema",
+        "default": "",
+        "examples": [
+          "Ion Exchange Membrane Sorption Tests"
+        ],
+        "pattern": "^(.*)$"
+      },
+      "technique": {
+        "$id": "#/properties/technique",
+        "type": "object",
+        "title": "The Technique Schema",
+        "required": [
+          "name",
+          "technique_metadata"
+        ],
+        "properties": {
+          "name": {
+            "$id": "#/properties/technique/properties/name",
+            "type": "string",
+            "title": "The Name Schema",
+            "default": "",
+            "examples": [
+              "ion_exhcange_counter_and_mobile"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "technique_metadata": {
+            "$id": "#/properties/technique/properties/technique_metadata",
+            "type": "object",
+            "title": "The Technique_metadata Schema"
+          }
+        }
+      },
+      "experiment_metadata": {
+        "$id": "#/properties/experiment_metadata",
+        "type": "object",
+        "title": "The Experiment_metadata Schema"
+      },
+      "researcher": {
+        "$id": "#/properties/researcher",
+        "type": "object",
+        "title": "The Researcher Schema",
+        "required": [
+          "mwet_id",
+          "name",
+          "group",
+          "institution"
+        ],
+        "properties": {
+          "mwet_id": {
+            "$id": "#/properties/researcher/properties/mwet_id",
+            "type": "string",
+            "title": "The Mwet_id Schema",
+            "default": "",
+            "examples": [
+              "foo2"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "name": {
+            "$id": "#/properties/researcher/properties/name",
+            "type": "string",
+            "title": "The Name Schema",
+            "default": "",
+            "examples": [
+              "Rahul Sujanani"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "group": {
+            "$id": "#/properties/researcher/properties/group",
+            "type": "string",
+            "title": "The Group Schema",
+            "default": "",
+            "examples": [
+              "Freeman"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "institution": {
+            "$id": "#/properties/researcher/properties/institution",
+            "type": "string",
+            "title": "The Institution Schema",
+            "default": "",
+            "examples": [
+              "UT"
+            ],
+            "pattern": "^(.*)$"
+          }
+        }
+      },
+      "experimental_conditions": {
+        "$id": "#/properties/experimental_conditions",
+        "type": "object",
+        "title": "The Experimental_conditions Schema"
+      },
+      "trials": {
+        "$id": "#/properties/trials",
+        "type": "array",
+        "title": "The Trials Schema",
+        "items": {
+          "$id": "#/properties/trials/items",
+          "type": "object",
+          "title": "The Items Schema"
+        }
+      }
+    }
+  }

@@ -59,10 +59,30 @@ export default new Router({
       name: 'runschartjs',
       component: () => import(/* webpackChunkName: "run" */ './views/RunData.vue')
     },
-    { 
-        path: '/experiments',
-        name: 'experiments',
-        component: () => import(/* webpackChunkName: "experiments" */ './views/Experiments.vue')
-    }
+    {
+      path: '/experiments',
+      name: 'experiments',
+      component: () => import(/* webpackChunkName: "experiments" */ './views/Experiments.vue')
+    },
+    {
+      path: '/userform',
+      name: 'userform',
+      component: () => import(/* webpackChunkName: "userform" */ './views/DemoApp.vue')
+    },
+    {
+      path: '/adduser',
+      name: 'adduser',
+      component: () => import(/* webpackChunkName: "adduser" */ './views/AddUser.vue')
+    },
+    {
+      path: '/addexperiment',
+      name: 'addexperiment',
+      component: () => import(/* webpackChunkName: "addexperiment" */ './views/AddExperiment.vue')
+    },
+    {
+      path: '/addcompound',
+      name: 'addcompound',
+      component: () => import(/* webpackChunkName: "addcompound" */ './views/AddCompound.vue')
+    },
   ]
 })

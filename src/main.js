@@ -8,6 +8,8 @@ import router from './router'
 import store from './store'
 import './assets/css/main.css'
 import axios from 'axios'
+import Vuetify from "vuetify";
+import "vuetify/dist/vuetify.min.css";
 
 
 Vue.config.productionTip = false
@@ -22,10 +24,13 @@ Vue.use({
     Vue.prototype.$runs_url = process.env.VUE_APP_API_URL + '/runs'
   }
 })
+const vuetifyOptions = { }
+Vue.use(Vuetify)
 
 new Vue({
   router,
   store,
+  vuetify: new Vuetify(vuetifyOptions),
   render: h => h(App)
 }).$mount('#app')
 

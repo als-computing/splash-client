@@ -1,0 +1,23 @@
+{
+    "definitions": {},
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "splash::schema::user",
+    "type": "object",
+    "title": "User Schema",
+    "properties": {
+      "uid": {
+        "description": "unique identifier",
+        "type": "string"
+      },
+      "groups": {
+        "description": "uids of groups that the user belongs to",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1,
+        "uniqueItems": true
+      }
+    },
+    "required": ["uid", "groups"]
+  }
