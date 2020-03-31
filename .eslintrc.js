@@ -1,4 +1,4 @@
-//To integrate with VScode check out this link: https://eslint.vuejs.org/user-guide/#editor-integrations
+// To integrate with VScode check out this link: https://eslint.vuejs.org/user-guide/#editor-integrations
 module.exports = {
   root: true,
   env: {
