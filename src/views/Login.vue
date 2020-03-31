@@ -1,9 +1,9 @@
 <template>
  <div>
    <h1>Welcome to Splash! Please log with your google account. </h1>
-   <meta name="google-signin-client_id" content="495944330919-ispvr4bmb2onnhvsh4n970jsdn1i8ner.apps.googleusercontent.com">
+   <meta name="google-signin-client_id" :content="clientId">
    <form class="login" @submit.prevent="login">
-    <div id="google-signin-button"></div>
+    <div id="google-sign-in-button"> </div>
 
    </form>
  </div>
@@ -16,21 +16,24 @@ export default {
     return {
       email: '',
       password: '',
+      clientId: process.env.VUE_APP_CLIENT_ID.concat('.apps.googleusercontent.com'),
     };
   },
   mounted() {
-    if (!window.gapi) {
-      console.log('"https://apis.google.com/js/api:client.js" needs to be included as a <script>.');
-      return;
-    }
-
     // setup the google login script here so that it's available when mounted
     const googleScript = document.createElement('script');
-    googleScript.setAttribute('src', 'https://apis.google.com/js/api:client.js');
+    googleScript.setAttribute('src', 'https://apis.google.com/js/platform.js?onload=init');
     document.head.appendChild(googleScript);
-    window.gapi.signin2.render('google-signin-button', {
-      onsuccess: this.onSignIn,
-      onFailure: this.onFailure,
+    window.gapi.load('auth2', () => {
+      window.gapi.signin2.render('google-sign-in-button', {
+        scope: 'profile email',
+        width: 240,
+        height: 50,
+        longtitle: true,
+        theme: 'dark',
+        onsuccess: this.onSignIn,
+        onfailure: this.onFailure,
+      });
     });
   },
   methods: {
