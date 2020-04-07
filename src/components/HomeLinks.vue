@@ -48,24 +48,9 @@
     </div>
     <div class="mt-3">
         <b-card-group deck>
-           <b-nav>
-              <b-nav-item v-bind:to="'/userform'">
-                <b-card>Schema2Form Dev</b-card>
-              </b-nav-item>
-            </b-nav>
-            <b-nav>
-              <b-nav-item v-bind:to="'/adduser'">
-                <b-card>Add User </b-card>
-              </b-nav-item>
-            </b-nav>
             <b-nav>
               <b-nav-item v-bind:to="'/addexperiment'">
                 <b-card>Add Experiment </b-card>
-              </b-nav-item>
-            </b-nav>
-            <b-nav>
-              <b-nav-item v-bind:to="'/addcompound'">
-                <b-card>Add Compound </b-card>
               </b-nav-item>
             </b-nav>
         </b-card-group>
