@@ -35,6 +35,7 @@ export default {
         onfailure: this.onFailure,
       });
     });
+    // TODO: Research about the login session state and how to check if you're signed in
   },
   methods: {
     login() {
@@ -44,9 +45,18 @@ export default {
         .then(() => this.$router.push('/'))
         .catch((err) => console.log(err));
     },
+    sendToken(token) {
+      const config = { headers: { 'Content-Type': 'application/json' } };
+      const bodyParameters = {
+        token,
+      };
+      this.$api.post(`${this.$login_url}`, bodyParameters, config).then(console.log).catch(console.log);
+    },
     onFailure() { console.error('Sign in has failed!'); },
     onSignIn(googleUser) {
       const profile = googleUser.getBasicProfile();
+      const idToken = googleUser.getAuthResponse().id_token;
+      this.sendToken(idToken);
       console.log(profile.getGivenName());
     },
   },
