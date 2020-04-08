@@ -85,6 +85,7 @@
 import VJsonschemaForm from '@koumoul/vuetify-jsonschema-form'
 import examples from './examples'
 import hjson from 'hjson' // more tolerant parsing of the schema for easier UX
+import axios from 'axios'
 
 export default {
   name: 'app',
@@ -99,7 +100,8 @@ export default {
       examples,
       example: examples[0],
       formValid: false,
-      options: null
+      options: null,
+      axios: axios,
     }
   },
   mounted() {
@@ -134,6 +136,7 @@ export default {
       this.schema = null
       setTimeout(() => {
         this.options = {
+          httpLib: this.axios,
           debug: true,
           disableAll: false,
           autoFoldObjects: true,
