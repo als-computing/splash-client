@@ -15,7 +15,6 @@
     "chart.js": "^2.8.0",
     "d3": "^5.9.2",
     "flush-promises": "^1.0.2",
-    "hjson": "^3.2.1",
     "install": "^0.13.0",
     "jquery": "^3.4.1",
     "node-sass": "^4.13.1",

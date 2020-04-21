@@ -52,7 +52,6 @@
 <script>
 import VJsonschemaForm from '@koumoul/vuetify-jsonschema-form'
 //import examples from './examples'
-import hjson from 'hjson' // more tolerant parsing of the schema for easier UX
 import axios from 'axios'
 
 export default {
@@ -85,7 +84,7 @@ export default {
   methods: {
     applySchema() {
       try {
-        this.schema = hjson.parse(this.schemaStr)
+        this.schema = JSON.parse(this.schemaStr)
         this.schemaError = null
       } catch (err) {
         this.schemaError = err
@@ -93,7 +92,7 @@ export default {
     },
     formatSchema() {
       try {
-        const schema = hjson.parse(this.schemaStr)
+        const schema = JSON.parse(this.schemaStr)
         this.schemaStr = JSON.stringify(schema, null, 2)
         this.schemaError = null
       } catch (err) {
