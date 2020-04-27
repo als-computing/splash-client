@@ -5,7 +5,7 @@
           
              <b-nav>
               <b-nav-item v-bind:to="'/compounds'">
-                <b-card>Compounds </b-card>
+                <b-card>Model Fluid Platform </b-card>
               </b-nav-item>
              </b-nav>
           
