@@ -7,8 +7,14 @@ import App from './App.vue';
 import router from './router';
 import store from './store/store';
 import './assets/css/main.css';
+import GAuth from 'vue-google-oauth2'
 
-
+const gauthOption = {
+  clientId: process.env.VUE_APP_CLIENT_ID.concat('.apps.googleusercontent.com'),
+  scope: 'profile email',
+  prompt: 'select_account'
+}
+Vue.use(GAuth, gauthOption)
 Vue.use(BootstrapVue);
 
 

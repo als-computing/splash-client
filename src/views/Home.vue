@@ -1,6 +1,7 @@
 <template>
   <div class="home">
   <b-jumbotron>
+
     <HomeLinks/>
   </b-jumbotron>
   </div>

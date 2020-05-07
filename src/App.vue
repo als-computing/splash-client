@@ -2,7 +2,8 @@
   <div id="app">
     <b-navbar toggleable="lg" type="dark" variant="dark">
         <b-navbar-brand href="#">Splash</b-navbar-brand>
-        <router-link to="/about">About</router-link><span v-if="isLoggedIn"> | <a @click="logout">Logout</a></span>
+        
+        <router-link to="/about">About</router-link>
 
         <b-navbar-toggle target="nav_collapse" />
 
@@ -13,11 +14,16 @@
 
           </b-navbar-nav>
         </b-collapse>
+        <div>
+          {{this.$store.state.user.given_name}}
+        </div>
+        <span v-if="isLoggedIn"> | <a @click="logout">Logout</a></span>
     </b-navbar>
     <b-navbar>
       <SearchBar/>
     </b-navbar>
     <router-view/>
+    
   </div>
 </template>
 
@@ -25,10 +31,9 @@
 import SearchBar from './components/SearchBar.vue';
 
 export default {
-  // TODO remove to get unit testing to work...will undo
-  // computed : {
-  //   isLoggedIn : function(){ return this.$store.getters.isLoggedIn}
-  // },
+  computed : {
+    isLoggedIn : function(){ return this.$store.getters.isLoggedIn}
+  },
   methods: {
     logout() {
       this.$store.dispatch('logout')
@@ -40,16 +45,16 @@ export default {
   components: {
     SearchBar,
   },
-//   created: function () {
-//     this.$http.interceptors.response.use(undefined, function (err) {
-//       return new Promise(function (resolve, reject) {
-//         if (err.status === 401 && err.config && !err.config.__isRetryRequest) {
-//           this.$store.dispatch(logout)
-//         }
-//         throw err;
-//       });
-//     });
-//   }
+  created: function () {
+    this.$http.interceptors.response.use(undefined, function (err) {
+      return new Promise(function (resolve, reject) {
+        if (err.status === 401 && err.config && !err.config.__isRetryRequest) {
+          this.$store.dispatch(logout)
+        }
+        throw err;
+      });
+    });
+  }
 };
 </script>
 
