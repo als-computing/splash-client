@@ -9,6 +9,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     status: '',
+    isLoggedIn: false,
     user: {}
   },
 
@@ -19,6 +20,7 @@ export default new Vuex.Store({
     [AUTH_SUCCESS](state, user) {
       state.status = 'success';
       state.user = user;
+      state.isLoggedIn = true;
     },
     [AUTH_ERROR](state) {
       state.status = 'error';
@@ -26,6 +28,8 @@ export default new Vuex.Store({
     [LOGOUT](state) {
       state.status = '';
       state.token = '';
+      state.user = {};
+      state.isLoggedIn = false;
     }
 
   },
@@ -82,7 +86,7 @@ export default new Vuex.Store({
         catch(error){
           console.error(error)
         }
-       
+        commit(LOGOUT)
         resolve();
       });
     },
@@ -90,7 +94,7 @@ export default new Vuex.Store({
 
   },
   getters: {
-    isLoggedIn: (state) => !!state.user,
+    isLoggedIn: (state) => !!state.isLoggedIn,
     authStatus: (state) => state.status,
   },
 });
