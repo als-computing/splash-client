@@ -1,5 +1,6 @@
 process.env.VUE_CLI_BABEL_TARGET_NODE = true;
 process.env.VUE_CLI_BABEL_TRANSPILE_MODULES = true;
+process.env.VUE_APP_CLIENT_ID = "testing_client_id"
 module.exports = {
   collectCoverage: true,
   collectCoverageFrom: ['**/*.{js,vue}', '!**/node_modules/**', '!**/dist/**'],
