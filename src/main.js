@@ -5,7 +5,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css';
 import axios from 'axios';
 import App from './App.vue';
 import router from './router';
-import store from './store/store';
+import store from './store';
 import './assets/css/main.css';
 import GAuth from 'vue-google-oauth2'
 

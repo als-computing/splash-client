@@ -15,7 +15,7 @@
           </b-navbar-nav>
         </b-collapse>
         <div>
-          <!-- {{user}} -->
+          {{user}}
         </div>
         <span v-if="isLoggedIn"> | <a @click="logout">Logout</a></span>
     </b-navbar>
@@ -32,12 +32,12 @@ import SearchBar from './components/SearchBar.vue';
 
 export default {
   computed : {
-    isLoggedIn : function(){ return this.$store.getters.isLoggedIn},
-    user: function(){ return this.$store.state.user.given_name}
+    isLoggedIn : function(){ return this.$store.getters['login/isLoggedIn']},
+    user: function(){ return this.$store.state.login.user.given_name}
   },
   methods: {
     logout() {
-      this.$store.dispatch('logout')
+      this.$store.dispatch('login/logout')
         .then(() => {
           this.$router.push('/login');
         });
