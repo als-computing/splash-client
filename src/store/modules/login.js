@@ -60,6 +60,7 @@ const mutations = {
 
   const getters = {
     isLoggedIn: (state) => !!state.isLoggedIn,
+    user: (state) => state.user,
     authStatus: (state) => state.status,
   }
 

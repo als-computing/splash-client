@@ -1,8 +1,8 @@
 import BootstrapVue from 'bootstrap-vue';
 import VueRouter from 'vue-router';
 import Vuex from 'vuex'
-
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import Vue from 'vue'
+import { mount, shallowMount, createLocalVue } from '@vue/test-utils';
 import App from '@/App.vue';
 import mockAxios from 'axios';
 
@@ -18,27 +18,40 @@ localVue.use({
 })
 
 
-
 describe('App.vue (Search Page)', () => {
+   
+  let getters;
+  let store;
+  let logonUser = {};
+  let isLoggedIn = false
+  const router = new VueRouter();
   beforeEach(() => {
-  
+    getters = {
+      'login/isLoggedIn': () => isLoggedIn,
+      'login/user': () => logonUser
+    };
+
+    store = new Vuex.Store({
+      getters})
   });
-    const store = new Vuex.Store({
-      state: {
-        user: {
-          given_name: "testermctester"
-        }
-      }
-    });
-    const router = new VueRouter();
-    debugger;
-    const wrapper = shallowMount(App, {
-      localVue,
-      router,
-      store,
-    });
 
   it('renders the Search Bar component', () => {
-    expect(wrapper.find({ name: 'SearchBar' }).exists()).toBe(true);
+    const localwrapper =  mount(App, {store, localVue, router});
+    expect(localwrapper.find({ name: 'SearchBar' }).exists()).toBe(true);
   });
+
+  it('shows logged out without store login', async () => {
+    const localwrapper =  mount(App, {store, localVue, router});
+    expect(localwrapper.find("#logout").exists()).toBe(false);
+    expect(localwrapper.find("#user_name").text()).toBe('')
+  });
+
+  it('shows user and logout button when logged in', async () => {
+    logonUser = {given_name: 'zaphod'};
+    isLoggedIn = true;
+    const localwrapper =  mount(App, {store, localVue, router});
+    expect(localwrapper.find("#logout").isVisible()).toBe(true);
+    expect(localwrapper.find("#user_name").text()).toBe('zaphod')
+  });
+
 });

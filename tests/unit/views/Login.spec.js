@@ -23,11 +23,11 @@ describe('App', () => {
   it('renders a child component via routing', () => {
     const router = new VueRouter({ routes });
     const store = new Vuex.Store({
-      state: {
+      state: {login:{
         user: {
           given_name: "testermctester"
         }
-      }
+      }}
     });
     const wrapper = mount(App, { localVue, router, store });
 
