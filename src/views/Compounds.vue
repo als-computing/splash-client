@@ -37,7 +37,7 @@ export default {
   },
   methods: {
     rowClickHandler(compound) {
-      this.$router.push({ path: `compound/${compound.uid}` });
+      this.$router.push({ path: `compounds/${compound.uid}` });
     },
     createCompoundHandler(compound_name) {
       try {

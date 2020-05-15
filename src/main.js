@@ -32,8 +32,7 @@ Vue.use({
     Vue.prototype.$api = axios.create({
       baseURL: api_url,
     });
-    Vue.prototype.$compounds_url = `${process.env.VUE_APP_API_URL}/compounds`;
-    Vue.prototype.$runs_url = `${process.env.VUE_APP_API_URL}/runs`;
+    Vue.prototype.$compounds_url = 'compounds';
     Vue.prototype.$login_url = 'tokensignin';
   },
 });
