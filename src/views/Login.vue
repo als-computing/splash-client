@@ -69,7 +69,7 @@ export default {
       const idToken = googleUser.getAuthResponse().id_token;
       let response = await this.sendGToken(idToken);
       try{
-        const user = JSON.parse(response.data.user)
+        const user = response.data.user
         this.$store.dispatch('login/login', user)
         this.$router.push('/')
       }
