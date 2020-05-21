@@ -13,9 +13,7 @@ const state = () => ({
   })
 
 const mutations = {
-    [AUTH_REQUEST](state) {
-      state.status = 'loading';
-    },
+
     [AUTH_SUCCESS](state, user) {
       state.status = 'success';
       state.user = user;
@@ -35,9 +33,7 @@ const mutations = {
 
   const actions = {
     login({ commit }, user) {
-        commit(AUTH_REQUEST);
         commit(AUTH_SUCCESS, user);
- 
     },
 
 

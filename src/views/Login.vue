@@ -51,6 +51,7 @@ export default {
       const bodyParameters = {
         token,
       };
+      
       try{
         let response = await this.$api.post(`${this.$login_url}`, bodyParameters, config);
         return response
@@ -75,6 +76,7 @@ export default {
       }
       catch(error){
         console.error(error)
+        this.$store.dispatch('login/logout')
       }
     },
   },

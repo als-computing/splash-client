@@ -3,7 +3,7 @@ import CreateUpdateExperiment from './views/CreateUpdateExperiment.vue';
 import Experiments from './views/Experiments.vue';
 import Home from './views/Home.vue';
 import Login from './views/Login.vue';
-import Register from './views/Register.vue';
+// import Register from './views/Register.vue';
 import SearchPage from './views/SearchPage.vue';
 
 export default [
@@ -23,6 +23,9 @@ export default [
     path: '/search',
     name: 'searchPage',
     component: SearchPage,
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: '/compounds',
@@ -53,11 +56,6 @@ export default [
     name: 'login',
     component: Login,
 
-  },
-  {
-    path: '/register',
-    name: 'register',
-    component: Register,
   },
 
 ];
