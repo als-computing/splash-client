@@ -36,7 +36,7 @@
 
 <script>
 
-import ExperimentLineChart from '@/components/ExperimentLineChart.vue';
+// import ExperimentLineChart from '@/components/ExperimentLineChart.vue';
 import ReadField from '@/components/ReadField.vue';
 
 export default {
@@ -67,7 +67,7 @@ export default {
     },
   },
   components: {
-    ReadField, ExperimentLineChart,
+    ReadField,
   },
 
 
