@@ -1,3 +1,4 @@
+import Compound from './views/Compound.vue';
 import Compounds from './views/Compounds.vue';
 import CreateUpdateExperiment from './views/CreateUpdateExperiment.vue';
 import Experiments from './views/Experiments.vue';
@@ -10,6 +11,12 @@ export default [
   {
     path: '/index.html',
     redirect: '/',
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: Login,
+
   },
   {
     path: '/',
@@ -36,6 +43,14 @@ export default [
     },
   },
   {
+    path: '/compound/:uid',
+    name: 'compound',
+    component: Compound,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
     path: '/experiments',
     name: 'experiments',
     component: Experiments,
@@ -43,19 +58,6 @@ export default [
       requiresAuth: true,
     },
   },
-  {
-    path: '/new-experiment',
-    name: 'new-experiment',
-    component: CreateUpdateExperiment,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: '/login',
-    name: 'login',
-    component: Login,
 
-  },
 
 ];
