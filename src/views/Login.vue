@@ -46,33 +46,36 @@ export default {
   },
 
   methods: {
-    async sendGToken(token) {
-      const config = { headers: { 'Content-Type': 'application/json' } };
-      const bodyParameters = {
-        token,
-      };
-      
-      try{
-        let response = await this.$api.post(`${this.$login_url}`, bodyParameters, config);
-        return response
-      }
-      catch(error){
-        console.error('Failure!');
-        console.error(error.response.status);
-      }
-      
-    },
+  
 
-    onFailure() { console.error('Sign in has failed!'); },
+    onFailure(error) { 
+      console.error('Sign in has failed!'); 
+    },
     
     async onSignIn(googleUser) {
       const profile = googleUser.getBasicProfile();
       const idToken = googleUser.getAuthResponse().id_token;
-      let response = await this.sendGToken(idToken);
+      
       try{
-        const user = response.data.user
-        this.$store.dispatch('login/login', user)
-        this.$router.push('/')
+        const config = { headers: { 'Content-Type': 'application/json' } };
+        
+        try{
+          let response = await this.$api.post(this.$login_url, {token: idToken}, config)
+          console.log(response.data);
+          localStorage.setItem('api_access_token', response.data.access_token);
+          this.$store.commit('login/AUTH_SUCCESS', {
+            user: response.data.user, 
+            api_access_token: response.data.access_token
+          });   
+          this.$router.push('/')  
+                  
+        }
+        catch(error){
+          console.error('Failure!');
+          // this.$store.commit('login/AUTH_ERROR', error);
+          // localStorage.removeItem('api_access_token')
+        }
+          
       }
       catch(error){
         console.error(error)

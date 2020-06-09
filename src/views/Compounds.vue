@@ -34,7 +34,7 @@
             </b-row>
         </b-container>
     </div>
-    <b-table striped hover :items="compounds" :fields="fields" responsive="true" @row-clicked="rowClickHandler">
+    <b-table striped hover  :items="myProvider" :fields="fields" responsive="true" @row-clicked="rowClickHandler">
    
     </b-table>
   </div>
@@ -47,7 +47,7 @@
        
         data() {
             return {
-                fields: ['Name', 'Fundamental Treatment Challenges'],
+                fields: ['species', 'fundamental_relevance'],
                 compounds:[],
                 errors:[],
                 new_compound_name: '',
@@ -56,33 +56,26 @@
                 }
             }
         },
-        created(){
-            this.$api.get(this.$compounds_url)
-            .then(response=>{
-                this.compounds = response.data
-            })
-            .catch(e =>{
-               // this.errors.put(e)
-            });
-        },
+
+
+        // created(){
+            
+        // },
         methods:{
+            myProvider(ctx, callback){
+                const config = { headers: { 'Content-Type': 'application/json' } };
+                this.$api.get(this.$compounds_url, config)
+                .then(response=>{
+                    callback(response.data.results)
+                })
+                .catch(e =>{
+                    console.log(e)
+                });
+            },
             rowClickHandler: function(compound){
                 this.$router.push({path: 'compound/' + compound.uid})
             },
-            createCompoundHandler: function(compound_name){
-                try{
-                    this.$api.get(this.$compounds_url + "/" + this.new_compound_name, JSON.stringify({"name": this.new_compound_name}))
-                    .then(responds =>{
-                        console.log("created");
-                    })
-                    .catch(e =>{
-                        console.log(e)
-                    })
-                }
-                catch(exception){
-
-      }
-    },
+            
   },
 };
 

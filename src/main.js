@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import Router from 'vue-router';
 import BootstrapVue from 'bootstrap-vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
@@ -16,7 +17,7 @@ const gauthOption = {
 }
 Vue.use(GAuth, gauthOption)
 Vue.use(BootstrapVue);
-
+Vue.use(Router);
 
 Vue.config.productionTip = false;
 
@@ -26,9 +27,9 @@ Vue.use({
     if (api_url == null) {
       api_url = '/api';
     }
-    Vue.prototype.$http = axios.create({
+    // Vue.prototype.$http = axios.create({
 
-    });
+    // });
     Vue.prototype.$api = axios.create({
       baseURL: api_url,
     });

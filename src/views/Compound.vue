@@ -1,21 +1,25 @@
 <template>
   <div class="compound">
-    <h1>{{compound.name}}</h1>
+    <h1>{{compound.species}}</h1>
     <b-jumbotron>
         <b-card-group deck>
-            <ReadField name="name" v-bind:value="compound.name" />
-            <ReadField name="document" v-bind:value="compound.document" />
-            <ReadField name="water relevance" v-bind:value="compound.produced_water_relevance" />
-            <ReadField name="mwet relevance" v-bind:value="compound.mwet_relevance" />
-            <ReadField name="challenges" v-bind:value="compound.challenges" />
-            <ReadField name="aqueous properties" v-bind:value="compound.aqueous_props" />
-            <ReadField name="adsorption properties" v-bind:value="compound.adsorption_props" />
-            <ReadField name="analytical techniques" v-bind:value="compound.analytical_techniques" />
-            <ReadField name="spectroscopictechniques" v-bind:value="compound.spectroscopic_techniques" />
+            <ReadField name="Produced Water Relevance" v-bind:value="compound.produced_water_relevance" />
+            <ReadField name="Origin" v-bind:value="compound.origin" />
+            <ReadField name="Fundamental Relevance" v-bind:value="compound.fundamental_relevance" />
+            <ReadField name="Molecular Weight" v-bind:value="compound.molecular_weight" />
+            <ReadField name="Aqueous Species" v-bind:value="compound.aqueous_species" />
+            <ReadField name="pKa" v-bind:value="compound.pka" />
+            <ReadField name="Adsorption Properties" v-bind:value="compound.adsorption" />
+            <ReadField name="Analytical Techniques" v-bind:value="compound.analytical" />
+            <ReadField name="Spectroscopic Techniques" v-bind:value="compound.spectroscopic" />
+            <ReadField name="Chemical Reference" v-bind:value="compound.chem_reference" />
+            <ReadField name="MSDS" v-bind:value="compound.msds" />
+            <ReadField name="Purchase Options" v-bind:value="compound.purchase_options" />
+            <ReadField name="Contributors" v-bind:value="compound.contributors" />
 
         </b-card-group>
     </b-jumbotron>
-    <b-jumbotron>
+    <!-- <b-jumbotron>
         <h2>Experiments</h2>
 
         <b-container class="bv-example-row">
@@ -27,7 +31,7 @@
         </b-container>
 
 
-    </b-jumbotron>
+    </b-jumbotron> -->
   <b-jumbotron>
       {{compound.documentation}}
   </b-jumbotron>
@@ -51,10 +55,10 @@ export default {
     };
   },
   created() {
-    this.$api.get(`${this.$compounds_url}/${this.$route.params.name}`)
+    this.$api.get(`${this.$compounds_url}/${this.$route.params.uid}`)
       .then((response) => {
         this.compound = response.data;
-        this.open_experiment = response.data.experiments[0];
+        // this.open_experiment = response.data.experiments[0];
       })
       .catch((e) => {
         // this.errors.put(e)

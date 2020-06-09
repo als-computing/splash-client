@@ -4,22 +4,32 @@ import Router from 'vue-router';
 import routes from './routes.js';
 import store from './store';
 
-Vue.use(Router);
 
 const router = new Router({
   routes,
+  mode: 'history',
+  store: store
 });
 
 router.beforeEach((to, from, next) => {
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (store.getters['login/isLoggedIn']) {
+    let isAuth = store.getters['login/isLoggedIn']
+   
+    if (isAuth) {
       next();
       return;
     }
-    next('/login');
-  } else {
-    next();
-  }
+    try{
+      next('/login');
+      return;
+    }
+    catch(error){
+      console.error(error)
+      
+    }
+   
+  } 
+  next(); 
 });
 export default router;

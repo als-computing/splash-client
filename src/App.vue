@@ -48,10 +48,24 @@ export default {
     SearchBar,
   },
   created: function () {
-    this.$http.interceptors.response.use(undefined, function (err) {
+    const store = this.$store;
+    const router = this.$router;
+    this.$api.interceptors.request.use( function(request){
+        let access_token = store.getters['login/api_access_token']
+        if (access_token === ""){
+          return request;
+        }
+        request.headers['Authorization'] = 'Bearer ' + access_token;
+        return request;
+      }
+    );
+    this.$api.interceptors.response.use(undefined, function (err) {
       return new Promise(function (resolve, reject) {
-        if (err.status === 401 && err.config && !err.config.__isRetryRequest) {
-          this.$store.dispatch(logout)
+        if (err.response.status === 401 && err.config && !err.config.__isRetryRequest) {
+          store.dispatch('login/logout').then(() => {
+            router.push('/login')
+          })
+         
         }
         throw err;  
       });

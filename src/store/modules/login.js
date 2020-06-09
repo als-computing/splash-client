@@ -1,66 +1,75 @@
 import Vue from 'vue';
-import Vuex from 'vuex';
 import {
-  AUTH_REQUEST, AUTH_SUCCESS, AUTH_ERROR, LOGOUT
+   AUTH_SUCCESS, AUTH_ERROR, LOGOUT
 } from './login-mutation-types';
+import { local } from 'd3';
 
 
 
 const state = () => ({
     status: '',
-    isLoggedIn: false,
-    user: {}
+    user: {},
+    api_access_token: localStorage.getItem("api_access_token") || ""
   })
 
 const mutations = {
 
-    [AUTH_SUCCESS](state, user) {
+    [AUTH_SUCCESS](state, payload) {
       state.status = 'success';
-      state.user = user;
-      state.isLoggedIn = true;
+      state.user = payload.user;
+      state.api_access_token = payload.api_access_token
     },
     [AUTH_ERROR](state) {
       state.status = 'error';
     },
     [LOGOUT](state) {
       state.status = '';
-      state.token = '';
       state.user = {};
-      state.isLoggedIn = false;
+      localStorage.removeItem("api_access_token"); 
     }
-
   }
 
   const actions = {
-    login({ commit }, user) {
-        commit(AUTH_SUCCESS, user);
-    },
-
-
     logout({ commit }) {
-    
         commit(LOGOUT);
-        // delete axios.defaults.headers.common.Authorization;
         var auth2 = Vue.prototype.$gAuth
-        try{
           auth2.signOut()
-        }
-        catch(error){
-          console.error(error)
-        }
-        commit(LOGOUT)
+            .then(() => console.log("User signed out of google"))
+            .error((error) => console.error(error));
+  },
+  async sendOAuthToken({ commit }, token) {
+      // Sends auth token to api server to be validated. If
+      // validated, api server will generate own acces token
+      const config = { headers: { 'Content-Type': 'application/json' } };
+      const bodyParameters = {
+        token,
+      };
+      
+      try{
+        let response = await Vue.prototype.$api.post(Vue.prototype.$login_url, bodyParameters, config)
+        localStorage.setItem('api_access_token', response.data.access_token); //TODO store the refresh-token provided
+        commit(AUTH_SUCCESS, {
+          user: response.data.user, 
+          api_access_token: response.data.access_token});        
+      }
+      catch(error){
+        console.error('Failure!');
+        commit(AUTH_ERROR, error);
+            localStorage.removeItem('api_access_token')
+      }
+      
     },
-
 
   }
 
   const getters = {
-    isLoggedIn: (state) => !!state.isLoggedIn,
+    isLoggedIn: state => !!state.api_access_token,
     user: (state) => state.user,
+    api_access_token: (state) => state.api_access_token,
     authStatus: (state) => state.status,
-  }
+  };
 
-
+ 
 export default {
     namespaced: true,
     state,

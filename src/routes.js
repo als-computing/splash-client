@@ -15,7 +15,7 @@ export default [
   {
     path: '/login',
     name: 'login',
-    component: Login,
+    component: Login
 
   },
   {
@@ -56,8 +56,7 @@ export default [
     component: Experiments,
     meta: {
       requiresAuth: true,
-    },
-  },
-
+    }
+  }
 
 ];
