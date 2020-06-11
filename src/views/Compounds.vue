@@ -12,7 +12,7 @@
     -->
     <div style="text-align: left;">
       
-        <b-container fluid>
+        <b-container id="mfp_main" fluid>
             <b-row>
                 <b-col cols="8" md="auto">
                     <b-jumbotron>
@@ -85,5 +85,8 @@
 #edit-container {
   margin: 5px;
   height: 40px
+}
+#mfp_main{
+    font-size: 0.7em;
 }
 </style>
