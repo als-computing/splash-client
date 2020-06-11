@@ -1,8 +1,8 @@
 <template>
- <div>
-   <b-card  
-      title="Welcome to Splash!"
-      style="max-width: 20rem;">
+ <div class="col d-flex justify-content-center">
+   <b-card 
+      class=".mx-auto" 
+      title="Welcome to Splash!">
      <b-card-text>
       Please log with a google account
     </b-card-text>
