@@ -38,14 +38,6 @@
 
 <script>
 import SearchBar from '@/components/SearchBar.vue';
-import axios from 'axios';
-
-const axiosInst = axios.create({
-  baseURL: '/search',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 export default {
   name: 'SearchPage',
@@ -84,6 +76,7 @@ export default {
     },
 
     search() {
+      let ENDPOINT = this.$elastic_index_url;
       this.searchResults = [];
       let page;
       if (!this.$route.query.query) this.$router.replace('/');
@@ -101,8 +94,8 @@ export default {
         }
         page = Number(this.currPageComputed);
 
-        axiosInst
-          .post('/research_experiments/_search', {
+        this.$search
+          .post(ENDPOINT, {
             from: (page - 1) * 10,
             query: {
               multi_match: {
@@ -152,7 +145,7 @@ export default {
 
             // if no results, query again but this time allow fuzziness
             if (this.searchResults.length === 0) {
-              return axiosInst.post('/research_experiments/_search', {
+              return this.$search.post(ENDPOINT, {
                 from: (page - 1) * 10,
                 query: {
                   multi_match: {

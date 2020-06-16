@@ -27,14 +27,22 @@ Vue.use({
     if (api_url == null) {
       api_url = '/api';
     }
+    let search_url = process.env.VUE_APP_API_URL;
+    if (search_url == null) {
+      search_url = '/elasticsearch';
+    }
     // Vue.prototype.$http = axios.create({
 
     // });
     Vue.prototype.$api = axios.create({
       baseURL: api_url,
     });
+    Vue.prototype.$search = axios.create({
+      baseURL: search_url,
+    })
     Vue.prototype.$compounds_url = 'compounds';
     Vue.prototype.$login_url = 'tokensignin';
+    Vue.prototype.$elastic_index_url = 'experiments1/_search';
   },
 });
 

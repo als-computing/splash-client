@@ -31,7 +31,7 @@ export default [
     name: 'searchPage',
     component: SearchPage,
     meta: {
-      requiresAuth: true,
+      requiresAuth: true
     },
   },
   {

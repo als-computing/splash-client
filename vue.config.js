@@ -19,6 +19,15 @@ module.exports = {
         changeOrigin: true,
 
       },
+      '^/elasticsearch': {
+        target: 'http://127.0.0.1:80',
+        logLevel: 'debug',
+        ws: true,
+        changeOrigin: true,
+        pathRewrite: {
+          '^/elasticsearch': '/search'
+        }
+      }
 
     },
   },
