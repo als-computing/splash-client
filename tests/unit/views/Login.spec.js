@@ -13,7 +13,7 @@ localVue.use(BootstrapVue);
 localVue.use(Vuex);
 localVue.use({
   install(Vue) {
-    Vue.prototype.$http = mockAxios.create();
+    Vue.prototype.$api = mockAxios.create();
   },
 });
 
