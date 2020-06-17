@@ -1,6 +1,6 @@
 import Compound from './views/Compound.vue';
 import Compounds from './views/Compounds.vue';
-import CreateUpdateExperiment from './views/CreateUpdateExperiment.vue';
+// import CreateUpdateExperiment from './views/CreateUpdateExperiment.vue';
 import Experiments from './views/Experiments.vue';
 import Home from './views/Home.vue';
 import Login from './views/Login.vue';
@@ -15,7 +15,7 @@ export default [
   {
     path: '/login',
     name: 'login',
-    component: Login
+    component: Login,
 
   },
   {
@@ -56,7 +56,7 @@ export default [
     component: Experiments,
     meta: {
       requiresAuth: true,
-    }
-  }
+    },
+  },
 
 ];

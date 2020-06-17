@@ -11,7 +11,9 @@
                         <p><b>Researcher</b>: {{result.researcherName}}</p>
                         <p><b>Group</b>: {{result.researcherGroup}}</p>
                         <p><b>Solutes Present</b>:
-                        <span v-for="(solute, i) in result.solutesPresent" v-bind:key="i">{{ solute }},</span></p>
+                        <span v-for="(solute, i) in result.solutesPresent" v-bind:key="i">
+                          {{ solute }},
+                          </span></p>
                     </div>
                     <div class="col-sm-6">
                         <p><b>Polymer</b>: {{result.polymer}}</p>
@@ -38,14 +40,6 @@
 
 <script>
 import SearchBar from '@/components/SearchBar.vue';
-import axios from 'axios';
-
-const axiosInst = axios.create({
-  baseURL: '/search',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 export default {
   name: 'SearchPage',
@@ -59,9 +53,9 @@ export default {
       noResults: false,
       /* For some reason we need two separate current page references
       currPageOnNextTick is referenced by the b-pagination-nav component
-      it is updated on nextTick inside the search function. If we don't do this, and I really have no idea why
-      the b-pagination-nav will go crazy and be buggy, maybe it has something to do with
-      the DOM cycle being weird? */
+      it is updated on nextTick inside the search function. If we don't do this,
+      and I really have no idea why, the b-pagination-nav will go crazy and be buggy,
+      maybe it has something to do with the DOM cycle being weird? */
       currPageOnNextTick: 0,
     };
   },
@@ -84,6 +78,7 @@ export default {
     },
 
     search() {
+      const ENDPOINT = this.$elastic_index_url;
       this.searchResults = [];
       let page;
       if (!this.$route.query.query) this.$router.replace('/');
@@ -101,8 +96,8 @@ export default {
         }
         page = Number(this.currPageComputed);
 
-        axiosInst
-          .post('/research_experiments/_search', {
+        this.$search
+          .post(ENDPOINT, {
             from: (page - 1) * 10,
             query: {
               multi_match: {
@@ -152,7 +147,7 @@ export default {
 
             // if no results, query again but this time allow fuzziness
             if (this.searchResults.length === 0) {
-              return axiosInst.post('/research_experiments/_search', {
+              return this.$search.post(ENDPOINT, {
                 from: (page - 1) * 10,
                 query: {
                   multi_match: {
