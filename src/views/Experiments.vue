@@ -1,7 +1,8 @@
 <template>
   <div>
     <b-button v-bind:to="'/new-experiment'">New Experiment</b-button>
-    <b-table striped hover :items="experiments" :fields="fields" responsive="true" @row-clicked="rowClickHandler">
+    <b-table striped hover :items="experiments" :fields="fields" responsive="true"
+    @row-clicked="rowClickHandler">
     </b-table>
     <div class="footer navbar fixed-bottom justify-content-center">
       <b-pagination-nav

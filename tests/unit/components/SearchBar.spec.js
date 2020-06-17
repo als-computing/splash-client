@@ -1,18 +1,29 @@
 import BootstrapVue from 'bootstrap-vue';
 import VueRouter from 'vue-router';
-import { mount, shallowMount, createLocalVue } from '@vue/test-utils';
+import { mount, /* shallowMount, */ createLocalVue } from '@vue/test-utils';
 import mockAxios from 'axios';
 import SearchBar from '@/components/SearchBar.vue';
-import responses from './responses.js';
+import responses from './responses';
 
-const util = require('util');
+// const util = require('util');
 const flushPromises = require('flush-promises');
-
 
 const localVue = createLocalVue();
 
 localVue.use(BootstrapVue);
 localVue.use(VueRouter);
+
+localVue.use(
+  {
+    install(Vue) {
+      const searchUrl = '/elasticsearch';
+      Vue.prototype.$search = mockAxios.create({
+        baseURL: searchUrl,
+      });
+      Vue.prototype.$elastic_index_url = 'experiments1/_search';
+    },
+  },
+);
 const router = new VueRouter();
 
 describe('SearchBar Component', () => {
@@ -40,7 +51,7 @@ describe('SearchBar Component', () => {
     searchInputTextField.trigger('input');
     wrapper.vm.$nextTick(() => {
       expect(mockAxios.post).toHaveBeenCalledTimes(1);
-      expect(mockAxios.post.mock.calls[0][0]).toBe('/research_experiments/_search');
+      expect(mockAxios.post.mock.calls[0][0]).toBe(localVue.prototype.$elastic_index_url);
       expect(mockAxios.post.mock.calls[0][1].suggest.text).toBe('s');
       done();
     });
@@ -54,11 +65,12 @@ describe('SearchBar Component', () => {
     searchInputTextField.trigger('input');
     wrapper.vm.$nextTick(() => {
       expect(mockAxios.post).toHaveBeenCalledTimes(2);
-      expect(mockAxios.post.mock.calls[1][0]).toBe('/research_experiments/_search');
+      expect(mockAxios.post.mock.calls[1][0]).toBe(localVue.prototype.$elastic_index_url);
       expect(mockAxios.post.mock.calls[1][1].suggest.text).toBe('fd');
       Object.keys(mockAxios.post.mock.calls[1][1].suggest).forEach((key, index) => {
         if (!mockAxios.post.mock.calls[1][1].suggest[key].hasOwnProperty.completion) return;
-        expect(mockAxios.post.mock.calls[1][1].suggest[key].completion).toEqual(expect.objectContaining({ fuzzy: {} }));
+        expect(mockAxios.post.mock.calls[1][1].suggest[key].completion)
+          .toEqual(expect.objectContaining({ fuzzy: {} }));
       });
       done();
     });
@@ -89,7 +101,8 @@ describe('SearchBar Component', () => {
         'santa cruz',
       ];
       const displayedSuggestionsText = displayedSuggestions.wrappers.map((elem) => elem.text());
-      expect(JSON.stringify(displayedSuggestionsText)).toEqual(JSON.stringify(expectedSuggestionsText));
+      expect(JSON.stringify(displayedSuggestionsText))
+        .toEqual(JSON.stringify(expectedSuggestionsText));
       done();
     });
   });
@@ -121,7 +134,8 @@ describe('SearchBar Component', () => {
       'mit',
     ];
     const displayedSuggestionsText = displayedSuggestions.wrappers.map((elem) => elem.text());
-    expect(JSON.stringify(displayedSuggestionsText)).toEqual(JSON.stringify(expectedSuggestionsText));
+    expect(JSON.stringify(displayedSuggestionsText))
+      .toEqual(JSON.stringify(expectedSuggestionsText));
     done();
   });
 

@@ -15,7 +15,9 @@
         @keydown.esc="handleEsc">
         </b-form-input>
         <b-input-group-append>
-            <b-button class= "search-button" size="sm" text="Button" @click="goToSearch">Search</b-button>
+            <b-button class= "search-button" size="sm" text="Button" @click="goToSearch">
+              Search
+            </b-button>
         </b-input-group-append>
       </b-input-group>
       <ul v-show="suggestions.length>0"
@@ -33,15 +35,6 @@
 </template>
 
 <script>
-
-import axios from 'axios';
-
-const axiosInst = axios.create({
-  baseURL: '/search',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 export default {
   name: 'SearchBar',
   data() {
@@ -53,7 +46,8 @@ export default {
   },
   methods: {
     updateSuggestions() {
-      axiosInst.post('/research_experiments/_search',
+      const ENDPOINT = this.$elastic_index_url;
+      this.$search.post(ENDPOINT,
         {
           _source: ['researcherNameSuggestions.options.text', 'experimentNameSuggestions.options.text', 'groupNameSuggestions.options.text', 'solutesSuggestions.options.text', 'polymerSuggestions.options.text', 'institutionSuggestions.options.text'],
           suggest: {
@@ -119,7 +113,7 @@ export default {
         // if no results perform a fuzzy query,
         // it's equal to 1 because the displayed input is always part of the suggested results
         if (this.suggestions.length === 0) {
-          return axiosInst.post('/research_experiments/_search',
+          return this.$search.post(ENDPOINT,
             {
               _source: ['researcherNameSuggestions.options.text', 'experimentNameSuggestions.options.text', 'groupNameSuggestions.options.text', 'solutesSuggestions.options.text', 'polymerSuggestions.options.text', 'institutionSuggestions.options.text'],
               suggest: {
