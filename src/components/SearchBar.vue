@@ -15,7 +15,9 @@
         @keydown.esc="handleEsc">
         </b-form-input>
         <b-input-group-append>
-            <b-button class= "search-button" size="sm" text="Button" @click="goToSearch">Search</b-button>
+            <b-button class= "search-button" size="sm" text="Button" @click="goToSearch">
+              Search
+            </b-button>
         </b-input-group-append>
       </b-input-group>
       <ul v-show="suggestions.length>0"
@@ -44,7 +46,7 @@ export default {
   },
   methods: {
     updateSuggestions() {
-      let ENDPOINT = this.$elastic_index_url
+      const ENDPOINT = this.$elastic_index_url;
       this.$search.post(ENDPOINT,
         {
           _source: ['researcherNameSuggestions.options.text', 'experimentNameSuggestions.options.text', 'groupNameSuggestions.options.text', 'solutesSuggestions.options.text', 'polymerSuggestions.options.text', 'institutionSuggestions.options.text'],

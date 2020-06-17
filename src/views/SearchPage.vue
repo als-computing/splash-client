@@ -11,7 +11,9 @@
                         <p><b>Researcher</b>: {{result.researcherName}}</p>
                         <p><b>Group</b>: {{result.researcherGroup}}</p>
                         <p><b>Solutes Present</b>:
-                        <span v-for="(solute, i) in result.solutesPresent" v-bind:key="i">{{ solute }},</span></p>
+                        <span v-for="(solute, i) in result.solutesPresent" v-bind:key="i">
+                          {{ solute }},
+                          </span></p>
                     </div>
                     <div class="col-sm-6">
                         <p><b>Polymer</b>: {{result.polymer}}</p>
@@ -51,9 +53,9 @@ export default {
       noResults: false,
       /* For some reason we need two separate current page references
       currPageOnNextTick is referenced by the b-pagination-nav component
-      it is updated on nextTick inside the search function. If we don't do this, and I really have no idea why
-      the b-pagination-nav will go crazy and be buggy, maybe it has something to do with
-      the DOM cycle being weird? */
+      it is updated on nextTick inside the search function. If we don't do this,
+      and I really have no idea why, the b-pagination-nav will go crazy and be buggy,
+      maybe it has something to do with the DOM cycle being weird? */
       currPageOnNextTick: 0,
     };
   },
@@ -76,7 +78,7 @@ export default {
     },
 
     search() {
-      let ENDPOINT = this.$elastic_index_url;
+      const ENDPOINT = this.$elastic_index_url;
       this.searchResults = [];
       let page;
       if (!this.$route.query.query) this.$router.replace('/');

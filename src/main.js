@@ -4,18 +4,18 @@ import BootstrapVue from 'bootstrap-vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import axios from 'axios';
+import GAuth from 'vue-google-oauth2';
 import App from './App.vue';
 import router from './router';
 import store from './store';
 import './assets/css/main.css';
-import GAuth from 'vue-google-oauth2'
 
 const gauthOption = {
   clientId: process.env.VUE_APP_CLIENT_ID.concat('.apps.googleusercontent.com'),
   scope: 'profile email',
-  prompt: 'select_account'
-}
-Vue.use(GAuth, gauthOption)
+  prompt: 'select_account',
+};
+Vue.use(GAuth, gauthOption);
 Vue.use(BootstrapVue);
 Vue.use(Router);
 
@@ -23,23 +23,23 @@ Vue.config.productionTip = false;
 
 Vue.use({
   install(Vue) {
-    let api_url = process.env.VUE_APP_API_URL;
-    if (api_url == null) {
-      api_url = '/api';
+    let apiUrl = process.env.VUE_APP_API_URL;
+    if (apiUrl == null) {
+      apiUrl = '/api';
     }
-    let search_url = process.env.VUE_APP_API_URL;
-    if (search_url == null) {
-      search_url = '/elasticsearch';
+    let searchUrl = process.env.VUE_APP_API_URL;
+    if (searchUrl == null) {
+      searchUrl = '/elasticsearch';
     }
     // Vue.prototype.$http = axios.create({
 
     // });
     Vue.prototype.$api = axios.create({
-      baseURL: api_url,
+      baseURL: apiUrl,
     });
     Vue.prototype.$search = axios.create({
-      baseURL: search_url,
-    })
+      baseURL: searchUrl,
+    });
     Vue.prototype.$compounds_url = 'compounds';
     Vue.prototype.$login_url = 'tokensignin';
     Vue.prototype.$elastic_index_url = 'experiments1/_search';
