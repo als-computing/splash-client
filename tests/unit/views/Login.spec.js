@@ -81,6 +81,9 @@ describe('Login component', () => {
       },
     },
   });
+
+  
+
   beforeEach(() => {
     wrapper.vm.$store.dispatch.mockClear();
     wrapper.vm.$api.post.mockClear();
@@ -97,6 +100,9 @@ describe('Login component', () => {
   }
 
   it('renders a spinning wheel with a card while this.$gAuth.isInit is false', async () => {
+    // This should hold for the entire test until the last one
+    // where we test to ensure that it navigates to '/'
+    await router.push('/login');
     wrapper.setProps({ $gAuth: { isInit: false } });
     testCard(wrapper);
     const spinner = wrapper.findComponent(bootstrap.BSpinner);

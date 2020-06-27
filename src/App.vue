@@ -14,10 +14,10 @@
 
           </b-navbar-nav>
         </b-collapse>
-        <div id="user_name">
-          {{user ? user.given_name : ''}}
-        </div>
-        <span id="logout" v-if="isLoggedIn"> | <a @click="logout">Logout</a></span>
+        <b-nav-text class="mx-3" id="user_name">
+          {{user ? user.name : ''}}
+        </b-nav-text>
+        <span id="logout" v-if="isLoggedIn" >   | <b-button variant="light" @click="logout" class="mx-3">Logout</b-button></span>
     </b-navbar>
     <b-navbar>
       <SearchBar/>

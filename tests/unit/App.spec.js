@@ -45,7 +45,7 @@ describe('App.vue (Search Page)', () => {
   });
 
   it('shows user and logout button when logged in', async () => {
-    logonUser = { given_name: 'zaphod' };
+    logonUser = { name: 'zaphod' };
     isLoggedIn = true;
     const localwrapper = mount(App, { store, localVue, router });
     expect(localwrapper.find('#logout').element).toBeVisible();

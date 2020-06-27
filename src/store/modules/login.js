@@ -24,6 +24,7 @@ const mutations = {
   [LOGOUT](state) {
     state.status = '';
     state.user = {};
+    state.api_access_token = '';
     localStorage.removeItem('api_access_token');
   },
 };
