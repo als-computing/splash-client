@@ -24,6 +24,7 @@ const mutations = {
   [LOGOUT](state) {
     state.status = '';
     state.user = {};
+    state.api_access_token = '';
     localStorage.removeItem('api_access_token');
   },
 };
@@ -34,7 +35,7 @@ const actions = {
     const auth2 = Vue.prototype.$gAuth;
     auth2.signOut()
       .then(() => console.log('User signed out of google'))
-      .error((error) => console.error(error));
+      .catch((error) => console.error(error));
   },
   async sendOAuthToken({ commit }, token) {
     // Sends auth token to api server to be validated. If

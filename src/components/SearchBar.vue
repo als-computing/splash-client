@@ -1,35 +1,32 @@
 <template>
-<!--I got some of the search code from here https://alligator.io/vuejs/vue-autocomplete-component/ -->
-  <div class="search-component col-lg-5 mx-auto">
+  <!--I got some of the search code from here https://alligator.io/vuejs/vue-autocomplete-component/ -->
+  <div class="search-component col-lg-5 mx-auto" v-if=isLoggedIn>
     <div class="search-bar-pink">
       <b-input-group>
         <b-form-input
-        v-model="displayedSearchInput"
-        @input="updateSuggestions"
-        placeholder="Search"
-        class="form-control search-bar"
-        type = "text"
-        @keydown.down="onArrowDown"
-        @keydown.up="onArrowUp"
-        @keydown.enter="onEnter"
-        @keydown.esc="handleEsc">
-        </b-form-input>
+          v-model="displayedSearchInput"
+          @input="updateSuggestions"
+          placeholder="Search"
+          class="form-control search-bar"
+          type="text"
+          @keydown.down="onArrowDown"
+          @keydown.up="onArrowUp"
+          @keydown.enter="onEnter"
+          @keydown.esc="handleEsc"
+        ></b-form-input>
         <b-input-group-append>
-            <b-button class= "search-button" size="sm" text="Button" @click="goToSearch">
-              Search
-            </b-button>
+          <b-button class="search-button" size="sm" text="Button" @click="goToSearch">Search</b-button>
         </b-input-group-append>
       </b-input-group>
-      <ul v-show="suggestions.length>0"
-      class="autocomplete-results">
-        <li v-for="(suggestion, i) in suggestions"
-        :key="i"
-        class="autocomplete-result dropdown-item"
-        :class="{ 'is-active': i === arrowCounter, 'fuzzy': isFuzzy(i) }"
-        @click="onClick(suggestion)">
-          {{suggestion}}
-        </li>
-    </ul>
+      <ul v-show="suggestions.length>0" class="autocomplete-results">
+        <li
+          v-for="(suggestion, i) in suggestions"
+          :key="i"
+          class="autocomplete-result dropdown-item"
+          :class="{ 'is-active': i === arrowCounter, 'fuzzy': isFuzzy(i) }"
+          @click="onClick(suggestion)"
+        >{{suggestion}}</li>
+      </ul>
     </div>
   </div>
 </template>
@@ -43,6 +40,11 @@ export default {
       arrowCounter: -1,
       displayedSearchInput: '',
     };
+  },
+  computed: {
+    isLoggedIn() {
+      return this.$store.getters['login/isLoggedIn'];
+    },
   },
   methods: {
     updateSuggestions() {
@@ -271,49 +273,51 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  .search-bar-pink input[type=text]:focus:not([readonly]) {
-    border: 1px solid #23afc2;
-    box-shadow: 0 0 0 1px #23afc2;
-  }
+.search-bar-pink input[type="text"]:focus:not([readonly]) {
+  border: 1px solid #23afc2;
+  box-shadow: 0 0 0 1px #23afc2;
+}
 
-  .search-bar {
-    position: static;
-  }
+.search-bar {
+  position: static;
+}
 
-  .search-component {
-    position: relative;
-  }
+.search-component {
+  position: relative;
+}
 
-  .autocomplete-results {
-    padding: 0;
-    margin: 0;
-    border: 1px solid #eeeeee;
-    background: #ffff;
-    height: auto;
-    position: absolute;
-    display: inline-block;
-    right: 0;
-    left: 0;
-    z-index: 5;
-  }
+.autocomplete-results {
+  padding: 0;
+  margin: 0;
+  border: 1px solid #eeeeee;
+  background: #ffff;
+  height: auto;
+  position: absolute;
+  display: inline-block;
+  right: 0;
+  left: 0;
+  z-index: 5;
+}
 
-  .autocomplete-result {
-    list-style: none;
-    text-align: left;
-    padding: 4px 2px;
-    cursor: pointer;
-  }
+.autocomplete-result {
+  list-style: none;
+  text-align: left;
+  padding: 4px 2px;
+  cursor: pointer;
+}
 
-  .autocomplete-result:hover {
-    background-color: rgba(81, 83, 83, 0.082);
-    color: black;
-  }
-  .autocomplete-result.is-active{
-    background-color: #4AAE9B;
-    color: white;
-  }
-  .fuzzy {
-    font-weight: bold;
-  }
-  .borderless-list-group * { border: 0; }
+.autocomplete-result:hover {
+  background-color: rgba(81, 83, 83, 0.082);
+  color: black;
+}
+.autocomplete-result.is-active {
+  background-color: #4aae9b;
+  color: white;
+}
+.fuzzy {
+  font-weight: bold;
+}
+.borderless-list-group * {
+  border: 0;
+}
 </style>
