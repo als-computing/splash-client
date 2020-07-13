@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import axios from 'axios';
 import GAuth from 'vue-google-oauth2';
+import { Plotly } from "vue-plotly"
 import App from './App.vue';
 import router from './router';
 import store from './store';
@@ -18,6 +19,7 @@ const gauthOption = {
 Vue.use(GAuth, gauthOption);
 Vue.use(BootstrapVue);
 Vue.use(Router);
+Vue.component('plotly', Plotly);
 
 Vue.config.productionTip = false;
 
@@ -41,6 +43,7 @@ Vue.use({
       baseURL: searchUrl,
     });
     Vue.prototype.$compounds_url = 'compounds';
+    Vue.prototype.$runs_url = 'runs';
     Vue.prototype.$login_url = 'tokensignin';
     Vue.prototype.$elastic_index_url = 'experiments1/_search';
   },
