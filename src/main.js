@@ -42,6 +42,7 @@ Vue.use({
     Vue.prototype.$search = axios.create({
       baseURL: searchUrl,
     });
+    Vue.prototype.$api_url = apiUrl;
     Vue.prototype.$compounds_url = 'compounds';
     Vue.prototype.$runs_url = 'runs';
     Vue.prototype.$login_url = 'tokensignin';

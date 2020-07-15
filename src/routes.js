@@ -8,7 +8,8 @@ import Login from './views/Login.vue';
 import SearchPage from './views/SearchPage.vue';
 import RunDataCJS from './views/RunDataCJS.vue';
 import RunDataD3 from './views/RunDataD3.vue';
-import RunData from './views/RunData.vue';
+import ListCatalogs from './views/runs/ListCatalogs.vue';
+import ListRuns from './views/runs/ListRuns.vue';
 
 export default [
   {
@@ -62,12 +63,20 @@ export default [
     },
   },
   {
-    path: '/runs/:name',
-    name: 'runs',
+    path: '/runs/',
+    name: 'catalogs',
     meta: {
       requiresAuth: true,
     },
-    component: RunData,
+    component: ListCatalogs,
+  },
+  {
+    path: '/runs/:catalog/:uid?',
+    name: 'catalogs or runs',
+    meta: {
+      requiresAuth: true,
+    },
+    component: ListRuns,
   },
   {
     path: '/rund3/:uid',
@@ -83,7 +92,7 @@ export default [
     meta: {
       requiresAuth: true,
     },
-    component: RunData,
+    // component: RunData,
   },
 
 ];
