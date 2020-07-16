@@ -17,7 +17,7 @@
           :aria-hidden="isImageLoading ? 'true' : null"/>
         </b-overlay>
         <b-form-input id="range-1" v-model="frameNum" type="range" :min="0" :max="numFrames-1"></b-form-input>
-        <div class="mt-2">Frame Number: {{ frameNum }}</div>
+        <div class="mt-2">Frame Number: {{ frameNum }},   Beamline Energy: <span v-show="!isMetaDataLoading">{{imageMetadata.beamline_energy}}</span>,   I0: <span v-show="!isMetaDataLoading">{{imageMetadata.i_zero}}</span></div>
       </div>
       <h3 class="display-6" v-if="somethingWentWrong">Something went wrong. Try reloading the page. If the problem persists contact an administrator</h3>
   </div>
@@ -30,12 +30,14 @@ export default {
     numFrames: Number,
   },
   data: () => ({
+    isMetaDataLoading: false,
     isImageLoading: false,
     showImageElement: false,
     isPlotLoaded: false,
     frameNum: '0',
     somethingWentWrong: false,
     requestUrl: '',
+    imageMetadata: {},
     data: [
       {
         type: 'heatmapgl',
@@ -58,6 +60,8 @@ export default {
         this.somethingWentWrong = false;
         this.validateRoute();
         this.getJpeg(this.$route);
+        this.isMetaDataLoading = true;
+        this.getMetadata();
       },
       deep: true,
       immediate: true,
@@ -124,6 +128,21 @@ export default {
     isPositiveInteger(str) {
       const n = Math.floor(Number(str));
       return n !== Infinity && String(n) === str && n >= 0;
+    },
+    // TODO: Implement some sort of caching so that it doesn't request every time
+    async getMetadata() {
+      let url = this.$route.path.concat('?metadata=true');
+
+      if (this.$route.query.frame) {
+        url = url.concat('&frame=', this.$route.query.frame);
+      }
+      try {
+        const response = await this.$api.get(url);
+        this.imageMetadata = response.data;
+        this.isMetaDataLoading = false;
+      } catch (error) {
+        this.somethingWentWrong = true;
+      }
     },
 
     getJpeg($route) {
