@@ -1,6 +1,6 @@
 <template>
   <div class="run-data">
-      <plotly v-if="isPlotLoaded" :data="data" :layout="layout" :display-mode-bar="true"></plotly>
+      <!--<plotly v-if="isPlotLoaded" :data="data" :layout="layout" :display-mode-bar="true"></plotly>-->
       <div v-if="showImageElement">
         <b-overlay
         id="overlay-background"
@@ -163,7 +163,7 @@ export default {
       }
     },
 
-    async getBytes() {
+    /* async getBytes() {
       try {
         this.isLoaded = false;
         this.layout.title = `Preview of ${this.$route.params.uid}`;
@@ -180,7 +180,7 @@ export default {
       } catch (e) {
         console.error(e);
       }
-    },
+    }, 
 
     // TODO: Generalize this function for different integer types, and different image widths
     constructImage(buffer) {
@@ -194,7 +194,7 @@ export default {
         imageRow = new Uint16Array(buffer.slice(rowBegin, rowEnd));
         this.data[0].z.push(imageRow);
       }
-    },
+    }, */
   },
 
 };

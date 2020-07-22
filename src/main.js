@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import axios from 'axios';
 import GAuth from 'vue-google-oauth2';
-import { Plotly } from "vue-plotly"
+// import { Plotly } from "vue-plotly"
 import App from './App.vue';
 import router from './router';
 import store from './store';
@@ -19,7 +19,7 @@ const gauthOption = {
 Vue.use(GAuth, gauthOption);
 Vue.use(BootstrapVue);
 Vue.use(Router);
-Vue.component('plotly', Plotly);
+// Vue.component('plotly', Plotly);
 
 Vue.config.productionTip = false;
 
