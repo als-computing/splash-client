@@ -11,6 +11,7 @@
           <b-navbar-nav>
 
             <b-nav-item v-bind:to="'/'">Home</b-nav-item>
+            <b-nav-item v-bind:to="'/runs'">Runs</b-nav-item>
 
           </b-navbar-nav>
         </b-collapse>
