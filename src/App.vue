@@ -11,6 +11,7 @@
           <b-navbar-nav>
 
             <b-nav-item v-bind:to="'/'">Home</b-nav-item>
+            <b-nav-item v-bind:to="'/runs'">Runs</b-nav-item>
 
           </b-navbar-nav>
         </b-collapse>
@@ -60,7 +61,7 @@ export default {
       return request;
     });
     this.$api.interceptors.response.use(undefined, (err) => new Promise(((resolve, reject) => {
-      if (err.response.status === 401 && err.config && !err.config.__isRetryRequest) {
+      if (err.response && err.response.status === 401 && err.config && !err.config.__isRetryRequest) {
         store.dispatch('login/logout').then(() => {
           router.push('/login');
         });
