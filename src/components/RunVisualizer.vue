@@ -10,10 +10,7 @@
         rounded="sm">
           <b-img alt= "image of scan"
           fluid
-          v-bind:src="requestUrl"
-          @error="setSomethingWentWrong()"
-          @loadstart="setLoading()"
-          @load="setDoneLoading()"
+          v-bind:src="'data:image/png;base64,' + image"
           :aria-hidden="isImageLoading ? 'true' : null"/>
         </b-overlay>
         <b-form-input id="range-1" v-model="frameNum" type="range" :min="0" :max="numFrames-1"></b-form-input>
@@ -30,6 +27,7 @@ export default {
     numFrames: Number,
   },
   data: () => ({
+    image: [],
     isMetaDataLoading: false,
     isImageLoading: false,
     showImageElement: false,
@@ -60,8 +58,6 @@ export default {
         this.somethingWentWrong = false;
         this.validateRoute();
         this.getJpeg(this.$route);
-        this.isMetaDataLoading = true;
-        this.getMetadata();
       },
       deep: true,
       immediate: true,
@@ -141,24 +137,32 @@ export default {
         this.imageMetadata = response.data;
         this.isMetaDataLoading = false;
       } catch (error) {
-        this.somethingWentWrong = true;
+        this.setSomethingWentWrong();
       }
     },
 
-    getJpeg($route) {
+    async getJpeg($route) {
+      this.setLoading();
+      this.isMetaDataLoading = true;
       if ($route.params.catalog && $route.params.uid) {
-        this.requestUrl = this.$api_url.concat('/', this.$runs_url.concat('/', $route.params.catalog, '/', $route.params.uid));
+        let requestUrl = this.$runs_url.concat('/', $route.params.catalog, '/', $route.params.uid);
         if (this.$route.query.frame) {
-          this.requestUrl = this.requestUrl.concat('?frame=', this.$route.query.frame);
+          requestUrl = requestUrl.concat('?frame=', this.$route.query.frame);
         }
-        /* const response = await this.$api
-          .get(requestUrl, {
-            responseType: 'arraybuffer',
-          });
-        this.image = Buffer.from(response.data, 'binary').toString('base64'); */
+        try {
+          const response = await this.$api
+            .get(requestUrl, {
+              responseType: 'arraybuffer',
+            });
+          this.image = Buffer.from(response.data, 'binary').toString('base64');
+          this.setDoneLoading();
+        } catch (e) {
+          this.setSomethingWentWrong();
+          return;
+        }
+        await this.getMetadata();
         this.showImageElement = true;
       } else {
-        this.requestUrl = '';
         this.showImageElement = false;
       }
     },
@@ -180,7 +184,7 @@ export default {
       } catch (e) {
         console.error(e);
       }
-    }, 
+    },
 
     // TODO: Generalize this function for different integer types, and different image widths
     constructImage(buffer) {
