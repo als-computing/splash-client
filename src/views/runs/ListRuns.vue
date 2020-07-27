@@ -20,7 +20,7 @@
             :to="uid"
             v-on:click="runSelected = true; currentUid = uid"
             :replace="!!$route.params.uid" :append="!$route.params.uid"
-            :active='$route.params.uid === uid'>Data File: {{run.data_file}} <br><br> Sample: {{run.sample}} <br><br> # of images:{{run.num_images}}</b-list-group-item>
+            :active='$route.params.uid === uid'> Sample: {{run['/entry/sample/name']}} <br><br> # of images:{{run.num_images}}</b-list-group-item>
           </b-list-group>
         </b-col>
         <b-col sm><run-visualizer :num-frames="runs[currentUid].num_images" v-if="runSelected" class ="image-display mb-1"/></b-col>
