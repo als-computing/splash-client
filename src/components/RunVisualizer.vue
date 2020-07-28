@@ -14,13 +14,14 @@
           :aria-hidden="isImageLoading ? 'true' : null"/>
         </b-overlay>
         <b-form-input id="range-1" v-model="frameNum" type="range" :min="0" :max="numFrames-1"></b-form-input>
-        <div class="mt-2">Frame Number: {{ frameNum }},   Beamline Energy: <span v-show="!isMetaDataLoading">{{imageMetadata['/entry/instrument/monochromator/energy']}}</span></div>
+        <div class="mt-2">Frame Number: {{ frameNumDebounced }},   Beamline Energy: <span v-show="!isMetaDataLoading">{{imageMetadata['/entry/instrument/monochromator/energy']}}</span></div>
       </div>
       <h3 class="display-6" v-if="somethingWentWrong">Something went wrong. Try reloading the page. If the problem persists contact an administrator</h3>
   </div>
 </template>
 
 <script>
+import utils from '@/utils';
 
 export default {
   props: {
@@ -33,6 +34,7 @@ export default {
     showImageElement: false,
     isPlotLoaded: false,
     frameNum: '0',
+    frameNumDebounced: '0',
     somethingWentWrong: false,
     requestUrl: '',
     imageMetadata: {},
@@ -63,15 +65,19 @@ export default {
       immediate: true,
     },
 
-    frameNum: {
+    frameNum: utils.debounce(function setFrameNumDebounced() {
+      this.frameNumDebounced = this.frameNum;
+    }, 500),
+
+    frameNumDebounced: {
       handler() {
         // console.log('reacting to frame change');
-        if (Number(this.frameNum) === Number(this.$route.query.frame)) {
+        if (Number(this.frameNumDebounced) === Number(this.$route.query.frame)) {
           // console.log('no route change');
           return;
         }
         // console.log('Route change!');
-        this.$router.replace({ path: this.$route.path, query: { frame: this.frameNum } });
+        this.$router.replace({ path: this.$route.path, query: { frame: this.frameNumDebounced } });
       },
       immediate: true,
     },
@@ -99,11 +105,14 @@ export default {
       // console.log('validating route!');
       if (this.$route.query.frame && !this.isPositiveInteger(this.$route.query.frame)) {
         this.$router.replace({ path: this.$route.path, query: { frame: 0 } });
+        this.frameNumDebounced = '0';
         this.frameNum = '0';
       } else if (this.$route.query.frame && (Number(this.frameNum) !== Number(this.$route.query.frame))) {
         // console.log('they dont equal each other');
+        this.frameNumDebounced = '0';
         this.frameNum = this.$route.query.frame;
       } else if (!this.$route.query.frame) {
+        this.frameNumDebounced = '0';
         this.frameNum = '0';
       }
     },
