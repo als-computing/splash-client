@@ -10,6 +10,7 @@ import RunDataCJS from './views/RunDataCJS.vue';
 import RunDataD3 from './views/RunDataD3.vue';
 import ListCatalogs from './views/runs/ListCatalogs.vue';
 import ListRuns from './views/runs/ListRuns.vue';
+import NotFound from './views/404.vue';
 
 export default [
   {
@@ -93,6 +94,11 @@ export default [
       requiresAuth: true,
     },
     // component: RunData,
+  },
+  {
+    path: '*',
+    name: '404',
+    component: NotFound,
   },
 
 ];

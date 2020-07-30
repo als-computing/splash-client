@@ -17,6 +17,9 @@ localVue.use({
   },
 });
 
+// TODO: Test to ensure that the app is routing correctly to all components,
+// test to ensure that if the user is not authenticated
+// they don't have access to authenticated pages, test 404 and 500 pages
 
 describe('App.vue (Search Page)', () => {
   let getters;
