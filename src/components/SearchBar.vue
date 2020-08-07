@@ -5,15 +5,19 @@
       <b-input-group>
         <b-form-input
           v-model="displayedSearchInput"
-          @input="updateSuggestions"
           placeholder="Search"
           class="form-control search-bar"
           type="text"
+           @keydown.enter="onEnter"
+        ></b-form-input>
+        <!-- NOTE THESE THINGS WOULD GO INSIDE the
+          b-form-input tag, however we are disabling autocomplete
+          functionality for now
+          @input="updateSuggestions"
           @keydown.down="onArrowDown"
           @keydown.up="onArrowUp"
-          @keydown.enter="onEnter"
           @keydown.esc="handleEsc"
-        ></b-form-input>
+        -->
         <b-input-group-append>
           <b-button class="search-button" size="sm" text="Button" @click="goToSearch">Search</b-button>
         </b-input-group-append>
@@ -32,6 +36,8 @@
 </template>
 
 <script>
+import queries from './elastic_queries';
+
 export default {
   name: 'SearchBar',
   data() {
@@ -49,49 +55,8 @@ export default {
   methods: {
     updateSuggestions() {
       const ENDPOINT = this.$elastic_index_url;
-      this.$search.post(ENDPOINT,
-        {
-          _source: ['researcherNameSuggestions.options.text', 'experimentNameSuggestions.options.text', 'groupNameSuggestions.options.text', 'solutesSuggestions.options.text', 'polymerSuggestions.options.text', 'institutionSuggestions.options.text'],
-          suggest: {
-            text: this.displayedSearchInput,
-            researcherNameSuggestions: {
-              completion: {
-                field: 'researcher.name.autocomplete',
-                skip_duplicates: true,
-              },
-            },
-            experimentNameSuggestions: {
-              completion: {
-                field: 'name.autocomplete',
-                skip_duplicates: true,
-              },
-            },
-            groupNameSuggestions: {
-              completion: {
-                field: 'researcher.group.autocomplete',
-                skip_duplicates: true,
-              },
-            },
-            solutesSuggestions: {
-              completion: {
-                field: 'trials.solutes_present.autocomplete',
-                skip_duplicates: true,
-              },
-            },
-            polymerSuggestions: {
-              completion: {
-                field: 'trials.membrane_or_polymer.autocomplete',
-                skip_duplicates: true,
-              },
-            },
-            institutionSuggestions: {
-              completion: {
-                field: 'researcher.institution.autocomplete',
-                skip_duplicates: true,
-              },
-            },
-          },
-        }).then((res) => {
+      queries.AUTOCOMPLETE.suggest.text = this.displayedSearchInput;
+      this.$search.post(ENDPOINT, queries.AUTOCOMPLETE).then((res) => {
         // console.log(res)
         this.destroySuggestions();
         res.data.suggest.researcherNameSuggestions[0].options.forEach((element) => {
@@ -114,62 +79,9 @@ export default {
         });
         // if no results perform a fuzzy query,
         // it's equal to 1 because the displayed input is always part of the suggested results
+        queries.FUZZY_AUTOCOMPLETE.suggest.text = this.displayedSearchInput;
         if (this.suggestions.length === 0) {
-          return this.$search.post(ENDPOINT,
-            {
-              _source: ['researcherNameSuggestions.options.text', 'experimentNameSuggestions.options.text', 'groupNameSuggestions.options.text', 'solutesSuggestions.options.text', 'polymerSuggestions.options.text', 'institutionSuggestions.options.text'],
-              suggest: {
-                text: this.displayedSearchInput,
-                researcherNameSuggestions: {
-
-                  completion: {
-                    field: 'researcher.name.autocomplete',
-                    fuzzy: {},
-                    skip_duplicates: true,
-                  },
-                },
-                experimentNameSuggestions: {
-
-                  completion: {
-                    field: 'name.autocomplete',
-                    fuzzy: {},
-                    skip_duplicates: true,
-                  },
-                },
-                groupNameSuggestions: {
-
-                  completion: {
-                    field: 'researcher.group.autocomplete',
-                    fuzzy: {},
-                    skip_duplicates: true,
-                  },
-                },
-                solutesSuggestions: {
-
-                  completion: {
-                    field: 'trials.solutes_present.autocomplete',
-                    fuzzy: {},
-                    skip_duplicates: true,
-                  },
-                },
-                polymerSuggestions: {
-
-                  completion: {
-                    field: 'trials.membrane_or_polymer.autocomplete',
-                    fuzzy: {},
-                    skip_duplicates: true,
-                  },
-                },
-                institutionSuggestions: {
-
-                  completion: {
-                    field: 'researcher.institution.autocomplete',
-                    fuzzy: {},
-                    skip_duplicates: true,
-                  },
-                },
-              },
-            });
+          return this.$search.post(ENDPOINT, queries.FUZZY_AUTOCOMPLETE);
         }
         // signify no fuzzy search was performed
         return 0;

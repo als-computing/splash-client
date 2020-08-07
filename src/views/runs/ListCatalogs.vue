@@ -2,12 +2,12 @@
   <div class="lists">
     <b-container>
       <b-row>
+        <h3 class="display-6" v-if="somethingWentWrong">Something went wrong. Try reloading the page. If the problem persists contact an administrator</h3>
         <b-col v-if=showCatalogs>
           <h1 class="display-4">Catalogs: </h1>
           <p v-if="noCatalogs"> 0 catalogs found </p>
           <b-list-group>
             <b-list-group-item v-for="catalog in catalogs" :key="catalog" :to="{ path: catalog}" append>{{catalog}}</b-list-group-item>
-            <h3 class="display-6" v-if="somethingWentWrong">Something went wrong. Try reloading the page. If the problem persists contact an administrator</h3>
           </b-list-group>
         </b-col>
       </b-row>

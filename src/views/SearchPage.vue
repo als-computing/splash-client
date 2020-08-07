@@ -5,8 +5,9 @@
       <div class="search-result" v-for="(result, i) in searchResults" :key="i">
         <div class="row">
             <div class="col-xl-6 ml-sm-4 ml-xs-0">
-                <h4>{{result.experimentName}}</h4>
-                <div class="row">
+                <h4>Document:</h4>
+                <pre>{{JSON.stringify(result, '\n', 4)}}</pre>
+                <!--<div class="row">
                     <div class="col-sm-6">
                         <p><b>Researcher</b>: {{result.researcherName}}</p>
                         <p><b>Group</b>: {{result.researcherGroup}}</p>
@@ -19,7 +20,7 @@
                         <p><b>Polymer</b>: {{result.polymer}}</p>
                         <p><b>Institution</b>: {{result.researcherInstitution}}</p>
                     </div>
-                </div>
+                </div>-->
             </div>
         </div>
       </div>
@@ -39,13 +40,8 @@
 </template>
 
 <script>
-import SearchBar from '@/components/SearchBar.vue';
-
 export default {
   name: 'SearchPage',
-  components: {
-    SearchBar,
-  },
   data() {
     return {
       searchResults: [],
@@ -77,12 +73,18 @@ export default {
       };
     },
 
-    search() {
-      const ENDPOINT = this.$elastic_index_url;
-      this.searchResults = [];
-      let page;
-      if (!this.$route.query.query) this.$router.replace('/');
-      else {
+    removeProjections(results) {
+      results.forEach((hit) => {
+        // eslint-disable-next-line no-underscore-dangle
+        // eslint-disable-next-line no-param-reassign
+        delete hit._source.projections;
+      });
+    },
+
+    async search() {
+      try {
+        const ENDPOINT = this.$elastic_index_url;
+        this.searchResults = [];
         if (
           !this.currPageComputed
           || !Number.isInteger(Number(this.currPageComputed))
@@ -94,115 +96,65 @@ export default {
           });
           return;
         }
-        page = Number(this.currPageComputed);
+        const page = Number(this.currPageComputed);
+        let res;
+        /* this is where we update the current page that is referenced
+          by b-pagination-nav to prevent buggy behavior */
+        this.$nextTick().then(() => {
+          this.currPageOnNextTick = this.$route.query.page;
+        });
 
-        this.$search
+        if (!this.$route.query.query) {
+          res = await this.$search.post(ENDPOINT, {
+            from: (page - 1) * 10,
+            query: {
+              match_all: {},
+            },
+          });
+          this.removeProjections(res.data.hits.hits);
+          this.searchResults = res.data.hits.hits;
+          if (this.searchResults.length === 0) this.noResults = true;
+          this.totalPages = Math.ceil(res.data.hits.total.value / 10);
+          return;
+        }
+
+        res = await this.$search
           .post(ENDPOINT, {
             from: (page - 1) * 10,
             query: {
               multi_match: {
                 query: this.$route.query.query,
-                fields: [
-                  'name',
-                  'researcher.name',
-                  'researcher.group',
-                  'researcher.institution',
-                  'trials.solutes_present',
-                  'trials.membrane_or_polymer',
-                ],
                 minimum_should_match: '3<90%',
               },
             },
-          })
-          .then((res) => {
-            // TODO: investigate more than 10,000 results edge case with elasticsearch
+          });
+        // TODO: investigate more than 10,000 results edge case with elasticsearch
 
-            /* this is where we update the current page that is referenced
-          by b-pagination-nav to prevent buggy behavior */
-            this.$nextTick().then(() => {
-              this.currPageOnNextTick = this.$route.query.page;
-            });
-            this.searchResults = [];
-
-            this.totalPages = Math.ceil(res.data.hits.total.value / 10);
-            res.data.hits.hits.forEach((element) => {
-              const result = {};
-              // eslint-disable-next-line no-underscore-dangle
-              result.experimentName = element._source.name;
-              // eslint-disable-next-line no-underscore-dangle
-              result.researcherName = element._source.researcher.name;
-              // eslint-disable-next-line no-underscore-dangle
-              result.researcherInstitution = element._source.researcher.institution;
-              // eslint-disable-next-line no-underscore-dangle
-              result.solutesPresent = element._source.trials[0].solutes_present.slice();
-              // eslint-disable-next-line no-underscore-dangle
-              result.polymer = element._source.trials[0].membrane_or_polymer;
-              // eslint-disable-next-line no-underscore-dangle
-              result.researcherGroup = element._source.researcher.group;
-
-              this.searchResults.push(result);
-            });
-            /* TODO: Implement things like did you mean functionality
-          to stop na- from turning up na+ automatically. */
-
-            // if no results, query again but this time allow fuzziness
-            if (this.searchResults.length === 0) {
-              return this.$search.post(ENDPOINT, {
-                from: (page - 1) * 10,
-                query: {
-                  multi_match: {
-                    query: this.$route.query.query,
-                    fields: [
-                      'name',
-                      'researcher.name',
-                      'researcher.group',
-                      'researcher.institution',
-                      'trials.solutes_present',
-                      'trial.membrane_or_polymer',
-                    ],
-                    fuzziness: 'AUTO',
-                    minimum_should_match: '3<90%',
-                  },
-                },
-              });
-            }
-            // signify that we do not need a fuzzy query
-            return 0;
-          })
-          .then((res) => {
-            // No need to perform a display fuzzy results
-            if (res === 0) {
-              return Promise.resolve();
-            }
-            this.totalPages = Math.ceil(res.data.hits.total.value / 10);
-            this.searchResults = [];
-            res.data.hits.hits.forEach((element) => {
-              const result = {};
-              // eslint-disable-next-line no-underscore-dangle
-              result.experimentName = element._source.name;
-              // eslint-disable-next-line no-underscore-dangle
-              result.researcherName = element._source.researcher.name;
-              // eslint-disable-next-line no-underscore-dangle
-              result.researcherInstitution = element._source.researcher.institution;
-              // eslint-disable-next-line no-underscore-dangle
-              result.solutesPresent = element._source.trials[0].solutes_present.slice();
-              // eslint-disable-next-line no-underscore-dangle
-              result.polymer = element._source.trials[0].membrane_or_polymer;
-              // eslint-disable-next-line no-underscore-dangle
-              result.researcherGroup = element._source.researcher.group;
-              this.searchResults.push(result);
-            });
-            if (this.searchResults.length === 0) this.noResults = true;
-            return Promise.resolve();
-          })
-          .catch((error) => {
-            if ('request' in error && 'config' in error) {
-              console.log(error);
-              console.log(error.response);
-            } else {
-              throw error;
-            }
-          }); // TODO: better catch statement
+        // if no results, query again but this time allow fuzziness
+        if (res.data.hits.hits.length === 0) {
+          res = await this.$search.post(ENDPOINT, {
+            from: (page - 1) * 10,
+            query: {
+              multi_match: {
+                query: this.$route.query.query,
+                fuzziness: 'AUTO',
+                minimum_should_match: '3<90%',
+              },
+            },
+          });
+        }
+        this.removeProjections(res.data.hits.hits);
+        this.totalPages = Math.ceil(res.data.hits.total.value / 10);
+        this.searchResults = res.data.hits.hits;
+        if (this.searchResults.length === 0) this.noResults = true;
+      } catch (error) {
+        if ('request' in error && 'config' in error) {
+          console.log(error);
+          console.log(error.response);
+        } else {
+          throw error;
+        }
+      // TODO: better catch statement
       }
     },
   },

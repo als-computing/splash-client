@@ -7,6 +7,7 @@ import { cloneDeep } from 'lodash';
 import mockAxios from 'axios';
 import App from '@/App.vue';
 
+// TODO: Test calls to localStorage methods
 
 describe('App.vue (Search Page)', () => {
   it('tests that login works', async () => {

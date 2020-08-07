@@ -7,33 +7,39 @@ import {
 
 const state = () => ({
   status: '',
-  user: {},
+  user: JSON.parse(localStorage.getItem('user')) || {},
   api_access_token: localStorage.getItem('api_access_token') || '',
 });
 
 const mutations = {
 
   [AUTH_SUCCESS](state, payload) {
+    localStorage.setItem('api_access_token', payload.access_token);
+    localStorage.setItem('user', JSON.stringify(payload.user));
     state.status = 'success';
     state.user = payload.user;
     state.api_access_token = payload.api_access_token;
   },
   [AUTH_ERROR](state) {
     state.status = 'error';
+    localStorage.removeItem('api_access_token');
+    localStorage.removeItem('user');
   },
   [LOGOUT](state) {
     state.status = '';
     state.user = {};
     state.api_access_token = '';
     localStorage.removeItem('api_access_token');
+    localStorage.removeItem('user');
   },
 };
 
 const actions = {
   logout({ commit }) {
+    console.log('hello');
     commit(LOGOUT);
-    const auth2 = Vue.prototype.$gAuth;
-    auth2.signOut()
+    const auth2 = window.gapi.auth2.getAuthInstance();
+    return auth2.signOut()
       .then(() => console.log('User signed out of google'))
       .catch((error) => console.error(error));
   },
@@ -47,7 +53,7 @@ const actions = {
 
     try {
       const response = await Vue.prototype.$api.post(Vue.prototype.$login_url, bodyParameters, config);
-      localStorage.setItem('api_access_token', response.data.access_token); // TODO store the refresh-token provided
+      // TODO store the refresh-token provided
       commit(AUTH_SUCCESS, {
         user: response.data.user,
         api_access_token: response.data.access_token,
@@ -55,7 +61,6 @@ const actions = {
     } catch (error) {
       console.error('Failure!');
       commit(AUTH_ERROR, error);
-      localStorage.removeItem('api_access_token');
     }
   },
 

@@ -1,7 +1,7 @@
 import BootstrapVue from 'bootstrap-vue';
 import VueRouter from 'vue-router';
 import { mount, /* shallowMount, */ createLocalVue } from '@vue/test-utils';
-import mockAxios from 'axios';
+import mockAxios from 'axios'; // This comes from the __mocks__ folder
 import SearchBar from '@/components/SearchBar.vue';
 import responses from './search-responses';
 

@@ -1,13 +1,10 @@
 import { /* shallowMount, */ mount, createLocalVue } from '@vue/test-utils';
-import App from '@/App.vue';
 import VueRouter from 'vue-router';
-import Vuex from 'vuex';
 import Login from '@/views/Login.vue';
 import routes from '@/routes.js';
 import BootstrapVue, { BCardText } from 'bootstrap-vue';
 import * as bootstrap from 'bootstrap-vue';
 import mockAxios from 'axios';
-import { local } from 'd3';
 import responses from './login-responses';
 
 
@@ -20,36 +17,8 @@ localVue.use({
   },
 });
 
-jest.useFakeTimers();
-
 window.gapi = { signin2: { render: jest.fn() } };
-jest.spyOn(window.localStorage.__proto__, 'setItem');
-
-
-describe('App when navigated to login', () => {
-  it('renders a child component via routing', async () => {
-    const router = new VueRouter({ routes });
-    const wrapper = mount(App,
-      {
-        localVue,
-        router,
-        mocks: {
-          $store: {
-            commit: jest.fn(),
-            dispatch: jest.fn(),
-            getters:
-          {
-            'login/user': 'Sauron',
-          },
-          },
-        },
-      });
-
-    await router.push('/login');
-
-    expect(wrapper.findComponent(Login).exists()).toBe(true);
-  });
-});
+jest.useFakeTimers();
 
 describe('Login component', () => {
   const router = new VueRouter({ routes });
@@ -57,36 +26,21 @@ describe('Login component', () => {
     localVue,
     router,
     mocks: {
-      $login_url: 'Mount Doom',
+      $login_url: 'Mount_Doom',
       $store: {
         commit: jest.fn(),
         dispatch: jest.fn(),
-        getters:
-        {
-          'login/user': 'Sauron',
-        },
-      },
-      $gAuth: {
-        isInit: false,
-        // this is necessary because I can't
-        // change isInit from outside using setProps
-        // this is NOT a mock of an actual method,
-        // it's just a weird hack I need to do
-        setIsInit(bool) {
-          if (typeof bool !== 'boolean') {
-            throw Error('Argument must be a boolean');
-          }
-          this.isInit = bool;
-        },
       },
     },
   });
 
-  
 
-  beforeEach(() => {
+  beforeEach(async () => {
     wrapper.vm.$store.dispatch.mockClear();
     wrapper.vm.$api.post.mockClear();
+    if (wrapper.vm.$route.path !== '/login') {
+      await router.replace('/login');
+    }
   });
 
   function testCard(wrapperInst) {
@@ -99,35 +53,11 @@ describe('Login component', () => {
     expect(bCardText.element).toBeVisible();
   }
 
-  it('renders a spinning wheel with a card while this.$gAuth.isInit is false', async () => {
-    // This should hold for the entire test until the last one
-    // where we test to ensure that it navigates to '/'
-    await router.push('/login');
-    wrapper.setProps({ $gAuth: { isInit: false } });
-    testCard(wrapper);
-    const spinner = wrapper.findComponent(bootstrap.BSpinner);
-    expect(spinner.exists()).toBe(true);
-    expect(spinner.element).toBeVisible();
-    jest.advanceTimersByTime(5000);
-    expect(spinner.exists()).toBe(true);
-    expect(spinner.element).toBeVisible();
-    expect(window.gapi.signin2.render).toHaveBeenCalledTimes(0);
 
-    const modals = wrapper.findAllComponents(bootstrap.BModal);
-    modals.wrappers.forEach((modal) => { expect(modal.find('.modal').element).not.toBeVisible(); });
-  });
-
-
-  it('renders the google button at most half a second after this.$gAuth.isInit is set to true', async () => {
-    wrapper.vm.$gAuth.setIsInit(true);
-    // Wait for Login.vue to check again.
-    // Login.vue is implemented so that it checks every few milliseconds
-    // to see if the gapi library has initialized
-    await jest.advanceTimersByTime(500);
-    testCard(wrapper);
+  it('renders the google button', async () => {
     const spinner = wrapper.findComponent(bootstrap.BSpinner);
     expect(spinner.element).not.toBeVisible();
-
+    testCard(wrapper);
     const buttonRender = window.gapi.signin2.render;
     expect(buttonRender).toHaveBeenCalledTimes(1);
 
@@ -270,14 +200,9 @@ describe('Login component', () => {
     await testModalErrors('Something went wrong on our end. Please try again. If the problem persists contact the system admins.');
   }); */
 
-  it('on google sign in success, sends axios request with correct parameters, receives a token from the server, sets it in localStorage, commits to the store properly and then routes to /', async () => {
+  it('on google sign in success, sends axios request with correct parameters, receives a token from the server, calls vuex correctly, and then routes to /', async () => {
     const response = responses.success;
     await testAxios(response, false);
-
-    const { setItem } = localStorage;
-    expect(setItem).toBeCalledTimes(1);
-    expect(setItem.mock.calls[0][0]).toBe('api_access_token');
-    expect(setItem.mock.calls[0][1]).toBe(response.data.access_token);
 
     const storeCommit = wrapper.vm.$store.commit;
     expect(storeCommit).toBeCalledTimes(1);
