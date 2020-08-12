@@ -7,7 +7,7 @@
           <h1 class="display-4">Catalogs: </h1>
           <p v-if="noCatalogs"> 0 catalogs found </p>
           <b-list-group>
-            <b-list-group-item v-for="catalog in catalogs" :key="catalog" :to="{ path: catalog}" append>{{catalog}}</b-list-group-item>
+            <b-list-group-item v-for="catalog in catalogs" :key="catalog.name" :to="{ path: catalog.name}" append>{{catalog.name}}</b-list-group-item>
           </b-list-group>
         </b-col>
       </b-row>
@@ -33,7 +33,7 @@ export default {
       try {
         console.log(requestUrl);
         const response = await this.$api.get(requestUrl);
-        this.catalogs = response.data.catalogs;
+        this.catalogs = response.data;
         if (this.catalogs.length === 0) {
           this.noCatalogs = true;
         }

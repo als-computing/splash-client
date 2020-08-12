@@ -66,7 +66,7 @@ export default {
       const config = { headers: { 'Content-Type': 'application/json' } };
       this.$api.get(this.$compounds_url, config)
         .then((response) => {
-          callback(response.data.results);
+          callback(response.data);
         })
         .catch((e) => {
           console.log(e);
