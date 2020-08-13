@@ -4,10 +4,18 @@ import {
   AUTH_SUCCESS, AUTH_ERROR, LOGOUT,
 } from './login-mutation-types';
 
+let stored_user = localStorage.getItem('user')
+try{
+  stored_user = JSON.parse(stored_user)
+}
+catch(err){
+  stored_user = {}
+}
+  
 
 const state = () => ({
   status: '',
-  user: JSON.parse(localStorage.getItem('user')) || {},
+  user: stored_user,
   api_access_token: localStorage.getItem('api_access_token') || '',
 });
 
