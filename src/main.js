@@ -21,7 +21,7 @@ Vue.use({
   install(Vue) {
     let apiUrl = process.env.VUE_APP_API_URL;
     if (apiUrl == null) {
-      apiUrl = '/api';
+      apiUrl = '/api/v1';
     }
     let searchUrl = process.env.VUE_APP_API_URL;
     if (searchUrl == null) {

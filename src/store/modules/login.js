@@ -22,7 +22,7 @@ const state = () => ({
 const mutations = {
 
   [AUTH_SUCCESS](state, payload) {
-    localStorage.setItem('api_access_token', payload.access_token);
+    localStorage.setItem('api_access_token', payload.api_access_token);
     localStorage.setItem('user', JSON.stringify(payload.user));
     state.status = 'success';
     state.user = payload.user;
