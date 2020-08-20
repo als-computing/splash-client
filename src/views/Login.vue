@@ -72,7 +72,7 @@ export default {
 
         const config = { headers: { 'Content-Type': 'application/json' } };
         const response = await this.$api.post(
-          this.$login_url,
+          this.$login_url + "?auth_provider=google",
           { token: idToken },
           config,
         );

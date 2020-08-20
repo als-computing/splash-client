@@ -15,15 +15,15 @@
            <b-button variant="outline-primary" class ="mb-1" :to="'/runs'">Back to catalogs</b-button>
           <b-list-group class="runs-display">
             <b-list-group-item
-            v-for="(run, uid) in runs"
-            :key="uid"
-            :to="uid"
-            v-on:click="runSelected = true; currentUid = uid"
+            v-for="run in runs"
+            :key="run.uid"
+            :to="run.uid"
+            v-on:click="runSelected = true; currentRun = run"
             :replace="!!$route.params.uid" :append="!$route.params.uid"
-            :active='$route.params.uid === uid'> Sample: {{run['/entry/sample/name']}} <br><br> # of images:{{run.num_images}}</b-list-group-item>
+            :active='$route.params.uid === run.uid'> Sample: {{run.sample_name}} <br><br> # of images:{{run.num_images}}</b-list-group-item>
           </b-list-group>
         </b-col>
-        <b-col sm><run-visualizer :num-frames="runs[currentUid].num_images" v-if="runSelected" class ="image-display mb-1"/></b-col>
+        <b-col sm><run-visualizer :num-frames="currentRun.num_images" v-if="runSelected" class ="image-display mb-1"/></b-col>
       </b-row>
     </b-container>
   </div>
@@ -36,8 +36,8 @@ export default {
   data: () => ({
     catalogNotFound: false,
     showRuns: false,
-    runs: {},
-    currentUid: '',
+    runs: [],
+    currentRun: {},
     runSelected: false,
   }),
   components: {

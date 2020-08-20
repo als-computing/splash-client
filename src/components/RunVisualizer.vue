@@ -14,7 +14,7 @@
           :aria-hidden="isImageLoading ? 'true' : null"/>
         </b-overlay>
         <b-form-input id="range-1" v-model="frameNum" type="range" :min="0" :max="numFrames-1"></b-form-input>
-        <div class="mt-2">Frame Number: {{ frameNumDebounced }},   Beamline Energy: <span v-show="!isMetaDataLoading">{{imageMetadata['/entry/instrument/monochromator/energy']}}</span></div>
+        <div class="mt-2">Frame Number: {{ frameNumDebounced }},   Beamline Energy: <span v-show="!isMetaDataLoading">{{imageMetadata['energy']}}</span></div>
       </div>
       <h3 class="display-6" v-if="somethingWentWrong">Something went wrong. Try reloading the page. If the problem persists contact an administrator</h3>
   </div>
@@ -136,10 +136,10 @@ export default {
     },
     // TODO: Implement some sort of caching so that it doesn't request every time
     async getMetadata() {
-      let url = this.$route.path.concat('?metadata=true');
+      let url = this.$route.path.concat("/metadata");
 
       if (this.$route.query.frame) {
-        url = url.concat('&frame=', this.$route.query.frame);
+        url = url.concat('?frame=', this.$route.query.frame);
       }
       try {
         const response = await this.$api.get(url);
@@ -154,7 +154,7 @@ export default {
       this.setLoading();
       this.isMetaDataLoading = true;
       if ($route.params.catalog && $route.params.uid) {
-        let requestUrl = this.$runs_url.concat('/', $route.params.catalog, '/', $route.params.uid);
+        let requestUrl = this.$runs_url.concat('/', $route.params.catalog, '/', $route.params.uid + "/image");
         if (this.$route.query.frame) {
           requestUrl = requestUrl.concat('?frame=', this.$route.query.frame);
         }

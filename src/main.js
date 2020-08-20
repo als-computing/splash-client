@@ -21,7 +21,7 @@ Vue.use({
   install(Vue) {
     let apiUrl = process.env.VUE_APP_API_URL;
     if (apiUrl == null) {
-      apiUrl = '/api';
+      apiUrl = '/api/v1';
     }
     let searchUrl = process.env.VUE_APP_API_URL;
     if (searchUrl == null) {
@@ -39,7 +39,7 @@ Vue.use({
     Vue.prototype.$api_url = apiUrl;
     Vue.prototype.$compounds_url = 'compounds';
     Vue.prototype.$runs_url = 'runs';
-    Vue.prototype.$login_url = 'tokensignin';
+    Vue.prototype.$login_url = 'idtokensignin';
     Vue.prototype.$elastic_index_url = 'run_start/_search';
   },
 });

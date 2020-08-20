@@ -33,7 +33,7 @@ export default {
       try {
         console.log(requestUrl);
         const response = await this.$api.get(requestUrl);
-        this.catalogs = response.data.catalogs;
+        this.catalogs = response.data;
         if (this.catalogs.length === 0) {
           this.noCatalogs = true;
         }
