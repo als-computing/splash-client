@@ -1,9 +1,7 @@
 <template>
   <div>
-      <b-card >
-        <div class="title">{{name}}</div>
-        <b-card-text>{{value}}</b-card-text>
-      </b-card>
+        <h4><b><u>{{name}}</u></b></h4>
+        <p>{{value || 'N/A'}}</p>
     </div>
 
 </template>
@@ -20,10 +18,6 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.card-body {
-  width: 500px;
-  min-height: 70px;
-}
 .title {
   font-size: 0.7em;
   font-weight: bold;

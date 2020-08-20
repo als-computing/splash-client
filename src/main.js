@@ -4,6 +4,8 @@ import BootstrapVue from 'bootstrap-vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import axios from 'axios';
+import marked from 'marked';
+import DOMPurify from 'dompurify';
 // import { Plotly } from "vue-plotly"
 import App from './App.vue';
 import FiveHundred from './views/500.vue';
@@ -36,6 +38,14 @@ Vue.use({
     Vue.prototype.$search = axios.create({
       baseURL: searchUrl,
     });
+
+    function parseMarkDown(markdown) {
+      const html = marked(markdown);
+      return DOMPurify.sanitize(html);
+    }
+
+    Vue.prototype.$parseMarkDown = parseMarkDown;
+
     Vue.prototype.$api_url = apiUrl;
     Vue.prototype.$compounds_url = 'compounds';
     Vue.prototype.$runs_url = 'runs';

@@ -2,22 +2,26 @@
   <div class="compound">
     <h1>{{compound.species}}</h1>
     <b-jumbotron>
-        <b-card-group deck>
-            <ReadField name="Produced Water Relevance" v-bind:value="compound.produced_water_relevance" />
-            <ReadField name="Origin" v-bind:value="compound.origin" />
-            <ReadField name="Fundamental Relevance" v-bind:value="compound.fundamental_relevance" />
-            <ReadField name="Molecular Weight" v-bind:value="compound.molecular_weight" />
-            <ReadField name="Aqueous Species" v-bind:value="compound.aqueous_species" />
-            <ReadField name="pKa" v-bind:value="compound.pka" />
-            <ReadField name="Adsorption Properties" v-bind:value="compound.adsorption" />
-            <ReadField name="Analytical Techniques" v-bind:value="compound.analytical" />
-            <ReadField name="Spectroscopic Techniques" v-bind:value="compound.spectroscopic" />
-            <ReadField name="Chemical Reference" v-bind:value="compound.chem_reference" />
-            <ReadField name="MSDS" v-bind:value="compound.msds" />
-            <ReadField name="Purchase Options" v-bind:value="compound.purchase_options" />
-            <ReadField name="Contributors" v-bind:value="compound.contributors" />
-
-        </b-card-group>
+      <b-container fluid>
+        <b-row>
+          <b-col lg="3">
+            <b-list-group>
+              <b-list-group-item v-for="data in compound.metadata" :key="data.value + data.name">
+                {{data.name}}: <h5>{{data.value}}</h5>
+              </b-list-group-item>
+            </b-list-group>
+          </b-col>
+          <b-col  lg="9">
+            <b-card>
+              <div align="left" v-for="(section, index) in compound.documentation.sections" :key="section.title + section.text">
+                <p><strong>{{section.title}}</strong></p>
+                <div v-html="parseMarkdown(section.text)" v-show="index !== currently_edited_index" @dblclick=""/>
+                <b-form-textarea v-model="section.text" v-show="index === currently_edited_index" max-rows="100"/>
+              </div>
+            </b-card>
+          </b-col>
+        </b-row>
+      </b-container>
     </b-jumbotron>
     <!-- <b-jumbotron>
         <h2>Experiments</h2>
@@ -31,10 +35,7 @@
         </b-container>
 
 
-    </b-jumbotron> -->
-  <b-jumbotron>
-      {{compound.documentation}}
-  </b-jumbotron>
+    </b-jumbotron>-->
   </div>
 </template>
 
@@ -52,19 +53,25 @@ export default {
       experiments: [],
       open_experiment: {},
       errors: [],
+      currently_edited_index: undefined,
     };
   },
-  created() {
-    this.$api.get(`${this.$compounds_url}/${this.$route.params.uid}`)
-      .then((response) => {
-        this.compound = response.data;
-        // this.open_experiment = response.data.experiments[0];
-      })
-      .catch((e) => {
-        // this.errors.put(e)
-      });
+  async created() {
+    try {
+      const response = await this.$api.get(`${this.$compounds_url}/${this.$route.params.uid}`);
+      this.compound = response.data;
+    } catch (e) {
+      console.log(e);
+    }
+    // this.open_experiment = response.data.experiments[0];
   },
   methods: {
+    onDblClick() {
+      currently_edited_index = index
+    },
+    parseMarkdown(text) {
+      return this.$parseMarkDown(text);
+    },
     rowClickHandler(experiment) {
       // this.$router.push({path: '/experiments/xas/' + experiment.run})
       this.open_experiment = experiment;
@@ -77,3 +84,11 @@ export default {
 
 };
 </script>
+
+<style scoped>
+.wrap-anywhere {
+  overflow-wrap: anywhere;
+}
+
+
+</style>
