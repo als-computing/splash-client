@@ -4,9 +4,7 @@ import routes from '@/routes.js';
 import { mount, /* shallowMount, */ createLocalVue } from '@vue/test-utils';
 import mockAxios from 'axios'; // This comes from the __mocks__ folder
 import ListRuns from '@/views/runs/ListRuns.vue';
-import RunVisualizer from '@/components/RunVisualizer.vue';
 import * as bootstrap from 'bootstrap-vue';
-import responses from './responses';
 
 const localVue = createLocalVue();
 
