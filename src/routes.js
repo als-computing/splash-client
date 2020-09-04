@@ -6,8 +6,6 @@ import Home from './views/Home.vue';
 import Login from './views/Login.vue';
 // import Register from './views/Register.vue';
 import SearchPage from './views/SearchPage.vue';
-import RunDataCJS from './views/RunDataCJS.vue';
-import RunDataD3 from './views/RunDataD3.vue';
 import ListCatalogs from './views/runs/ListCatalogs.vue';
 import ListRuns from './views/runs/ListRuns.vue';
 import NotFound from './views/404.vue';
@@ -78,22 +76,6 @@ export default [
       requiresAuth: true,
     },
     component: ListRuns,
-  },
-  {
-    path: '/rund3/:uid',
-    name: 'rund3',
-    meta: {
-      requiresAuth: true,
-    },
-    component: RunDataD3,
-  },
-  {
-    path: '/runschartjs/:name',
-    name: 'runschartjs',
-    meta: {
-      requiresAuth: true,
-    },
-    // component: RunData,
   },
   {
     path: '*',

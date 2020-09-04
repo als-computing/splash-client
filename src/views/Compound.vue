@@ -5,25 +5,21 @@
       <b-container fluid>
         <b-row>
           <b-col lg="3">
-            <b-list-group>
-              <b-list-group-item v-for="data in compound.metadata" :key="data.value + data.name">
-                {{data.name}}:
-                <h5>{{data.value}}</h5>
-              </b-list-group-item>
-            </b-list-group>
+            <read-fields :fieldArray="compound.metadata" name="name" value="value"></read-fields>
           </b-col>
           <b-col lg="9">
             <b-card>
+              <div align="left">
+              <b-button
+                  @click="addSection(0)"
+                  :disabled="currently_edited_index !== undefined"
+                >Add section</b-button>
+                </div>
               <div
                 align="left"
                 v-for="(section, index) in compound.documentation.sections"
                 :key="index + section.title + section.text"
               >
-                <b-button
-                  @click="addSection(index)"
-                  :disabled="currently_edited_index !== undefined"
-                  v-show="currently_edited_index !== index && index === 0"
-                >Add section</b-button>
                 <div @dblclick="edit(index, section.text, section.title)">
                   <div v-show="index !== currently_edited_index">
                     <p>
@@ -95,7 +91,7 @@
 <script>
 
 // import ExperimentLineChart from '@/components/ExperimentLineChart.vue';
-import ReadField from '@/components/ReadField.vue';
+import ReadFields from '@/components/ReadFields.vue';
 import utils from '@/views/utils';
 
 export default {
@@ -257,7 +253,7 @@ export default {
     },
   },
   components: {
-    ReadField,
+    'read-fields': ReadFields,
   },
 
 
