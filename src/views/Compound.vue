@@ -69,7 +69,6 @@
                     v-model="couldNotSave"
                     v-b-modal.modal-center
                     ok-only
-                    :static="true"
                   >We couldn't save. Check your internet connection and try again. If the problem persists, contact the administrator.</b-modal>
                   <hr v-show="index+1 !== compound.documentation.sections.length" />
                 </div>
@@ -245,7 +244,7 @@ export default {
             footerClass: "p-2",
             hideHeaderClose: false,
             centered: true,
-          }
+          },
         )
         .then((value) => {
           if (value) {
