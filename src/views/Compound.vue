@@ -17,13 +17,15 @@
               </div>
               <h4 v-if="compound.documentation.sections.length == 0">No documentation for this compound. Be the first to add some!</h4>
               <div v-if="compound.documentation.sections.length !== 0">
+                <!--This part iterates over the sections and displays them-->
                 <div
                   align="left"
                   v-for="(section, index) in compound.documentation.sections"
                   :key="index + section.title + section.text"
                 >
+                <!--This displays each section of the documentation-->
+                 <div v-show="index !== currently_edited_index">
                   <div @dblclick="edit(index, section.text, section.title)">
-                    <div v-show="index !== currently_edited_index">
                       <p>
                         <strong>{{section.title}}</strong>
                         <span class="pointer" @click="edit(index, section.text, section.title)">
@@ -31,8 +33,11 @@
                         </span>
                         <span class="text-muted" style="font-size:0.8rem">(or double click)</span>
                       </p>
+                      <!--This parses the markdown and displays it-->
                       <div class="markdown-html" v-html="parseMarkdown(section.text)" />
                     </div>
+
+                    <!--This appears when we want to edit the documentation-->
                     <div v-if="index === currently_edited_index">
                       <b-form-input v-model="edited_data.title" :readonly="saving" />
                       <b-form-textarea
@@ -41,30 +46,42 @@
                         :readonly="saving"
                       />
                       <b-button-toolbar>
+                        <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
                         <b-button
                           variant="primary"
                           @click="saveEdit(index, section)"
                           :disabled=" (edited_data.title === '' || edited_data.text === '') || (((edited_data.title === section.title) && (edited_data.text === section.text)) || saving)"
                         >Save</b-button>
+
+                        <!--The cancel button is disabled when the app is in the process of saving-->
                         <b-button
                           variant="danger"
                           @click="removeFocus(); deleteIfNew(index, section)"
                           :disabled="saving === true"
                         >Cancel</b-button>
+
+                        <!--The Delete Section button is hidden when the section.title
+                        or section.text is empty (implying that this is a brand new section)
+                        and when the app is in the process of saving-->
                         <b-button
                           variant="warning"
                           @click="showDeleteConfirmation(index)"
                           v-show="!(section.title === '' || section.text === '') && !saving"
                         >Delete Section</b-button>
+
                         <b-spinner v-show="(saving === true)" />
                       </b-button-toolbar>
                     </div>
                   </div>
+
+                  <!--Add section is disabled if a section is being edited.
+                  It is only shown for sections that are not being edited-->
                   <b-button
                     :disabled="currently_edited_index !== undefined"
                     v-show="currently_edited_index !== index"
                     @click="addSection(index+1)"
                   >Add section</b-button>
+
                   <b-modal
                     v-model="couldNotSave"
                     v-b-modal.modal-center
@@ -78,19 +95,6 @@
         </b-row>
       </b-container>
     </b-jumbotron>
-    <!-- <b-jumbotron>
-        <h2>Experiments</h2>
-
-        <b-container class="bv-example-row">
-        <b-row>
-            <b-table striped hover :items="compound.experiments" :fields="experiment_fields" responsive="true" @row-clicked="rowClickHandler"/>
-            <b-col><experiment-line-chart :experiment="open_experiment"/></b-col>
-
-        </b-row>
-        </b-container>
-
-
-    </b-jumbotron>-->
   </div>
 </template>
 
@@ -171,7 +175,7 @@ export default {
       delete this.compound.uid;
       await this.$api.put(
         `${this.$compounds_url}/${this.$route.params.uid}`,
-        this.compound
+        this.compound,
       );
       this.compound.uid = uid;
     },
