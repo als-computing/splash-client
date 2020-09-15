@@ -126,7 +126,7 @@ describe('Login component', () => {
     expect(buttonElement.exists());
     expect(buttonElement.element).not.toBeVisible();
 
-    let spinner = wrapper.findComponent(bootstrap.BSpinner);
+    const spinner = wrapper.findComponent(bootstrap.BSpinner);
     expect(spinner.exists()).toBe(true);
     expect(spinner.element).toBeVisible();
     await jest.advanceTimersByTime(100);
@@ -140,7 +140,7 @@ describe('Login component', () => {
 
     expect(wrapper.vm.$api.post).toHaveBeenCalledTimes(1);
     const url = wrapper.vm.$api.post.mock.calls[0][0];
-    expect(url).toBe(wrapper.vm.$login_url);
+    expect(url).toBe(`${wrapper.vm.$login_url}?auth_provider=google`);
     const reqBody = wrapper.vm.$api.post.mock.calls[0][1];
     expect(typeof reqBody).toBe('object');
     expect(reqBody.token).toBe(mockGoogleUser.getAuthResponse().id_token);

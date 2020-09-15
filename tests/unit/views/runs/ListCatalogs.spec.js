@@ -40,13 +40,13 @@ describe('Catalogs component', () => {
     expect(wrapper.find('p').exists()).toBe(false);
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
     expect(wrapper.find('p').exists()).toBe(false);
     const getMock = localVue.prototype.$api.get;
     expect(getMock).toHaveBeenCalledTimes(1);
     expect(getMock).lastCalledWith(wrapper.vm.$runs_url);
 
-    const title = wrapper.find('h1');
-    expect(title.exists()).toBe(true);
+    const title = wrapper.get('h1');
     expect(title.text()).toBe('Catalogs:');
     expect(wrapper.find('h3').exists()).toBe(false);
 
