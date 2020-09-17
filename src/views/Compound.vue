@@ -21,11 +21,11 @@
                 <div
                   align="left"
                   v-for="(section, index) in compound.documentation.sections"
-                  :key="index + section.title + section.text"
+                  :key="section.text + section.title + index"
                 >
                 <!--This displays each section of the documentation-->
-                 <div v-show="index !== currently_edited_index">
                   <div @dblclick="edit(index, section.text, section.title)">
+                 <div v-show="index !== currently_edited_index">
                       <p>
                         <strong>{{section.title}}</strong>
                         <span class="pointer" @click="edit(index, section.text, section.title)">
