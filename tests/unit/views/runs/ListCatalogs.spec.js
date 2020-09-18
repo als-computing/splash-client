@@ -27,7 +27,7 @@ describe('Catalogs component', () => {
   // TODO: Test cases where no catalogs are returned and
   // Where there is some sort of error
 
-  it('sends a correct request and displays a list of catalogs', async () => {
+  it('sends a correct request, displays a list of catalogs, and emits data to parent', async () => {
     localVue.prototype.$api.get.mockResolvedValue({ data: responses.catalogsResp });
     const wrapper = mount(ListCatalogs,
       {
