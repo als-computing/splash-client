@@ -1,3 +1,6 @@
+import marked from 'marked';
+import DOMPurify from 'dompurify';
+
 export default {
   // https://stackoverflow.com/questions/32441347/how-do-i-use-vue-js-debounce-filter
   debounce(fn, delay) {
@@ -9,5 +12,9 @@ export default {
         fn.apply(that, args);
       }, delay);
     };
+  },
+  parseMarkDown(markdown) {
+    const html = marked(markdown);
+    return DOMPurify.sanitize(html);
   },
 };

@@ -1,8 +1,7 @@
 import BootstrapVue from 'bootstrap-vue';
 import { mount, /* shallowMount, */ createLocalVue } from '@vue/test-utils';
 import mockAxios from 'axios'; // This comes from the __mocks__ folder
-import Compound from '@/views/Compound.vue';
-import ReadFields from '@/components/ReadFields.vue';
+import EditFields from '@/components/EditFields.vue';
 import * as bootstrap from 'bootstrap-vue';
 import marked from 'marked';
 import DOMPurify from 'dompurify';
@@ -11,12 +10,23 @@ import responses from './compound-responses';
 
 const localVue = createLocalVue();
 
+const propsData = {
+  endpoint: 'test_endpoint',
+  uid: 'test_uid',
+  pathArrays: [['metadata'], ['documentation', 'sections']],
+  columnSizes: [3, 9],
+
+};
+
+// TODO: Generalize these tests so that they test both the functionality in the 
+// first column and the second column, currently they only test first column
+
+const REQUEST_ENDPOINT = `${propsData.endpoint}/${propsData.uid}`;
+
 localVue.use(BootstrapVue);
 localVue.use({
   install(Vue) {
     Vue.prototype.$api = mockAxios.create();
-    Vue.prototype.$compounds_url = 'compounds';
-    Vue.prototype.$route = { params: { uid: 'test_uid' } };
   },
 });
 
@@ -25,61 +35,69 @@ function parseMarkDown(markdown) {
   return DOMPurify.sanitize(html);
 }
 
-describe('Compound component', () => {
+describe('EditFields component', () => {
   beforeEach(() => {
     localVue.prototype.$api.get.mockClear();
     localVue.prototype.$api.put.mockClear();
   });
 
+  function testDisplay(wrapper, expectedArray) {
+    const sectionTitles = wrapper.findAll('strong');
+    const markdowns = wrapper.findAll('.markdown-html');
+    expect(sectionTitles.length).toBe(markdowns.length);
+    expect(sectionTitles.length).toBe(expectedArray.length);
+    sectionTitles.wrappers.forEach((elem, i) => {
+      expect(elem.text()).toBe(expectedArray[i].title);
+      // We're stripping all whitespace from both strings because the whitespace is being inconsistent
+      // Ideally we wouldn't have to do this.
+      expect(markdowns.at(i).html().replace(/\s/g, '')).toBe(`<div class="markdown-html">${parseMarkDown(expectedArray[i].text)}</div>`.replace(/\s/g, ''));
+    });
+  }
+
+  function testFieldArrayEquivalency(expectedArray, receivedArray) {
+    expect(receivedArray.length).toBe(expectedArray.length);
+    receivedArray.forEach((elem, index) => {
+      expect(elem.text).toBe(expectedArray[index].text);
+      expect(elem.title).toBe(expectedArray[index].title);
+    });
+  }
+
   it('sends the correct request to the correct endpoint', async () => {
     localVue.prototype.$api.get.mockResolvedValue(responses.boron);
-    mount(Compound,
+    const wrapper = mount(EditFields,
       {
+        propsData,
         localVue,
       });
     const getMock = localVue.prototype.$api.get;
     expect(getMock).toHaveBeenCalledTimes(1);
-    expect(getMock).lastCalledWith(`${localVue.prototype.$compounds_url}/${localVue.prototype.$route.params.uid}`);
+    expect(getMock).lastCalledWith(REQUEST_ENDPOINT);
   });
 
   it('displays the document', async () => {
     localVue.prototype.$api.get.mockResolvedValue(responses.boron);
-    const wrapper = mount(Compound,
+    const wrapper = mount(EditFields,
       {
+        propsData,
         localVue,
       });
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
-    const boron = responses.boron.data;
-    const title = wrapper.find('h1');
-    expect(title.text()).toBe(boron.species);
-    const sectionTitles = wrapper.findAll('strong');
-    const markdowns = wrapper.findAll('.markdown-html');
-    boron.documentation.sections.forEach((elem, i) => {
-      expect(sectionTitles.at(i).text()).toBe(elem.title);
-      // We're stripping all whitespace from both strings because the whitespace is being inconsistent
-      // Ideally we wouldn't have to do this.
-      expect(markdowns.at(i).html().replace(/\s/g, '')).toBe(`<div class="markdown-html">${parseMarkDown(elem.text)}</div>`.replace(/\s/g, ''));
-    });
-
-    const fieldReader = wrapper.findComponent(ReadFields);
-    const items = fieldReader.findAll(bootstrap.BListGroupItem); 
-
-    boron.metadata.forEach((elem, index) => {
-      expect(items.wrappers[index].text()).toContain(elem.name);
-      expect(items.wrappers[index].find('h5').text()).toBe(elem.value);
-    });
+    const boronData = responses.boron.data;
+    const allFields = boronData.metadata.concat(boronData.documentation.sections);
+    testDisplay(wrapper, allFields);
   });
 
   it('sanitizes markdown to prevent against xss attacks', async () => {
     localVue.prototype.$api.get.mockResolvedValue(responses.xss_attack);
-    const wrapper = mount(Compound,
+    const wrapper = mount(EditFields,
       {
+        propsData,
         localVue,
       });
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
-    const dangerMD = wrapper.find('.markdown-html');
+    const dangerMD = wrapper.findAll('.markdown-html').at(1);
     // Test to ensure that it is stripped of the script tag
     expect(dangerMD.html()).toBe('<div class="markdown-html">\n  <p>DANGEROUS MARKDOWN</p>\n</div>');
   });
@@ -94,8 +112,9 @@ describe('Compound component', () => {
     in the mock.calls array for that mock function!!!!! */
     localVue.prototype.$api.get.mockResolvedValue(JSON.parse(JSON.stringify(responses.boron)));
     mockPut.mockResolvedValue({ uid: 'test_uid' });
-    const wrapper = mount(Compound,
+    const wrapper = mount(EditFields,
       {
+        propsData,
         localVue,
       });
     await wrapper.vm.$nextTick();
@@ -119,11 +138,19 @@ describe('Compound component', () => {
     await wrapper.vm.$nextTick();
     expect(mockPut).toBeCalledTimes(1);
     const url = mockPut.mock.calls[0][0];
-    expect(url).toBe(`${localVue.prototype.$compounds_url}/${localVue.prototype.$route.params.uid}`);
+    expect(url).toBe(REQUEST_ENDPOINT);
     const request = mockPut.mock.calls[0][1];
-    expect(request.documentation.sections[0].title).toBe('One ring to rule them all');
-    expect(request.documentation.sections[0].text).toBe('One ring to find them.');
-    // TODO: Test that UI is updated as well after the request is sent
+
+    const boronData = responses.boron.data;
+
+    const expectedMetadataArray = [...boronData.metadata];
+    expectedMetadataArray[0] = { title: 'One ring to rule them all', text: 'One ring to find them.' };
+
+    testFieldArrayEquivalency(expectedMetadataArray, request.metadata);
+    testFieldArrayEquivalency(boronData.documentation.sections, request.documentation.sections);
+
+    const expectedValues = request.metadata.concat(request.documentation.sections);
+    testDisplay(wrapper, expectedValues);
   });
 
   it('sends no request when cancel is pressed', async () => {
@@ -136,8 +163,9 @@ describe('Compound component', () => {
     in the mock.calls array for that mock function!!!!! */
     localVue.prototype.$api.get.mockResolvedValue(JSON.parse(JSON.stringify(responses.boron)));
     mockPut.mockResolvedValue({ uid: 'test_uid' });
-    const wrapper = mount(Compound,
+    const wrapper = mount(EditFields,
       {
+        propsData,
         localVue,
       });
     await wrapper.vm.$nextTick();
@@ -159,6 +187,7 @@ describe('Compound component', () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
     expect(mockPut).toBeCalledTimes(0);
+    testDisplay(wrapper, responses.boron.data.metadata.concat(responses.boron.data.documentation.sections));
   });
 
   it('sends the correct axios requests when interacting with delete section functionality', async () => {
@@ -174,8 +203,9 @@ describe('Compound component', () => {
     mockPut.mockResolvedValue({ uid: 'test_uid' });
 
 
-    const wrapper = mount(Compound,
+    const wrapper = mount(EditFields,
       {
+        propsData,
         localVue,
       });
 
@@ -198,11 +228,11 @@ describe('Compound component', () => {
     await section.trigger('dblclick');
 
     let buttons = wrapper.findAllComponents(bootstrap.BButton);
-    let deleteButton = buttons.wrappers.find((elem) => elem.text() === 'Delete Section');
+    let deleteButton = buttons.wrappers.find((elem) => elem.text() === 'Delete row');
     await deleteButton.trigger('click');
 
     expect(mockConfirmation).toBeCalledWith(
-      "Are you sure you want to delete this section? This can't be undone.",
+      "Are you sure you want to delete this row? This can't be undone.",
       {
         title: 'Please Confirm',
         size: 'sm',
@@ -224,12 +254,15 @@ describe('Compound component', () => {
     section = wrapper.find('.markdown-html');
     await section.trigger('dblclick');
 
+    testDisplay(wrapper, responses.boron.data.metadata.concat(responses.boron.data.documentation.sections));
+
     buttons = wrapper.findAllComponents(bootstrap.BButton);
-    deleteButton = buttons.wrappers.find((elem) => elem.text() === 'Delete Section');
+    deleteButton = buttons.wrappers.find((elem) => elem.text() === 'Delete row');
     await deleteButton.trigger('click');
 
+
     expect(mockConfirmation).toBeCalledWith(
-      "Are you sure you want to delete this section? This can't be undone.",
+      "Are you sure you want to delete this row? This can't be undone.",
       {
         title: 'Please Confirm',
         size: 'sm',
@@ -245,13 +278,18 @@ describe('Compound component', () => {
 
     expect(mockPut).toBeCalledTimes(1);
     const url = mockPut.mock.calls[0][0];
-    expect(url).toBe(`${localVue.prototype.$compounds_url}/${localVue.prototype.$route.params.uid}`);
+    expect(url).toBe(REQUEST_ENDPOINT);
     const request = mockPut.mock.calls[0][1];
-    const originalBoronSections = responses.boron.data.documentation.sections;
-    expect(request.documentation.sections.length).toBe(originalBoronSections.length - 1);
-    expect(request.documentation.sections[0].title).toBe(originalBoronSections[1].title);
-    expect(request.documentation.sections[0].text).toBe(originalBoronSections[1].text);
+    const originalBoronData = responses.boron.data;
+    // TODO: Test that the entire request matches, not just this element
+
+    const expectedMetadataArray = originalBoronData.metadata.slice(1);
+    testFieldArrayEquivalency(expectedMetadataArray, request.metadata);
+    testFieldArrayEquivalency(originalBoronData.documentation.sections, request.documentation.sections);
+
+    testDisplay(wrapper, request.metadata.concat(request.documentation.sections));
     mockConfirmation.mockRestore();
+
     // TODO: Test that UI updates after axios request is sent
   });
 
@@ -266,8 +304,9 @@ describe('Compound component', () => {
 
     localVue.prototype.$api.get.mockResolvedValue(JSON.parse(JSON.stringify(responses.boron)));
     mockPut.mockResolvedValue({ uid: 'test_uid' });
-    const wrapper = mount(Compound,
+    const wrapper = mount(EditFields,
       {
+        propsData,
         localVue,
       });
     await wrapper.vm.$nextTick();
@@ -280,10 +319,10 @@ describe('Compound component', () => {
 
       const addSection = buttons.wrappers.find(
         (elem) => {
-          if ((elem.text() === 'Add section') && (timesAppeared === index)) {
+          if ((elem.text() === 'Add row') && (timesAppeared === index)) {
             return true;
           }
-          if (elem.text() === 'Add section') {
+          if (elem.text() === 'Add row') {
             timesAppeared += 1;
           }
           return false;
@@ -310,6 +349,7 @@ describe('Compound component', () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
     expect(mockPut).toBeCalledTimes(0);
+    testDisplay(wrapper, responses.boron.data.metadata.concat(responses.boron.data.documentation.sections));
 
     await triggerInput(0);
     buttons = wrapper.findAllComponents(bootstrap.BButton);
@@ -322,10 +362,17 @@ describe('Compound component', () => {
 
 
     let url = mockPut.mock.calls[0][0];
-    expect(url).toBe(`${localVue.prototype.$compounds_url}/${localVue.prototype.$route.params.uid}`);
+    expect(url).toBe(REQUEST_ENDPOINT);
     let request = mockPut.mock.calls[0][1];
-    expect(request.documentation.sections[0].title).toBe('One ring to rule them all');
-    expect(request.documentation.sections[0].text).toBe('One ring to find them.');
+
+    let expectedMetadataArray = [...responses.boron.data.metadata];
+    expectedMetadataArray.splice(0, 0, { title: 'One ring to rule them all', text: 'One ring to find them.' });
+    testFieldArrayEquivalency(expectedMetadataArray, request.metadata);
+
+    let expectedSectionsArray = responses.boron.data.documentation.sections;
+    testFieldArrayEquivalency(expectedSectionsArray, request.documentation.sections);
+
+    testDisplay(wrapper, expectedMetadataArray.concat(expectedSectionsArray));
 
     // We have to test one of the other buttons as well, because
     // the first one is different than the other ones.
@@ -341,12 +388,15 @@ describe('Compound component', () => {
 
 
     url = mockPut.mock.calls[1][0];
-    expect(url).toBe(`${localVue.prototype.$compounds_url}/${localVue.prototype.$route.params.uid}`);
+    expect(url).toBe(REQUEST_ENDPOINT);
     request = mockPut.mock.calls[1][1];
-    expect(request.documentation.sections[1].title).toBe('One ring to rule them all');
-    expect(request.documentation.sections[1].text).toBe('One ring to find them.');
 
+    expectedMetadataArray.splice(1, 0, { title: 'One ring to rule them all', text: 'One ring to find them.' });
+    testFieldArrayEquivalency(expectedMetadataArray, request.metadata);
 
-    // TODO: test that UI updates after axios request is sent
+    expectedSectionsArray = responses.boron.data.documentation.sections;
+    testFieldArrayEquivalency(expectedSectionsArray, request.documentation.sections);
+
+    testDisplay(wrapper, expectedMetadataArray.concat(expectedSectionsArray));
   });
 });
