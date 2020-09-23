@@ -17,4 +17,7 @@ export default {
     const html = marked(markdown);
     return DOMPurify.sanitize(html);
   },
+  sanitizeInput(text) {
+    return DOMPurify.sanitize(text);
+  },
 };
