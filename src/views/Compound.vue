@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import Document from '@/components/editor/Document';
+import DocumentUpdater from '@/components/editor/DocumentUpdater';
 import EditDocumentation from '@/components/editor/EditDocumentation.vue';
 
 export default {
@@ -44,7 +44,7 @@ export default {
   },
 
   async mounted() {
-    const compoundDoc = new Document(
+    const compoundDoc = new DocumentUpdater(
       this.$compounds_url,
       this.$route.params.uid,
     );

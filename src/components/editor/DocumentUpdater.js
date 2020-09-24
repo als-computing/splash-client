@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import Vue from 'vue';
 
-export default class Document {
+export default class DocumentUpdater {
   constructor(endpoint, uid) {
     this.uid = uid;
     this.endpoint = endpoint;
