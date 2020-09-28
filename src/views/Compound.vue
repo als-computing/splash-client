@@ -10,16 +10,28 @@
         <b-container fluid>
           <b-row>
             <b-col lg="3">
-              <edit-documentation
+              <edit-content
                 :sections-array="compoundDoc.data.metadata"
                 :markdown="false"
+                empty-message="No fields found. Be the first to add some."
+                remove-button-text='Delete field'
+                add-button-text='Add field'
+                title-input-name='Name'
+                value-input-name='Value'
+                delete-confirmation-message="Are you sure you want to delete this field? This can't be undone."
                 @dataToParent="updateDatabase('', 'metadata', arguments[0])"
               />
             </b-col>
             <b-col lg="9">
-              <edit-documentation
+              <edit-content
                 :sections-array="compoundDoc.data.documentation.sections"
                 :markdown="true"
+                empty-message="No documentation found. Be the first to add some."
+                remove-button-text='Delete section'
+                add-button-text='Add section'
+                title-input-name='Title'
+                value-input-name='Documentation'
+                delete-confirmation-message="Are you sure you want to delete this section? This can't be undone."
                 @dataToParent="updateDatabase('documentation', 'sections', arguments[0])"
               />
             </b-col>
@@ -32,7 +44,7 @@
 
 <script>
 import DocumentUpdater from '@/components/editor/DocumentUpdater';
-import EditDocumentation from '@/components/editor/EditDocumentation.vue';
+import EditContent from '@/components/editor/EditContent.vue';
 
 export default {
   data() {
@@ -75,7 +87,7 @@ export default {
     },
   },
   components: {
-    'edit-documentation': EditDocumentation,
+    'edit-content': EditContent,
   },
 };
 </script>

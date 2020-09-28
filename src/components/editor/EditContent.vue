@@ -1,21 +1,18 @@
 <template>
   <div class="documentation_editor">
-
-            <b-card>
-              <div align="left">
-                <b-button
-                  @click="addSection(0)"
-                  :disabled="currently_edited_index !== undefined"
-                  >Add section</b-button
-                >
-              </div>
-              <h4 v-if="sections.length == 0">
-                No documentation found. Be the first to add some!
-              </h4>
-              <div v-if="sections.length !== 0">
-
-                <!--This part iterates over the sections and displays them-->
-                <!--Using the index as part of the key is bad practice here, If were moving
+    <div align="left">
+      <b-icon-plus-circle-fill
+        class="pointer mt-2"
+        @click="addSection(0)"
+        :disabled="currently_edited_index !== undefined"
+      />
+    </div>
+    <h4 v-if="sections.length == 0">
+      {{ emptyMessage }}
+    </h4>
+    <div v-if="sections.length !== 0">
+      <!--This part iterates over the sections and displays them-->
+      <!--Using the index as part of the key is bad practice here, If were moving
                 around forms, like b-input, with internal states we would want a unique key,
                 also if we wanted to force a component to be re-mounted when the list changes
                 then we would use a unique key. However, none of these components need to
@@ -29,112 +26,111 @@
                 https://forum.vuejs.org/t/v-for-with-simple-arrays-what-key-to-use/13692/8
                 https://forum.vuejs.org/t/what-key-to-use-in-v-for-where-items-have-no-identity/60111/7
                   -->
-                <div
-                  align="left"
-                  v-for="(section, index) in sections"
-                  :key="section[textKey] + section[titleKey] + index"
+      <div
+        align="left"
+        v-for="(section, index) in sections"
+        :key="section[textKey] + section[titleKey] + index"
+      >
+        <b-card>
+          <!--This displays each section of the documentation-->
+          <div @dblclick="edit(index, section[textKey], section[titleKey])">
+            <div v-show="index !== currently_edited_index">
+              <p>
+                <strong>{{ section[titleKey] }}</strong>
+                <span
+                  class="pointer"
+                  @click="edit(index, section[textKey], section[titleKey])"
                 >
-                  <!--This displays each section of the documentation-->
-                  <div @dblclick="edit(index, section[textKey], section[titleKey])">
-                    <div v-show="index !== currently_edited_index">
-                      <p>
-                        <strong>{{ section[titleKey] }}</strong>
-                        <span
-                          class="pointer"
-                          @click="edit(index, section[textKey], section[titleKey])"
-                        >
-                          <u>[edit]</u>
-                        </span>
-                        <span class="text-muted" style="font-size: 0.8rem"
-                          >(or double click)</span
-                        >
-                      </p>
-                      <!--This parses the markdown and displays it-->
-                      <div
-                        class="markdown-html"
-                        v-html="parseText(section[textKey])"
-                      />
-                    </div>
+                  <u>[edit]</u>
+                </span>
+                <span class="text-muted" style="font-size: 0.8rem"
+                  >(or double click)</span
+                >
+              </p>
+              <!--This parses the markdown and displays it-->
+              <div class="markdown-html" v-html="parseText(section[textKey])" />
+            </div>
 
-                    <!--This appears when we want to edit the documentation-->
-                    <div v-if="index === currently_edited_index">
-                      <b-form-input
-                        v-model="edited_data[titleKey]"
-                        :readonly="saving"
-                      />
-                      <b-form-textarea
-                        v-model="edited_data[textKey]"
-                        max-rows="100"
-                        :readonly="saving"
-                      />
-                      <b-button-toolbar>
-                        <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
-                        <b-button
-                          variant="primary"
-                          @click="emitEdit(index, section)"
-                          :disabled="
-                            edited_data[titleKey] === '' ||
-                            edited_data[textKey] === '' ||
-                            (edited_data[titleKey] === section[titleKey] &&
-                              edited_data[textKey] === section[textKey]) ||
-                            saving
-                          "
-                          >Save</b-button
-                        >
+            <!--This appears when we want to edit the documentation-->
+            <div v-if="index === currently_edited_index">
+              <span class="text-muted">{{ titleInputName }}:</span>
+              <b-form-input
+                v-model="edited_data[titleKey]"
+                :readonly="saving"
+              />
+              <span class="text-muted">{{ valueInputName }}:</span>
+              <b-form-textarea
+                v-model="edited_data[textKey]"
+                max-rows="100"
+                :readonly="saving"
+              />
+              <b-button-toolbar>
+                <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
+                <b-button
+                  variant="primary"
+                  @click="emitEdit(index, section)"
+                  :disabled="
+                    edited_data[titleKey] === '' ||
+                    edited_data[textKey] === '' ||
+                    (edited_data[titleKey] === section[titleKey] &&
+                      edited_data[textKey] === section[textKey]) ||
+                    saving
+                  "
+                  >Save</b-button
+                >
 
-                        <!--The cancel button is disabled when the app is in the process of saving-->
-                        <b-button
-                          variant="danger"
-                          @click="
-                            removeFocus();
-                            deleteIfNew(index, section);
-                          "
-                          :disabled="saving === true"
-                          >Cancel</b-button
-                        >
+                <!--The cancel button is disabled when the app is in the process of saving-->
+                <b-button
+                  variant="danger"
+                  @click="
+                    removeFocus();
+                    deleteIfNew(index, section);
+                  "
+                  :disabled="saving === true"
+                  >Cancel</b-button
+                >
 
-                        <!--The Delete Section button is hidden when the section[titleKey]
+                <!--The Delete Section button is hidden when the section[titleKey]
                         or section[textKey] is empty (implying that this is a brand new section)
                         and when the app is in the process of saving-->
-                        <b-button
-                          variant="warning"
-                          @click="showDeleteConfirmation(index)"
-                          v-show="
-                            !(section[titleKey] === '' || section[textKey] === '') &&
-                            !saving
-                          "
-                          >Delete Section</b-button
-                        >
+                <b-button
+                  variant="warning"
+                  @click="showDeleteConfirmation(index)"
+                  v-show="
+                    !(section[titleKey] === '' || section[textKey] === '') &&
+                    !saving
+                  "
+                  >{{ removeButtonText }}</b-button
+                >
 
-                        <b-spinner v-show="saving === true" />
-                      </b-button-toolbar>
-                    </div>
-                  </div>
+                <b-spinner v-show="saving === true" />
+              </b-button-toolbar>
+            </div>
+          </div>
 
-                  <!--Add section is disabled if a section is being edited.
+          <!--Add section is disabled if a section is being edited.
                   It is only shown for sections that are not being edited-->
-                  <b-button
-                    :disabled="currently_edited_index !== undefined"
-                    v-show="currently_edited_index !== index"
-                    @click="addSection(index + 1)"
-                    >Add section</b-button
-                  >
 
-                  <b-modal v-model="couldNotSave" v-b-modal.modal-center ok-only
-                    >We couldn't save. Check your internet connection and try
-                    again. If the problem persists, contact the
-                    administrator.</b-modal
-                  >
-                  <hr v-show="index + 1 !== sections.length" />
-                </div>
-              </div>
-            </b-card>
+          <b-modal v-model="couldNotSave" v-b-modal.modal-center ok-only
+            >We couldn't save. Check your internet connection and try again. If
+            the problem persists, contact the administrator.</b-modal
+          >
+        </b-card>
+        <b-icon-plus-circle-fill
+          :disabled="currently_edited_index !== undefined"
+          v-show="currently_edited_index !== index"
+          class="pointer mt-2"
+          @click="addSection(index + 1)"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 // import ExperimentLineChart from '@/components/ExperimentLineChart.vue';
 import utils from '@/utils';
+import { BIconPlusCircleFill } from 'bootstrap-vue';
 
 export default {
   props: {
@@ -150,6 +146,31 @@ export default {
     textKey: {
       type: String,
       default: 'text',
+    },
+    emptyMessage: {
+      type: String,
+      default: 'No documentation found. Be the first to add some.',
+    },
+    removeButtonText: {
+      type: String,
+      default: 'Remove section',
+    },
+    addButtonText: {
+      type: String,
+      default: 'Add section',
+    },
+    deleteConfirmationMessage: {
+      type: String,
+      default:
+        "Are you sure you want to delete this section? This can't be undone.",
+    },
+    titleInputName: {
+      type: String,
+      default: 'Title',
+    },
+    valueInputName: {
+      type: String,
+      default: 'Documentation',
     },
   },
   data() {
@@ -252,20 +273,17 @@ export default {
     },
     showDeleteConfirmation(index) {
       this.$bvModal
-        .msgBoxConfirm(
-          "Are you sure you want to delete this section? This can't be undone.",
-          {
-            title: 'Please Confirm',
-            size: 'sm',
-            buttonSize: 'sm',
-            okVariant: 'danger',
-            okTitle: 'YES',
-            cancelTitle: 'NO',
-            footerClass: 'p-2',
-            hideHeaderClose: false,
-            centered: true,
-          },
-        )
+        .msgBoxConfirm(this.deleteConfirmationMessage, {
+          title: 'Please Confirm',
+          size: 'sm',
+          buttonSize: 'sm',
+          okVariant: 'danger',
+          okTitle: 'YES',
+          cancelTitle: 'NO',
+          footerClass: 'p-2',
+          hideHeaderClose: false,
+          centered: true,
+        })
         .then((value) => {
           if (value) {
             this.deleteSection(index);
@@ -291,6 +309,9 @@ export default {
       // this.$router.push({path: '/experiments/xas/' + experiment.run})
       this.open_experiment = experiment;
     },
+  },
+  components: {
+    'b-icon-plus-circle-fill': BIconPlusCircleFill,
   },
 };
 </script>
