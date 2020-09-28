@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+  - 10
+
+catch:
+  directories:
+    - node_modeules
+
+script:
+  - npm run test:unit
+  
