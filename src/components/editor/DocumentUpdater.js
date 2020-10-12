@@ -16,21 +16,22 @@ export default class DocumentUpdater {
 
   async updateDataProperty(path, property, newValue) {
     let object = this.data;
-    if (typeof path !== 'string') throw new TypeError('1st positional arg: `path` must be a string');
-    if (typeof property !== 'string') throw new TypeError('2nd positional arg: `property` must be a string');
+    if (typeof path !== 'string') throw new TypeError('1st positional argument must be a string');
+    if (typeof property !== 'string') throw new TypeError('2nd positional argument must be a string');
+    if (newValue === null || newValue === undefined) throw new TypeError('3rd positional argument cannot be null or undefined');
     if (path !== '') {
       path.split('.').forEach((key) => {
         object = object[key];
         if (object === undefined || object === null) {
-          throw Error(
-            '1st positional argument: `path`, leads to undefined or null property in data.',
+          throw TypeError(
+            `1st positional argument: ${path}, leads to undefined or null property in data`,
           );
         }
       });
     }
     if (typeof object !== 'object') {
       throw TypeError(
-        '1st positional argument: `path` must lead to an object, not a primitive',
+        `1st positional argument: ${path}, must lead to an object, not a primitive`,
       );
     }
     const oldValue = object[property];

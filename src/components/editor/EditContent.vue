@@ -48,7 +48,7 @@
                 >
               </p>
               <!--This parses the markdown and displays it-->
-              <div class="markdown-html" v-html="parseText(section[textKey])" />
+              <div class="user-text" v-html="parseText(section[textKey])" />
             </div>
 
             <!--This appears when we want to edit the documentation-->
@@ -111,7 +111,7 @@
           <!--Add section is disabled if a section is being edited.
                   It is only shown for sections that are not being edited-->
 
-          <b-modal v-model="couldNotSave" v-b-modal.modal-center ok-only
+          <b-modal v-model="couldNotSave" v-b-modal.modal-center ok-only :static='true'
             >We couldn't save. Check your internet connection and try again. If
             the problem persists, contact the administrator.</b-modal
           >
@@ -119,7 +119,7 @@
         <b-icon-plus-circle-fill
           :disabled="currently_edited_index !== undefined"
           v-show="currently_edited_index !== index"
-          class="pointer mt-2"
+          :class="`${pointer} mt-2`"
           @click="addSection(index + 1)"
         />
       </div>
@@ -183,7 +183,6 @@ export default {
       },
       saving: false,
       couldNotSave: false,
-      somethingWentWrong: true,
     };
   },
   mounted() {

@@ -5,7 +5,7 @@ import routes from '@/routes.js';
 import BootstrapVue, { BCardText } from 'bootstrap-vue';
 import * as bootstrap from 'bootstrap-vue';
 import mockAxios from 'axios';
-import responses from './login-responses';
+import responses from '../../responses/login-responses';
 
 
 const localVue = createLocalVue();
