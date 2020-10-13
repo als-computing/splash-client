@@ -288,6 +288,9 @@ describe('EditFields component', () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
 
+    // TODO test to make sure that you can't add another section by pressing
+    // the plus button when there is already a new one open
+
     async function triggerInput(index) {
       const addSection = wrapper.findAllComponents(bootstrap.BIconPlusCircleFill).at(index);
       await addSection.trigger('click');

@@ -2,9 +2,8 @@
   <div class="documentation_editor">
     <div align="left">
       <b-icon-plus-circle-fill
-        class="pointer mt-2"
-        @click="addSection(0)"
-        :disabled="currently_edited_index !== undefined"
+        :class="`${(currently_edited_index === undefined) ? 'pointer' : ''} mt-2`"
+        @click="(currently_edited_index === undefined) ? addSection(0) : {}"
       />
     </div>
     <h4 v-if="sections.length == 0">
@@ -117,10 +116,9 @@
           >
         </b-card>
         <b-icon-plus-circle-fill
-          :disabled="currently_edited_index !== undefined"
           v-show="currently_edited_index !== index"
-          :class="`${pointer} mt-2`"
-          @click="addSection(index + 1)"
+          :class="`${(currently_edited_index === undefined) ? 'pointer' : ''} mt-2`"
+          @click="(currently_edited_index === undefined) ? addSection(index + 1) : {}"
         />
       </div>
     </div>
