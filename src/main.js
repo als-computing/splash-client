@@ -20,6 +20,7 @@ let settings = null;
 
 Vue.use({
   async install(Vue) {
+    getSettings()
     Vue.prototype.$settings = settings;
     let searchUrl = '/elasticsearch';
     Vue.prototype.$api = axios.create({
@@ -59,12 +60,7 @@ async function onGoogleLoad() {
 
     
   // Initializes it with the correct client ID
-    await window.gapi.auth2.init(
-      {
-      // client_id: process.env.VUE_APP_CLIENT_ID.concat(
-      //   '.apps.googleusercontent.com',
-      // ),
-      
+    await window.gapi.auth2.init({     
       client_id: settings.google_client_id
     });
   } catch (e) {
@@ -90,7 +86,7 @@ async function getSettings(){
   }
 }
 
-document.onload = getSettings();
+// document.onload = getSettings();
 
 // Construct src element for google sign in script
 const script = document.createElement('script');
