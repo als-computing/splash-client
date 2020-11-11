@@ -10,26 +10,19 @@ import FiveHundred from './views/500.vue';
 import router from './router';
 import store from './store';
 import './assets/css/main.css';
+import { axisBottom } from 'd3';
 
 Vue.use(BootstrapVue);
 Vue.use(Router);
-// Vue.component('plotly', Plotly);
-
 Vue.config.productionTip = false;
+let apiUrl = apiUrl = '/api/v1';
+let settings = null;
 
 Vue.use({
-  install(Vue) {
-    let apiUrl = process.env.VUE_APP_API_URL;
-    if (apiUrl == null) {
-      apiUrl = '/api/v1';
-    }
-    let searchUrl = process.env.VUE_APP_API_URL;
-    if (searchUrl == null) {
-      searchUrl = '/elasticsearch';
-    }
-    // Vue.prototype.$http = axios.create({
-
-    // });
+  async install(Vue) {
+    getSettings()
+    Vue.prototype.$settings = settings;
+    let searchUrl = '/elasticsearch';
     Vue.prototype.$api = axios.create({
       baseURL: apiUrl,
     });
@@ -64,11 +57,11 @@ async function onGoogleLoad() {
   // of the app: https://developers.google.com/identity/sign-in/web/reference
   await new Promise((resolve) => window.gapi.load('auth2', resolve));
   try {
+
+    
   // Initializes it with the correct client ID
-    await window.gapi.auth2.init({
-      client_id: process.env.VUE_APP_CLIENT_ID.concat(
-        '.apps.googleusercontent.com',
-      ),
+    await window.gapi.auth2.init({     
+      client_id: settings.google_client_id
     });
   } catch (e) {
     console.log(e);
@@ -86,6 +79,14 @@ async function onGoogleLoad() {
   }).$mount('#app');
 }
 
+async function getSettings(){
+  let response = await axios.get(apiUrl + "/settings")
+  if (response.data){
+    settings = response.data;
+  }
+}
+
+// document.onload = getSettings();
 
 // Construct src element for google sign in script
 const script = document.createElement('script');
