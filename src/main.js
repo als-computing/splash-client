@@ -10,17 +10,16 @@ import FiveHundred from './views/500.vue';
 import router from './router';
 import store from './store';
 import './assets/css/main.css';
-import { axisBottom } from 'd3';
 
 Vue.use(BootstrapVue);
 Vue.use(Router);
 Vue.config.productionTip = false;
-let apiUrl = apiUrl = '/api/v1';
+const apiUrl = '/api/v1';
 let settings = null;
 
 Vue.use({
   async install(Vue) {
-    getSettings()
+    await getSettings()
     Vue.prototype.$settings = settings;
     let searchUrl = '/elasticsearch';
     Vue.prototype.$api = axios.create({
@@ -80,7 +79,13 @@ async function onGoogleLoad() {
 }
 
 async function getSettings(){
-  let response = await axios.get(apiUrl + "/settings")
+  let response = await axios.get(apiUrl + "/settings", {
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    }
+  } )
   if (response.data){
     settings = response.data;
   }
