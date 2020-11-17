@@ -40,6 +40,7 @@ Vue.use({
     Vue.prototype.$compounds_url = 'compounds';
     Vue.prototype.$runs_url = 'runs';
     Vue.prototype.$login_url = 'idtokensignin';
+    Vue.prototype.$references_url = 'references';
     Vue.prototype.$elastic_index_url = 'run_start/_search';
   },
 });

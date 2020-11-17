@@ -36,6 +36,9 @@ const propsData = {
 // that the UI continues to display the data that's in the database, and not the new stuff
 // that hasn't been saved
 
+// TODO:implement testing to make sutre that you can't press any of the editing buttons
+// while the parent component is saving the data
+
 localVue.use(BootstrapVue);
 localVue.use({
   install(Vue) {
@@ -148,7 +151,7 @@ describe('EditFields component', () => {
     const expectedFieldsArray = [...propsData.sectionsArray];
     expectedFieldsArray[0] = { title: 'One ring to rule them all', text: 'One ring to find them.' };
     const eventObj = wrapper.emitted().dataToParent[0][0];
-    expect(eventObj.sections).toEqual(expectedFieldsArray);
+    expect(eventObj.data).toEqual(expectedFieldsArray);
     eventObj.callback(true);
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
@@ -267,7 +270,7 @@ describe('EditFields component', () => {
 
     const expectedFieldsArray = propsData.sectionsArray.slice(1);
 
-    expect(eventObj.sections).toEqual(expectedFieldsArray);
+    expect(eventObj.data).toEqual(expectedFieldsArray);
 
     eventObj.callback(true);
     await wrapper.vm.$nextTick();
@@ -325,7 +328,7 @@ describe('EditFields component', () => {
     let eventObj = wrapper.emitted().dataToParent[0][0];
     const expectedFieldsArray = [...propsData.sectionsArray];
     expectedFieldsArray.splice(0, 0, { title: 'One ring to rule them all', text: 'One ring to find them.' });
-    expect(eventObj.sections).toEqual(expectedFieldsArray);
+    expect(eventObj.data).toEqual(expectedFieldsArray);
     eventObj.callback(true);
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();

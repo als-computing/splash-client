@@ -1,6 +1,10 @@
 <template>
   <div class="compound">
-    <b-modal v-model="couldNotRetrieve" v-b-modal.modal-center ok-only
+    <b-modal
+      v-model="couldNotRetrieve"
+      :static="true"
+      v-b-modal.modal-center
+      ok-only
       >We couldn't retrieve the document. Check the url or your internet
       connection and reload.</b-modal
     >
@@ -14,10 +18,10 @@
                 :sections-array="compoundDoc.data.metadata"
                 :markdown="false"
                 empty-message="No fields found. Be the first to add some."
-                remove-button-text='Delete field'
-                add-button-text='Add field'
-                title-input-name='Name'
-                value-input-name='Value'
+                remove-button-text="Delete field"
+                add-button-text="Add field"
+                title-input-name="Name"
+                value-input-name="Value"
                 delete-confirmation-message="Are you sure you want to delete this field? This can't be undone."
                 @dataToParent="updateDatabase('', 'metadata', arguments[0])"
               />
@@ -25,14 +29,23 @@
             <b-col lg="9">
               <edit-content
                 :sections-array="compoundDoc.data.documentation.sections"
+                :reference-uids-array="compoundDoc.data.documentation.references"
                 :markdown="true"
                 empty-message="No documentation found. Be the first to add some."
-                remove-button-text='Delete section'
-                add-button-text='Add section'
-                title-input-name='Title'
-                value-input-name='Documentation'
+                remove-button-text="Delete section"
+                add-button-text="Add section"
+                title-input-name="Title"
+                value-input-name="Documentation"
                 delete-confirmation-message="Are you sure you want to delete this section? This can't be undone."
-                @dataToParent="updateDatabase('documentation', 'sections', arguments[0])"
+                @dataToParent="
+                  updateDatabase('documentation', 'sections', arguments[0])
+                "
+              />
+              <add-references
+                :references-array="compoundDoc.data.documentation.references"
+                @dataToParent="
+                  updateDatabase('documentation', 'references', arguments[0])
+                "
               />
             </b-col>
           </b-row>
@@ -43,8 +56,9 @@
 </template>
 
 <script>
-import DocumentUpdater from '@/components/editor/DocumentUpdater';
-import EditContent from '@/components/editor/EditContent.vue';
+import DocumentUpdater from "@/components/editor/DocumentUpdater";
+import EditContent from "@/components/editor/EditContent.vue";
+import AddReferences from "@/components/editor/AddReferences.vue";
 
 export default {
   data() {
@@ -58,14 +72,14 @@ export default {
   async mounted() {
     const compoundDoc = new DocumentUpdater(
       this.$compounds_url,
-      this.$route.params.uid,
+      this.$route.params.uid
     );
     try {
       await compoundDoc.init();
       this.compoundDoc = compoundDoc;
       this.mounted = true;
     } catch (e) {
-      console.log('line 39');
+      console.log("line 39");
       console.log(e);
       this.couldNotRetrieve = true;
     }
@@ -74,11 +88,7 @@ export default {
   methods: {
     async updateDatabase(path, key, eventObj) {
       try {
-        await this.compoundDoc.updateDataProperty(
-          path,
-          key,
-          eventObj.sections,
-        );
+        await this.compoundDoc.updateDataProperty(path, key, eventObj.data);
         eventObj.callback(true);
       } catch (error) {
         eventObj.callback(false);
@@ -87,7 +97,8 @@ export default {
     },
   },
   components: {
-    'edit-content': EditContent,
+    "edit-content": EditContent,
+    "add-references": AddReferences,
   },
 };
 </script>

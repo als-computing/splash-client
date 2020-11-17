@@ -81,7 +81,7 @@ describe('Compound View', () => {
     const callback = jest.fn();
 
     editor.vm.$emit('dataToParent', {
-      sections: newSections,
+      data: newSections,
       callback,
     });
 
@@ -96,7 +96,7 @@ describe('Compound View', () => {
     mockUpdater.updateDataProperty.mockResolvedValue();
 
     editor.vm.$emit('dataToParent', {
-      sections: newSections,
+      data: newSections,
       callback,
     });
     await appWrapper.vm.$nextTick();

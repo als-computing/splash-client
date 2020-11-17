@@ -1,5 +1,6 @@
 import marked from 'marked';
 import DOMPurify from 'dompurify';
+import Vue from 'vue';
 
 export default {
   // https://stackoverflow.com/questions/32441347/how-do-i-use-vue-js-debounce-filter
