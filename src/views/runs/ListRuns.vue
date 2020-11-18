@@ -1,7 +1,8 @@
 <template>
   <div class="lists">
     <b-container>
-      <b-row v-if=catalogNotFound>
+
+      <!-- <b-row v-if=catalogNotFound>
         <b-col>
           <div  class="mx-auto .align-middle">
             <h1 class="display-4"> "{{$route.params.catalog}}" catalog not found </h1>
@@ -24,7 +25,13 @@
           </b-list-group>
         </b-col>
         <b-col sm><run-visualizer :num-frames="currentRun.num_images" v-if="runSelected" class ="image-display mb-1"/></b-col>
-      </b-row>
+      </b-row> -->
+    <b-table striped hover :items="runs" :fields="fields" responsive @row-clicked="rowClickHandler">
+      <template v-slot:cell(image)="row">
+        <!-- <b-img src="https://picsum.photos/1024/400/?image=41" fluid  rounded blank-color="#777" img-lazy thumbnail alt="Responsive image"></b-img> -->
+        <b-img-lazy v-if="loaded" :src="thumbnails[row.index]" fluid rounded blank-color="#777" thumbnail alt="Responsive image"></b-img-lazy> 
+      </template>
+    </b-table>
     </b-container>
   </div>
 </template>
@@ -35,29 +42,44 @@ import RunVisualizer from '@/components/RunVisualizer.vue';
 export default {
   data: () => ({
     catalogNotFound: false,
-    showRuns: false,
+    fields: ['collection_date', 'experiment_name' , 'sample_name', 'experimenter_name', 'uid', 'image'],
     runs: [],
     currentRun: {},
     runSelected: false,
+    thumbnails: [],
+    loaded: false
   }),
   components: {
     'run-visualizer': RunVisualizer,
   },
 
   async mounted() {
-    const requestUrl = this.$runs_url.concat('/', this.$route.params.catalog);
-    await this.listRuns(requestUrl);
-    if (this.$route.params.uid) {
-      this.runSelected = true;
+    await this.listRuns();
+
+    console.log(this.runs)
+    //load images array
+    for (let run in this.runs){
+      const jpeg = await this.getJpeg(this.$route.params.catalog, this.runs[run].uid);
+      this.thumbnails.push(jpeg)
     }
+    this.loaded = true;
     this.currentUid = this.$route.params.uid;
   },
   methods: {
-    async listRuns(requestUrl) {
+
+    async listRuns() {
       try {
+        const requestUrl = this.$runs_url.concat('/', this.$route.params.catalog);
         const response = await this.$api.get(requestUrl);
         this.runs = response.data;
-        this.showRuns = true;
+        // for (const run of this.runs){
+        //   run.image_url = requestUrl + "/" + run.uid + "/thumb";
+        //   // run.image_url = "http://localhost:8080/api/v1/runs/tomo_demo/5c221408-e89e-40d3-a493-344cee481b84/thumb";
+        // }
+        
+        // callback(this.runs);
+        // return this.runs;
+      
       } catch (error) {
         if (error.response) {
           console.log(error.response.data);
@@ -79,6 +101,28 @@ export default {
         }
       }
     },
+
+    
+
+    async getJpeg(catalog_name, uid) {
+      try {
+        console.log("&&&&&&&&")
+        let url = this.$runs_url + "/" + catalog_name + "/" +uid + "/thumb";
+        const response = await this.$api
+          .get(url, {
+            responseType: 'arraybuffer',
+          });
+        return "data:image/jpg;base64," + Buffer.from(response.data, 'binary').toString('base64');
+
+      } catch (e) {
+        console.log(e)
+        return "";
+      }
+    },
+
+    async rowClickHandler(run){
+       this.$router.push({ path: `/run/${this.$route.params.catalog}/${run.uid}` });
+    }
   },
 
 };

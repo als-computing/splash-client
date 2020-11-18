@@ -9,6 +9,12 @@
           <b-list-group>
             <b-list-group-item v-for="catalog in catalogs" :key="catalog" :to="{ path: catalog}" append>{{catalog}}</b-list-group-item>
           </b-list-group>
+            <b-table striped hover :items="listRuns" :fields="fields" responsive @row-clicked="rowClickHandler">
+            <template v-slot:cell(image)="row">
+              <b-img src="https://picsum.photos/1024/400/?image=41" fluid  rounded blank-color="#777" img-lazy thumbnail alt="Image unavailabe"></b-img>
+              <!-- <b-img :src="getJpeg(row.item.image_url)" fluid  rounded blank-color="#777" img-lazy thumbnail alt="Responsive image"></b-img> -->
+            </template>
+          </b-table>
         </b-col>
       </b-row>
     </b-container>
@@ -33,7 +39,7 @@ export default {
       try {
         console.log(requestUrl);
         const response = await this.$api.get(requestUrl);
-        this.catalogs = response.data.catalogs;
+        this.catalogs = response.data;
         if (this.catalogs.length === 0) {
           this.noCatalogs = true;
         }

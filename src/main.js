@@ -20,6 +20,7 @@ let settings = null;
 Vue.use({
   async install(Vue) {
     await getSettings()
+    console.log("google client id" + settings.google_client_id)
     Vue.prototype.$settings = settings;
     let searchUrl = '/elasticsearch';
     Vue.prototype.$api = axios.create({
@@ -57,9 +58,13 @@ async function onGoogleLoad() {
   await new Promise((resolve) => window.gapi.load('auth2', resolve));
   try {
 
-    
+    if (settings == null){
+      await getSettings();
+    }
   // Initializes it with the correct client ID
-    await window.gapi.auth2.init({     
+    await window.gapi.auth2.init(
+      {
+ 
       client_id: settings.google_client_id
     });
   } catch (e) {

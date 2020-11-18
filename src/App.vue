@@ -3,14 +3,14 @@
     <b-navbar toggleable="lg" type="dark" variant="dark">
         <b-navbar-brand href="#">Splash</b-navbar-brand>
 
-        <router-link to="/about">About</router-link>
+        <!-- <router-link to="/about">About</router-link> -->
 
         <b-navbar-toggle target="nav_collapse" />
 
         <b-collapse is-nav id="nav_collapse">
           <b-navbar-nav>
-
-            <b-nav-item v-bind:to="'/'">Home</b-nav-item>
+<!-- 
+            <b-nav-item v-bind:to="'/'">Home</b-nav-item> -->
             <b-nav-item v-bind:to="'/runs'">Runs</b-nav-item>
 
           </b-navbar-nav>
@@ -20,9 +20,9 @@
         </b-nav-text>
         <span id="logout" v-if="isLoggedIn" >   | <b-button variant="light" @click="logout" class="mx-3">Logout</b-button></span>
     </b-navbar>
-    <b-navbar>
+    <!-- <b-navbar>
       <SearchBar/>
-    </b-navbar>
+    </b-navbar> -->
     <router-view/>
 
   </div>
