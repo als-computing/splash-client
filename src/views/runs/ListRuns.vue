@@ -5,9 +5,7 @@
     </b-navbar>
     <b-container>
     <b-table striped hover :items="runs" :fields="fields" responsive @row-clicked="rowClickHandler">
-     <!-- <template v-slot:cell()="data">
-       <p class="sm">{{data}}</p>
-     </template> -->
+
      <template #cell()="data">
        <div class="sm">
           <small>{{ data.value }}</small>
@@ -15,8 +13,8 @@
 
       </template>
       <template v-slot:cell(image)="row">
-        <b-img v-if="loaded" :src="thumbnails[row.index]" class="thumbnail-image" fluid rounded thumbnail blank-color="white" alt="Image Not Available"></b-img>
-        <b-spinner v-if="!loaded" variant="light"/>
+        <b-img v-if="thumbnails[row.item.uid]" :src="thumbnails[row.item.uid]" class="thumbnail-image" fluid rounded thumbnail blank-color="white" alt="Image Not Available"></b-img>
+        <b-spinner v-if="!thumbnails[row.item.uid]" variant="light"/>
       </template>
     </b-table>
     <div class="d-flex justify-content-center mb-3">
@@ -39,8 +37,7 @@ export default {
     runs: [],
     currentRun: {},
     runSelected: false,
-    thumbnails: [],
-    loaded: false,
+    thumbnails: {},
     runsLoading: false
   }),
   components: {
@@ -57,21 +54,23 @@ export default {
       
     }
     
-    this.addThumbs(0, this.runs.length);
+    this.addThumbs();
     console.log(this.runs)
-    this.loaded = true;
     this.currentUid = this.$route.params.uid;
     
   },
 
   methods: {
-    async addThumbs(first, last){
-       for (let run in this.runs.slice(first, last)){
-              console.log("fetching jpegs")
-              const jpeg = await this.getJpeg(this.$route.params.catalog, this.runs[run].uid);
-              this.thumbnails.push(jpeg)
-              console.log("pushed jpeg to " + this.thumbnails.length )
+    async addThumbs(){
+       for (let index in this.runs){
+        const run = this.runs[index];
+        if (this.thumbnails[run.uid] === undefined){
+              const jpeg = await this.getJpeg(this.$route.params.catalog, run.uid);
+              // this.thumbnails[run.uid] = jpeg;
+              this.$set(this.thumbnails, run.uid, jpeg);
+              console.log("pushed jpeg to " + run.uid);
         }
+       }
     },
 
     async scroll(){
@@ -85,7 +84,7 @@ export default {
             if (newRunsNum < 1){
               return;
             }
-            this.addThumbs(beforeRunsNum, afterRunsNum);
+            this.addThumbs();
           }
       };
     },
