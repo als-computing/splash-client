@@ -7,19 +7,23 @@
         variant="light"
         opacity="0.8"
         rounded="sm">
-          <b-img alt= "image of scan"
+          <b-img 
+          ref="image"
+          alt= "image of scan"
+          id="image"
           fluid
           v-bind:src="'data:image/png;base64,' + image"
           :aria-hidden="isImageLoading ? 'true' : null"/>
         </b-overlay>
-      </div>
 
+        <image-adjuster/>
+      </div>
   </div>
 </template>
 
 <script>
 import utils from '@/utils';
-
+import ImageAdjuster from "@/components/ImageAdjuster.vue";
 export default {
   props: {
     numFrames: Number,
@@ -51,7 +55,6 @@ export default {
 
 
   mounted() {
-    // console.log('mounted!');
     this.validateRoute();
     this.getJpeg(this.$route);
   },
@@ -59,7 +62,6 @@ export default {
 
   methods: {
     validateRoute() {
-      // console.log('validating route!');
       if (this.$route.query.frame && !this.isPositiveInteger(this.$route.query.frame)) {
         this.$router.replace({ path: this.$route.path, query: { frame: 0 } });
         this.frameNumDebounced = '0';
@@ -166,6 +168,8 @@ export default {
       }
     }, */
   },
-
+  components: {
+    "image-adjuster": ImageAdjuster
+  }
 };
 </script>

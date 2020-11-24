@@ -8,7 +8,7 @@
                     <read-fields :fields="metadata" name="name" value="value"></read-fields>
                   </div>
               </b-col>
-              <b-col lg="6">
+              <b-col lg="8">
                 <div class="bg-light m-4">
                       <run-visualizer :numFrames="1"/>
                 </div>
@@ -31,7 +31,6 @@ export default {
   },
 async mounted() {
     try {
-    //   this.first_img_url = `${this.$runs_url}/${this.$route.params.catalog}/${this.$route.params.uid}/image`;
       const response = await this.$api.get(
         `${this.$runs_url}/${this.$route.params.catalog}/${this.$route.params.uid}/metadata`
       );
@@ -46,7 +45,7 @@ async mounted() {
       this.somethingWentWrong = true;
       console.log(e);
     }
-    // this.open_experiment = response.data.experiments[0];
+
   },
   methods: {
   },
