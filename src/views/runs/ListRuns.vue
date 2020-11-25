@@ -1,26 +1,67 @@
 <template>
   <div class="lists">
-    <b-navbar>
-      <SearchBar/>
-    </b-navbar>
-    <b-container>
-    <b-table striped hover :items="runs" :fields="fields" responsive @row-clicked="rowClickHandler">
+     <b-container fluid>
+      <b-row>
+        <b-col md="3">
+          <b-form @submit="onSubmit" @reset="onReset"  fixed="top">
+            <small>Search</small>
+              <b-row>
+                <b-col sm="2">
+                  <label class="font-weight-bold" for="input-small">UID</label>
+                </b-col>
+                <b-col sm="10">
+                  <b-form-input id="input-uid" v-model="searchUID" ref="uid" size="sm" placeholder="Enter UID"></b-form-input>
+                </b-col>
+              </b-row>
+              <b-row>
+                <b-col sm="2">
+                  <label class="font-weight-bold" for="input-small">From</label>
+                </b-col>
+                <b-col sm="10">
+                  <div class="d-inline">
+                    <b-form-input id="input-uid" v-model="searchFrom" ref="from" size="sm" placeholder="From"></b-form-input>
+                    <b-form-timepicker class="d-inline" v-model="searchFromTime" locale="en" size="sm"></b-form-timepicker>
+                  </div>
+                </b-col>
+              </b-row>
+              <b-row>
+                <b-col sm="2">
+                  <label class="font-weight-bold" for="input-small">To</label>
+                </b-col>
+                <b-col sm="10">
+                  <b-form-input type="date" id="input-uid" v-model="searchTo" ref="to" size="sm" placeholder="To"></b-form-input>
+                  <b-form-timepicker v-model="searchToTime" locale="en" size="sm"></b-form-timepicker>
+                </b-col>
+              </b-row>
+              <b-button type="submit" variant="primary">Submit</b-button>
+              <b-button type="reset" variant="primarformToy ">Reset</b-button>
+           </b-form>
 
-     <template #cell()="data">
-       <div class="sm">
-          <small>{{ data.value }}</small>
-       </div>
+      </b-col>
+      <b-col md="9">
 
-      </template>
-      <template v-slot:cell(image)="row">
-        <b-img v-if="thumbnails[row.item.uid]" :src="thumbnails[row.item.uid]" class="thumbnail-image" fluid rounded thumbnail blank-color="white" alt="Image Not Available"></b-img>
-        <b-spinner v-if="!thumbnails[row.item.uid]" variant="light"/>
-      </template>
-    </b-table>
-    <div class="d-flex justify-content-center mb-3">
-      <b-spinner v-if="runsLoading" label="Loading..."></b-spinner>
-    </div>
+            <b-table ref="runsTable" striped hover :items="runs" :fields="fields" responsive @row-clicked="rowClickHandler">
+
+            <template #cell()="data">
+              <div class="sm">
+                  <small>{{ data.value }}</small>
+              </div>
+
+              </template>
+              <template v-slot:cell(image)="row">
+                <b-img v-if="thumbnails[row.item.uid]" :src="thumbnails[row.item.uid]" class="thumbnail-image" fluid rounded thumbnail blank-color="white" alt="Image Not Available"></b-img>
+                <b-spinner v-if="!thumbnails[row.item.uid]" variant="light"/>
+              </template>
+            </b-table>
+            <div class="d-flex justify-content-center mb-3">
+              <b-spinner v-if="runsLoading" label="Loading..."></b-spinner>
+            </div>
+
+      </b-col>
+      </b-row>
     </b-container>
+   
+   
   </div>
 </template>
 
@@ -38,7 +79,14 @@ export default {
     currentRun: {},
     runSelected: false,
     thumbnails: {},
-    runsLoading: false
+    runsLoading: false, // helps control spinner
+    stopRunsLoading: false,  // signal to stop loading runs
+    stopThumbsLoading: false, // signal to stop loading thumbs
+    searchUID: "",
+    searchFrom: "",
+    searchFromTime: "",
+    searchTo: "",
+    searchToTime: ""
   }),
   components: {
     'run-visualizer': RunVisualizer,
@@ -46,16 +94,8 @@ export default {
 
   async mounted() {
     this.scroll();
-    while(true){
-      if (this.$el.getBoundingClientRect().bottom > window.innerHeight){
-        break;
-      }
-      await this.addRuns();
-      
-    }
-    
+    await this.fillWindowWithRuns();
     this.addThumbs();
-    console.log(this.runs)
     this.currentUid = this.$route.params.uid;
     
   },
@@ -63,17 +103,18 @@ export default {
   methods: {
     async addThumbs(){
        for (let index in this.runs){
+        if (this.stopThumbsLoading) break;
         const run = this.runs[index];
         if (this.thumbnails[run.uid] === undefined){
+              this.$set(this.thumbnails, run.uid, null);
               const jpeg = await this.getJpeg(this.$route.params.catalog, run.uid);
-              // this.thumbnails[run.uid] = jpeg;
               this.$set(this.thumbnails, run.uid, jpeg);
-              console.log("pushed jpeg to " + run.uid);
         }
        }
+      this.stopThumbsLoading = false;
     },
 
-    async scroll(){
+     async scroll(){
       window.onscroll = async () => {
         let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
           if (bottomOfWindow) {
@@ -89,13 +130,28 @@ export default {
       };
     },
 
+    async fillWindowWithRuns(){
+      while(true){
+        if (this.stopRunsLoading) break;
+        if (this.$el.getBoundingClientRect().bottom > window.innerHeight){
+          console.log("maybe not a bottom?" + this.$el.getBoundingClientRect().bottom)
+          break;
+        }
+        const result = await this.addRuns()
+        if (!result) break;
+        
+      }
+    },
+
+     
+
     async addRuns() {
       try {
-        this.runsLoading = true
-        const requestUrl = this.$runs_url.concat('/', this.$route.params.catalog + "?skip=" + this.runs.length + "&limit=" + PAGE_SIZE);
+        this.runsLoading = true;
+        const requestUrl = this.$runs_url.concat('/', this.$route.params.catalog, "?skip=", this.runs.length, "&limit=", PAGE_SIZE, this.buildQuery());
         const response = await this.$api.get(requestUrl);
         this.runs.push(...response.data);
-      
+        return true;
       } catch (error) {
         if (error.response) {
           console.log(error.response.data);
@@ -117,9 +173,8 @@ export default {
         }
       }
       this.runsLoading = false;
+      return false;
     },
-
-    
 
     async getJpeg(catalog_name, uid) {
       try {
@@ -138,6 +193,35 @@ export default {
 
     async rowClickHandler(run){
        this.$router.push({ path: `/run/${this.$route.params.catalog}/${run.uid}` });
+    },
+
+    async onSubmit(event){
+      event.preventDefault();
+      this.stopThumbsLoading = true;
+      this.stopRunsLoading = true;
+      this.runs = [];
+      this.thumbnails = {};
+      // this.$set(this.runs, []);
+      // this.$set(this.thumbnails, {});
+      this.stopRunsLoading = false;
+      this.$nextTick(this.fillWindowWithRuns);
+    },
+    onReset(event){
+      event.preventDefault();
+      this.runs = [];
+    },
+    buildQuery(){
+      let query = "";
+      if (this.searchUID){
+        query += "&uid=" + this.searchUID;
+      }
+      if (this.searchFrom){
+        query += "&from=" + this.searchFrom;
+      }
+      if (this.searchTo){
+        query += "&to=" + this.searchTo;
+      }
+      return query;
     }
   },
 
