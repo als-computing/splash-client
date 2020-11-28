@@ -29,7 +29,6 @@
             <b-col lg="9">
               <edit-content
                 :sections-array="compoundDoc.data.documentation.sections"
-                :reference-uids-array="compoundDoc.data.documentation.references"
                 :markdown="true"
                 empty-message="No documentation found. Be the first to add some."
                 remove-button-text="Delete section"
@@ -39,12 +38,6 @@
                 delete-confirmation-message="Are you sure you want to delete this section? This can't be undone."
                 @dataToParent="
                   updateDatabase('documentation', 'sections', arguments[0])
-                "
-              />
-              <add-references
-                :references-array="compoundDoc.data.documentation.references"
-                @dataToParent="
-                  updateDatabase('documentation', 'references', arguments[0])
                 "
               />
             </b-col>

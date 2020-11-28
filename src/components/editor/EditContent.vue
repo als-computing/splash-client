@@ -32,7 +32,7 @@
       >
         <b-card>
           <!--This displays each section of the documentation-->
-          <div @dblclick="edit(index, section[textKey], section[titleKey])">
+          <div @dblclick="currently_edited_index === undefined ? edit(index, section[textKey], section[titleKey]) : {}">
             <div v-show="index !== currently_edited_index">
               <p>
                 <strong>{{ section[titleKey] }}</strong>
@@ -107,12 +107,12 @@
                 <b-button
                   @mousedown="insert_reference_dialog()"
                   :disabled="!focused"
-                  v-show="referenceUidsArray != undefined"
+                  v-show="markdown === true"
                   >Insert Reference</b-button
                 >
                 <b-modal v-model="insert_reference" ok-only>
                   <add-references
-                    :references-array="referenceUidsArray"
+                    :references-array="references"
                     :insertion-mode="true"
                     @clickedRef="insertReference(arguments[0].data)"
                   />
@@ -132,7 +132,7 @@
             ok-only
             :static="true"
             >We couldn't save. Check your internet connection and try again. If
-            the problem persists, contact the administrator.</b-modal
+            the problem persists, contact t he administrator.</b-modal
           >
         </b-card>
         <b-icon-plus-circle-fill
@@ -159,14 +159,6 @@ import { BIconPlusCircleFill } from 'bootstrap-vue';
 export default {
   props: {
     sectionsArray: Array,
-    referenceUidsArray: {
-      validator(value) {
-        if (value === undefined || value instanceof Array) {
-          return 'success';
-        }
-        return 'danger';
-      },
-    },
     markdown: {
       type: Boolean,
       default: false,
@@ -208,7 +200,6 @@ export default {
   data() {
     return {
       sections: [],
-      // referenceUids: [],
       currently_edited_index: undefined,
       edited_data: {
         [this.titleKey]: '',
@@ -244,7 +235,6 @@ export default {
     // https://stackoverflow.com/a/40283265/8903570
     this.sections = this.sectionsArray.map((a) => ({ ...a }));
     this.buildReferences();
-    // this.referenceUids = this.referenceUidsArray.slice();
   },
   methods: {
     focusChanged(event) {
@@ -260,7 +250,7 @@ export default {
       this.edited_data[this.titleKey] = '';
       this.edited_data[this.textKey] = '';
     },
-    async emitToParent(array) {
+    async emitToParent(data) {
       // This emits an object with the altered data section, and
       // a callback for the parent component to call with a boolean as the argument,
       // so that this component can know whether not the data was saved succesfully
@@ -268,7 +258,7 @@ export default {
       // if not then this function will throw an error
       // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
       return new Promise((resolve, reject) => this.$emit('dataToParent', {
-        data: array,
+        data,
         callback: (success) => {
           if (success) {
             resolve();
@@ -285,11 +275,11 @@ export default {
         await this.emitToParent(this.sections);
 
         // update references
-        const links = this.extractReferences(this.sections[indexChanged][this.textKey]);
+        const doiRefs = this.extractReferences(this.sections[indexChanged][this.textKey]);
         this.subtractReferencesFromCount(this.references[indexChanged]);
-        this.addReferencesToCount(links);
+        this.addReferencesToCount(doiRefs);
         // Preserve reactivity
-        this.$set(this.references, indexChanged, links);
+        this.$set(this.references, indexChanged, doiRefs);
 
         this.removeFocus();
         this.saving = false;
@@ -297,13 +287,14 @@ export default {
         this.sections[indexChanged] = originalSection;
         this.saving = false;
         this.couldNotSave = true;
+        console.log(error);
       }
     },
 
     // adapted from https://forum.vuejs.org/t/vuejs-vuetify-add-some-text-to-focus-position-on-textarea/33279/4
-    async insertReference(uid) {
-      console.log(uid);
-      const referenceLink = `[[reference]](#${uid})`;
+    async insertReference(doi) {
+      console.log(doi);
+      const referenceLink = `[[reference]](#${doi})`;
       const textArea = this.$refs[`input${this.currently_edited_index}`][0];
       console.log(textArea);
       textArea.focus();
@@ -325,21 +316,22 @@ export default {
       textArea.selectionEnd = cursorPos;
       this.insert_reference = false;
     },
-    /* async insertNewReference(eventObj) {
-      this.uids.push(eventObj.data.uid);
+    async insertNewReference(eventObj) {
+      this.references.push(eventObj.data.doi);
       this.saving = true;
       try {
-        await this.emitToParent('dataToParent', this.uids);
+        this.saveReference();
         this.references.push(eventObj.data);
         this.saving = false;
         eventObj.callback(true);
       } catch (e) {
-        this.uids.pop();
+        this.references.pop();
         this.saving = false;
         this.couldNotSave = true;
         eventObj.callback(false);
         console.log(e);
-    }, */
+      }
+    },
     addSection(index) {
       if (!Number.isInteger(index)) {
         throw Error('Index should be integer');
@@ -374,33 +366,43 @@ export default {
       }
     },
     extractReferences(text) {
-      const links = [];
+      const doiRefs = [];
       // The regex here matches this pattern: [[reference]](#url goes here)
-      const matches = [...text.matchAll(/\[\[reference\]\]\(#(.*?)\)/g)];
-
+      // However it doesn't exclude whitespace at the beginning of the string
+      const matches = [...text.matchAll(/\[\[reference\]\]\(#([^\s].*?)\)/g)];
       matches.forEach((match) => {
-        const link = match[1];
-        links.push(link);
-      });
-      return links;
-    },
-    addReferencesToCount(links) {
-      links.forEach((link) => {
-        if (this.referencesCount[link] === undefined) {
-          // assign 1 to the property in this way to preserve
-          // reactivity https://vuejs.org/v2/guide/reactivity.html#For-Objects
-          this.$set(this.referencesCount, link, 1);
-        } else {
-          this.referencesCount[link] += 1;
-        }
-      });
-    },
-    subtractReferencesFromCount(links) {
-      links.forEach((link) => {
-        if (this.referencesCount[link] === undefined) {
+        const doiRef = match[1];
+        if (!this.isDoiFormat(doiRef)) {
           return;
         }
-        this.referencesCount[link] -= 1;
+        doiRefs.push(doiRef);
+      });
+      return doiRefs;
+    },
+    isDoiFormat(string) {
+      const trimmed = string.trim();
+      if (trimmed.startsWith('10.') && trimmed.includes('/')) {
+        return true;
+      }
+      return false;
+    },
+    addReferencesToCount(doiRefs) {
+      doiRefs.forEach((doiRef) => {
+        if (this.referencesCount[doiRef] === undefined) {
+          // assign 1 to the property in this way to preserve
+          // reactivity https://vuejs.org/v2/guide/reactivity.html#For-Objects
+          this.$set(this.referencesCount, doiRef, 1);
+        } else {
+          this.referencesCount[doiRef] += 1;
+        }
+      });
+    },
+    subtractReferencesFromCount(doiRefs) {
+      doiRefs.forEach((doiRef) => {
+        if (this.referencesCount[doiRef] === undefined) {
+          return;
+        }
+        this.referencesCount[doiRef] -= 1;
       });
     },
     updateReferences(index) {
@@ -409,9 +411,9 @@ export default {
     buildReferences() {
       const references = [];
       this.sections.forEach((section) => {
-        const links = this.extractReferences(section[this.textKey]);
-        this.addReferencesToCount(links);
-        references.push(links);
+        const doiRefs = this.extractReferences(section[this.textKey]);
+        this.addReferencesToCount(doiRefs);
+        references.push(doiRefs);
       });
       this.references = references;
     },
