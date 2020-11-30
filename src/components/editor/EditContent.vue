@@ -32,7 +32,13 @@
       >
         <b-card>
           <!--This displays each section of the documentation-->
-          <div @dblclick="currently_edited_index === undefined ? edit(index, section[textKey], section[titleKey]) : {}">
+          <div
+            @dblclick="
+              currently_edited_index === undefined
+                ? edit(index, section[textKey], section[titleKey])
+                : {}
+            "
+          >
             <div v-show="index !== currently_edited_index">
               <p>
                 <strong>{{ section[titleKey] }}</strong>
@@ -105,7 +111,7 @@
                   >{{ removeButtonText }}</b-button
                 >
                 <b-button
-                  @mousedown="insert_reference_dialog()"
+                  @mousedown="this.insert_reference = true;"
                   :disabled="!focused"
                   v-show="markdown === true"
                   >Insert Reference</b-button
@@ -132,7 +138,7 @@
             ok-only
             :static="true"
             >We couldn't save. Check your internet connection and try again. If
-            the problem persists, contact t he administrator.</b-modal
+            the problem persists, contact the administrator.</b-modal
           >
         </b-card>
         <b-icon-plus-circle-fill
@@ -145,7 +151,7 @@
           "
         />
       </div>
-      <b-table striped hover :items="items"/>
+      <b-table striped hover :items="items" />
     </div>
   </div>
 </template>
@@ -185,8 +191,7 @@ export default {
     },
     deleteConfirmationMessage: {
       type: String,
-      default:
-        "Are you sure you want to delete this section? This can't be undone.",
+      default: "Are you sure you want to delete this section? This can't be undone.",
     },
     titleInputName: {
       type: String,
@@ -207,6 +212,7 @@ export default {
       },
       references: [],
       referencesCount: {},
+      items: [],
       saving: false,
       couldNotSave: false,
       insert_reference: false,
@@ -214,18 +220,62 @@ export default {
     };
   },
 
-  computed: {
+  watch: {
     // Derive a list of references from the count object
     // for the b-table to render from
-    items() {
-      const { referencesCount } = this;
-      const items = Object.keys(this.referencesCount).filter((key) => {
-        if (referencesCount[key] === 0) {
-          return false;
-        }
-        return true;
-      }).map((key) => ({ reference: key }));
-      return items;
+    referencesCount: {
+      deep: true,
+      async handler() {
+        const { referencesCount } = this;
+        const items = await Promise.all(
+          Object.keys(this.referencesCount)
+            .filter((doi) => {
+              if (referencesCount[doi] === 0) {
+                return false;
+              }
+              return true;
+            })
+            .map(async (doi) => {
+              try {
+                const response = await this.getSplashReference(doi);
+                if (Object.keys(response.data).length > 1) {
+                  return { title: response.data.title, reference: doi };
+                }
+                return { reference: `${doi} ONLY HAVE DOI FOR THIS REFERENCE. GET INFO???? FOR THE DEV: IMPLEMENT GET INFO FUNCTIONALITY.` };
+              } catch (e) {
+                console.log(e);
+                if (e.response.status !== 404) {
+                  return { reference: `${doi} COULDN'T CONNECT WITH SERVER. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY` };
+                }
+              }
+              let response = {};
+              try {
+                response = await this.getDOIFromService(doi);
+                console.log(response);
+              } catch (e) {
+                console.log(e);
+                if (e.response.status === 404) {
+                  try {
+                    await this.createReference({ DOI: doi });
+                    return { reference: `${doi} COULDN'T GET REFERENCE INFO. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY` };
+                  } catch (err) {
+                    return { reference: `${doi} COULDN'T SAVE REFERENCE TO SERVER OR GET REFERENCE INFO. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY` };
+                  }
+                }
+                return { reference: `${doi} COULDN'T CONNECT TO REFERENCE SERVICE. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY` };
+              }
+              try {
+                response.data.DOI = doi;
+                await this.createReference(response.data);
+                return { title: response.data.title, reference: doi };
+              } catch (e) {
+                console.log(e);
+                return { reference: `${doi} COULDN'T SAVE REFERENCE TO SERVER. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY` };
+              }
+            }),
+        );
+        this.items = items;
+      },
     },
   },
   mounted() {
@@ -237,13 +287,31 @@ export default {
     this.buildReferences();
   },
   methods: {
-    focusChanged(event) {
-      // this lets me see which element is focused on
-      this.focusedElement = event.target;
+    async getDOIFromService(doi) {
+      const response = await this.$doi_service.get(
+        `/${doi}`,
+      );
+      return response;
     },
-    insert_reference_dialog() {
-      this.insert_reference = true;
-      console.log('hello');
+    async getSplashReference(doi) {
+      const response = await this.$api.get(
+        `${this.$references_url}/doi/${doi}`,
+      );
+      return response;
+    },
+    async createReference(reference) {
+      const response = await this.$api.post(
+        `${this.$references_url}`,
+        reference,
+      );
+      return response;
+    },
+    async updateReference(reference, doi) {
+      const response = await this.$api.put(
+        `${this.$references_url}/doi/${doi}`,
+        reference,
+      );
+      return response;
     },
     async removeFocus() {
       this.currently_edited_index = undefined;
@@ -320,7 +388,7 @@ export default {
       this.references.push(eventObj.data.doi);
       this.saving = true;
       try {
-        this.saveReference();
+        this.createReference();
         this.references.push(eventObj.data);
         this.saving = false;
         eventObj.callback(true);
@@ -368,20 +436,18 @@ export default {
     extractReferences(text) {
       const doiRefs = [];
       // The regex here matches this pattern: [[reference]](#url goes here)
-      // However it doesn't exclude whitespace at the beginning of the string
       const matches = [...text.matchAll(/\[\[reference\]\]\(#([^\s].*?)\)/g)];
       matches.forEach((match) => {
         const doiRef = match[1];
         if (!this.isDoiFormat(doiRef)) {
           return;
         }
-        doiRefs.push(doiRef);
+        doiRefs.push(doiRef.trim());
       });
       return doiRefs;
     },
     isDoiFormat(string) {
-      const trimmed = string.trim();
-      if (trimmed.startsWith('10.') && trimmed.includes('/')) {
+      if (string.startsWith('10.') && string.includes('/')) {
         return true;
       }
       return false;
@@ -404,9 +470,6 @@ export default {
         }
         this.referencesCount[doiRef] -= 1;
       });
-    },
-    updateReferences(index) {
-      this.references[index].forEach();
     },
     buildReferences() {
       const references = [];

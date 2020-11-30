@@ -5,35 +5,42 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import axios from 'axios';
 // import { Plotly } from "vue-plotly"
+import { axisBottom } from 'd3';
 import App from './App.vue';
 import FiveHundred from './views/500.vue';
 import router from './router';
 import store from './store';
 import './assets/css/main.css';
-import { axisBottom } from 'd3';
 
 Vue.use(BootstrapVue);
 Vue.use(Router);
 Vue.config.productionTip = false;
 let apiUrl = apiUrl = '/api/v1';
 let settings = null;
+const doiURL = 'https://dx.doi.org';
 
 Vue.use({
   async install(Vue) {
-    getSettings()
+    getSettings();
     Vue.prototype.$settings = settings;
-    let searchUrl = '/elasticsearch';
+    const searchUrl = '/elasticsearch';
+
     Vue.prototype.$api = axios.create({
       baseURL: apiUrl,
     });
     Vue.prototype.$search = axios.create({
       baseURL: searchUrl,
     });
+    Vue.prototype.$doi_service = axios.create({
+      baseURL: doiURL,
+      headers: { Accept: 'application/citeproc+json' },
+    });
     Vue.prototype.$api_url = apiUrl;
     Vue.prototype.$compounds_url = 'compounds';
     Vue.prototype.$runs_url = 'runs';
     Vue.prototype.$login_url = 'idtokensignin';
     Vue.prototype.$references_url = 'references';
+    Vue.prototype.$doi_service_url = '';
     Vue.prototype.$elastic_index_url = 'run_start/_search';
   },
 });
@@ -58,11 +65,9 @@ async function onGoogleLoad() {
   // of the app: https://developers.google.com/identity/sign-in/web/reference
   await new Promise((resolve) => window.gapi.load('auth2', resolve));
   try {
-
-    
   // Initializes it with the correct client ID
-    await window.gapi.auth2.init({     
-      client_id: settings.google_client_id
+    await window.gapi.auth2.init({
+      client_id: settings.google_client_id,
     });
   } catch (e) {
     console.log(e);
@@ -80,9 +85,9 @@ async function onGoogleLoad() {
   }).$mount('#app');
 }
 
-async function getSettings(){
-  let response = await axios.get(apiUrl + "/settings")
-  if (response.data){
+async function getSettings() {
+  const response = await axios.get(`${apiUrl}/settings`);
+  if (response.data) {
     settings = response.data;
   }
 }

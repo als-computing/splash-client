@@ -70,9 +70,9 @@
 
 <script>
 // import ExperimentLineChart from '@/components/ExperimentLineChart.vue';
-import utils from "@/utils";
-import { BIconPlus, BIconX } from "bootstrap-vue";
-import MongoSearch from "@/components/MongoSearch.vue";
+import utils from '@/utils';
+import { BIconPlus, BIconX } from 'bootstrap-vue';
+import MongoSearch from '@/components/MongoSearch.vue';
 
 export default {
   props: {
@@ -86,7 +86,7 @@ export default {
   },
   data() {
     return {
-      tableFields: ["reference", "doi_url", { key: "remove", label: "" }],
+      tableFields: ['reference', 'doi_url', { key: 'remove', label: '' }],
       uids: [],
       references: [],
       saving: false,
@@ -107,7 +107,7 @@ export default {
       this.loading = false;
     },
     plusClickHandler(uid) {
-      this.emitToParent("clickedRef", uid);
+      this.emitToParent('clickedRef', uid);
     },
     async getReferences() {
       // TODO create a smarter system for dealing with 404s
@@ -116,20 +116,20 @@ export default {
         [...this.uids].map(async (elem) => {
           try {
             const response = await this.$api.get(
-              `${this.$references_url}/${elem}`
+              `${this.$references_url}/${elem}`,
             );
             return response.data;
           } catch (e) {
             console.log(e);
             error = true;
             return {
-              reference: "ERROR LOADING REFERENCE",
-              doi_url: "",
+              reference: 'ERROR LOADING REFERENCE',
+              doi_url: '',
               error: true,
-              uid: "NOT_FOUND",
+              uid: 'NOT_FOUND',
             };
           }
-        })
+        }),
       );
       this.errorLoadingRefs = error;
       return responseArray;
@@ -141,18 +141,16 @@ export default {
       // if the data was succesfully saved then the code will execute as normal.
       // if not then this function will throw an error
       // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
-      return new Promise((resolve, reject) =>
-        this.$emit(eventName, {
-          data,
-          callback: (success) => {
-            if (success) {
-              resolve();
-            } else {
-              reject();
-            }
-          },
-        })
-      );
+      return new Promise((resolve, reject) => this.$emit(eventName, {
+        data,
+        callback: (success) => {
+          if (success) {
+            resolve();
+          } else {
+            reject();
+          }
+        },
+      }));
     },
     async emitEdit(indexChanged, originalSection) {
       try {
@@ -166,7 +164,7 @@ export default {
       this.uids.push(eventObj.data.uid);
       this.saving = true;
       try {
-        await this.emitToParent("dataToParent", this.uids);
+        await this.emitToParent('dataToParent', this.uids);
         this.references.push(eventObj.data);
         this.saving = false;
         eventObj.callback(true);
@@ -180,7 +178,7 @@ export default {
     },
     async removeReference(index) {
       if (!Number.isInteger(index)) {
-        throw Error("Index should be integer");
+        throw Error('Index should be integer');
       }
 
       this.saving = true;
@@ -188,7 +186,7 @@ export default {
       try {
         // delete from array without leaving a hole
         this.uids.splice(index, 1);
-        await this.emitToParent("dataToParent", this.uids);
+        await this.emitToParent('dataToParent', this.uids);
         this.references.splice(index, 1);
         this.saving = false;
       } catch (error) {
@@ -210,18 +208,18 @@ export default {
     showRemoveConfirmation(index) {
       this.$bvModal
         .msgBoxConfirm(
-          "Are you sure you want to remove this reference? (You can add it back in later)",
+          'Are you sure you want to remove this reference? (You can add it back in later)',
           {
-            title: "Please Confirm",
-            size: "sm",
-            buttonSize: "sm",
-            okVariant: "danger",
-            okTitle: "YES",
-            cancelTitle: "NO",
-            footerClass: "p-2",
+            title: 'Please Confirm',
+            size: 'sm',
+            buttonSize: 'sm',
+            okVariant: 'danger',
+            okTitle: 'YES',
+            cancelTitle: 'NO',
+            footerClass: 'p-2',
             hideHeaderClose: false,
             centered: true,
-          }
+          },
         )
         .then((value) => {
           if (value) {
@@ -233,7 +231,7 @@ export default {
         });
     },
     deleteIfNew(index, section) {
-      if (section[this.titleKey] === "" && section[this.textKey] === "") {
+      if (section[this.titleKey] === '' && section[this.textKey] === '') {
         // delete from array without leaving a hole
         this.sections.splice(index, 1);
       }
@@ -246,9 +244,9 @@ export default {
     },
   },
   components: {
-    "b-icon-x": BIconX,
-    "b-icon-plus": BIconPlus,
-    "mongo-search": MongoSearch,
+    'b-icon-x': BIconX,
+    'b-icon-plus': BIconPlus,
+    'mongo-search': MongoSearch,
   },
 };
 </script>
