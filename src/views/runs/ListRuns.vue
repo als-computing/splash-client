@@ -3,55 +3,64 @@
      <b-container fluid>
       <b-row>
         <b-col md="3">
-          <b-form @submit="onSubmit" @reset="onReset"  fixed="top">
-            <small>Search</small>
-              <b-row>
-                <b-col sm="2">
-                  <label class="font-weight-bold" for="input-small">UID</label>
-                </b-col>
-                <b-col sm="10">
-                  <b-form-input id="input-uid" v-model="searchUID" ref="uid" size="sm" placeholder="Enter UID"></b-form-input>
-                </b-col>
-              </b-row>
-              <b-row>
-                <b-col sm="2">
-                  <label class="font-weight-bold" for="input-small">From</label>
-                </b-col>
-                <b-col sm="10">
-                  <div class="d-inline">
-                    <b-form-input id="input-uid" v-model="searchFrom" ref="from" size="sm" placeholder="From"></b-form-input>
-                    <b-form-timepicker class="d-inline" v-model="searchFromTime" locale="en" size="sm"></b-form-timepicker>
-                  </div>
-                </b-col>
-              </b-row>
-              <b-row>
-                <b-col sm="2">
-                  <label class="font-weight-bold" for="input-small">To</label>
-                </b-col>
-                <b-col sm="10">
-                  <b-form-input type="date" id="input-uid" v-model="searchTo" ref="to" size="sm" placeholder="To"></b-form-input>
-                  <b-form-timepicker v-model="searchToTime" locale="en" size="sm"></b-form-timepicker>
-                </b-col>
-              </b-row>
-              <b-button type="submit" variant="primary">Submit</b-button>
-              <b-button type="reset" variant="primarformToy ">Reset</b-button>
-           </b-form>
-
+          <b-card class="m-3">
+            <b-form @submit="onSubmit" @reset="onReset"  fixed="top">
+              <small>Search</small>
+                <b-row class="pt-2 pb-2">
+                  <b-col sm="2">
+                    <label class="font-weight-bold text-muted" for="input-small">UID</label>
+                  </b-col>
+                  <b-col sm="10">
+                    <b-form-input id="input-uid" v-model="searchUID" ref="uid" size="sm" placeholder="Enter UID"></b-form-input>
+                  </b-col>
+                </b-row>
+                <b-row class="pt-2 pb-2">
+                  <b-col sm="2">
+                    <label class="font-weight-bold text-muted" for="input-small">From</label>
+                  </b-col>
+                  <b-col sm="10">
+                    <div >
+                      <b-form-input type="date" id="input-uid" v-model="searchFrom" ref="from" size="sm" placeholder="From"></b-form-input>
+                      <b-form-timepicker class="d-inline" v-model="searchFromTime" locale="en" size="sm"></b-form-timepicker>
+                    </div>
+                  </b-col>
+                </b-row>
+                <b-row class="pt-2 pb-2">
+                  <b-col sm="2">
+                    <label class="font-weight-bold text-muted" for="input-small">To</label>
+                  </b-col>
+                  <b-col sm="10">
+                    <b-form-input type="date" id="input-uid" v-model="searchTo" ref="to" size="sm" placeholder="To"></b-form-input>
+                    <b-form-timepicker v-model="searchToTime" locale="en" size="sm"></b-form-timepicker>
+                  </b-col>
+                </b-row>
+                <b-button type="submit" variant="primary">Submit</b-button>
+                <b-button type="reset" variant="primarformToy ">Reset</b-button>
+            </b-form>
+          </b-card>
       </b-col>
       <b-col md="9">
 
-            <b-table ref="runsTable" striped hover :items="runs" :fields="fields" responsive @row-clicked="rowClickHandler">
+            <b-table class="table-sm" ref="runsTable" striped hover :items="runs" :fields="fields" responsive @row-clicked="rowClickHandler">
 
-            <template #cell()="data">
-              <div class="sm">
-                  <small>{{ data.value }}</small>
-              </div>
+              <template #cell(collection_date)="data">
+                <div class="sm">
 
+                    <small>{{ new Date(data.value * 1000).toLocaleString() }}</small>
+                </div>
               </template>
+              
+              <template #cell()="data">
+                <div class="sm">
+                    <small>{{ data.value }}</small>
+                </div>
+              </template>
+
               <template v-slot:cell(image)="row">
-                <b-img v-if="thumbnails[row.item.uid]" :src="thumbnails[row.item.uid]" class="thumbnail-image" fluid rounded thumbnail blank-color="white" alt="Image Not Available"></b-img>
-                <b-spinner v-if="!thumbnails[row.item.uid]" variant="light"/>
+                  <b-img v-if="thumbnails[row.item.uid]" :src="thumbnails[row.item.uid]" class="thumbnail-image" fluid rounded thumbnail blank-color="white" alt="Image Not Available"></b-img>
+                  <b-spinner v-if="!thumbnails[row.item.uid]" variant="light"/>
               </template>
+
             </b-table>
             <div class="d-flex justify-content-center mb-3">
               <b-spinner v-if="runsLoading" label="Loading..."></b-spinner>
@@ -68,7 +77,6 @@
 <script>
 import RunVisualizer from '@/components/RunVisualizer.vue';
 import SearchBar from '@/components/SearchBar.vue';
-
 const PAGE_SIZE = 5;
 
 export default {
@@ -216,11 +224,14 @@ export default {
         query += "&uid=" + this.searchUID;
       }
       if (this.searchFrom){
-        query += "&from=" + this.searchFrom;
+        let fromDT = this.searchFrom + " " + this.searchFromTime;
+
+        query += "&from=" + new Date(fromDT).valueOf() / 1000;
       }
       if (this.searchTo){
         query += "&to=" + this.searchTo;
       }
+      console.log(query)
       return query;
     }
   },
