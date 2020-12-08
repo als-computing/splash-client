@@ -15,13 +15,14 @@ import './assets/css/main.css';
 Vue.use(BootstrapVue);
 Vue.use(Router);
 Vue.config.productionTip = false;
-let apiUrl = apiUrl = '/api/v1';
+const apiUrl = '/api/v1';
 let settings = null;
 const doiURL = 'https://dx.doi.org';
 
 Vue.use({
   async install(Vue) {
-    getSettings();
+    await getSettings();
+    console.log(`google client id${settings.google_client_id}`);
     Vue.prototype.$settings = settings;
     const searchUrl = '/elasticsearch';
 
@@ -65,10 +66,16 @@ async function onGoogleLoad() {
   // of the app: https://developers.google.com/identity/sign-in/web/reference
   await new Promise((resolve) => window.gapi.load('auth2', resolve));
   try {
-  // Initializes it with the correct client ID
-    await window.gapi.auth2.init({
-      client_id: settings.google_client_id,
-    });
+    if (settings == null) {
+      await getSettings();
+    }
+    // Initializes it with the correct client ID
+    await window.gapi.auth2.init(
+      {
+
+        client_id: settings.google_client_id,
+      },
+    );
   } catch (e) {
     console.log(e);
     onGoogleError();
@@ -86,7 +93,13 @@ async function onGoogleLoad() {
 }
 
 async function getSettings() {
-  const response = await axios.get(`${apiUrl}/settings`);
+  const response = await axios.get(`${apiUrl}/settings`, {
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+      Expires: '0',
+    },
+  });
   if (response.data) {
     settings = response.data;
   }

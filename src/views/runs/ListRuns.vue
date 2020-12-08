@@ -1,63 +1,165 @@
 <template>
   <div class="lists">
-    <b-container>
-      <b-row v-if=catalogNotFound>
-        <b-col>
-          <div  class="mx-auto .align-middle">
-            <h1 class="display-4"> "{{$route.params.catalog}}" catalog not found </h1>
-            <b-button variant="outline-primary" class ="mb-1" :to="'/runs'">Back to catalogs</b-button>
-          </div>
-        </b-col>
-      </b-row>
+     <b-container fluid>
       <b-row>
-        <b-col v-if=showRuns sm>
-           <h5 class="display-6">Run ID's of {{$route.params.catalog}}: </h5>
-           <b-button variant="outline-primary" class ="mb-1" :to="'/runs'">Back to catalogs</b-button>
-          <b-list-group class="runs-display">
-            <b-list-group-item
-            v-for="run in runs"
-            :key="run.uid"
-            :to="run.uid"
-            v-on:click="runSelected = true; currentRun = run"
-            :replace="!!$route.params.uid" :append="!$route.params.uid"
-            :active='$route.params.uid === run.uid'> Sample: {{run.sample_name}} <br><br> # of images:{{run.num_images}}</b-list-group-item>
-          </b-list-group>
-        </b-col>
-        <b-col sm><run-visualizer :num-frames="currentRun.num_images" v-if="runSelected" class ="image-display mb-1"/></b-col>
+        <b-col md="3">
+          <b-card class="m-3">
+            <b-form @submit="onSubmit" @reset="onReset"  fixed="top">
+              <small>Search</small>
+                <b-row class="pt-2 pb-2">
+                  <b-col sm="2">
+                    <label class="font-weight-bold text-muted" for="input-small">UID</label>
+                  </b-col>
+                  <b-col sm="10">
+                    <b-form-input id="input-uid" v-model="searchUID" ref="uid" size="sm" placeholder="Enter UID"></b-form-input>
+                  </b-col>
+                </b-row>
+                <b-row class="pt-2 pb-2">
+                  <b-col sm="2">
+                    <label class="font-weight-bold text-muted" for="input-small">From</label>
+                  </b-col>
+                  <b-col sm="10">
+                    <div >
+                      <b-form-input type="date" id="input-uid" v-model="searchFrom" ref="from" size="sm" placeholder="From"></b-form-input>
+                      <b-form-timepicker class="d-inline" v-model="searchFromTime" locale="en" size="sm"></b-form-timepicker>
+                    </div>
+                  </b-col>
+                </b-row>
+                <b-row class="pt-2 pb-2">
+                  <b-col sm="2">
+                    <label class="font-weight-bold text-muted" for="input-small">To</label>
+                  </b-col>
+                  <b-col sm="10">
+                    <b-form-input type="date" id="input-uid" v-model="searchTo" ref="to" size="sm" placeholder="To"></b-form-input>
+                    <b-form-timepicker v-model="searchToTime" locale="en" size="sm"></b-form-timepicker>
+                  </b-col>
+                </b-row>
+                <b-button type="submit" variant="primary">Submit</b-button>
+                <b-button type="reset" variant="primarformToy ">Reset</b-button>
+            </b-form>
+          </b-card>
+      </b-col>
+      <b-col md="9">
+
+            <b-table class="table-sm" ref="runsTable" striped hover :items="runs" :fields="fields" responsive @row-clicked="rowClickHandler">
+
+              <template #cell(collection_date)="data">
+                <div class="sm">
+
+                    <small>{{ new Date(data.value * 1000).toLocaleString() }}</small>
+                </div>
+              </template>
+              
+              <template #cell()="data">
+                <div class="sm">
+                    <small>{{ data.value }}</small>
+                </div>
+              </template>
+
+              <template v-slot:cell(image)="row">
+                  <b-img v-if="thumbnails[row.item.uid]" :src="thumbnails[row.item.uid]" class="thumbnail-image" fluid rounded thumbnail blank-color="white" alt="Image Not Available"></b-img>
+                  <b-spinner v-if="!thumbnails[row.item.uid]" variant="light"/>
+              </template>
+
+            </b-table>
+            <div class="d-flex justify-content-center mb-3">
+              <b-spinner v-if="runsLoading" label="Loading..."></b-spinner>
+            </div>
+
+      </b-col>
       </b-row>
     </b-container>
+   
+   
   </div>
 </template>
 
 <script>
 import RunVisualizer from '@/components/RunVisualizer.vue';
+import SearchBar from '@/components/SearchBar.vue';
+const PAGE_SIZE = 5;
 
 export default {
   data: () => ({
     catalogNotFound: false,
-    showRuns: false,
+    fields: ['collection_date', 'experiment_name' , 'sample_name', 'experimenter_name', 'uid', 'image'],
     runs: [],
     currentRun: {},
     runSelected: false,
+    thumbnails: {},
+    runsLoading: false, // helps control spinner
+    stopRunsLoading: false,  // signal to stop loading runs
+    stopThumbsLoading: false, // signal to stop loading thumbs
+    searchUID: "",
+    searchFrom: "",
+    searchFromTime: "",
+    searchTo: "",
+    searchToTime: ""
   }),
   components: {
     'run-visualizer': RunVisualizer,
   },
 
   async mounted() {
-    const requestUrl = this.$runs_url.concat('/', this.$route.params.catalog);
-    await this.listRuns(requestUrl);
-    if (this.$route.params.uid) {
-      this.runSelected = true;
-    }
+    this.scroll();
+    await this.fillWindowWithRuns();
+    this.addThumbs();
     this.currentUid = this.$route.params.uid;
+    
   },
+
   methods: {
-    async listRuns(requestUrl) {
+    async addThumbs(){
+       for (let index in this.runs){
+        if (this.stopThumbsLoading) break;
+        const run = this.runs[index];
+        if (this.thumbnails[run.uid] === undefined){
+              this.$set(this.thumbnails, run.uid, null);
+              const jpeg = await this.getJpeg(this.$route.params.catalog, run.uid);
+              this.$set(this.thumbnails, run.uid, jpeg);
+        }
+       }
+      this.stopThumbsLoading = false;
+    },
+
+     async scroll(){
+      window.onscroll = async () => {
+        let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+          if (bottomOfWindow) {
+            const beforeRunsNum = this.runs.length;
+            await this.addRuns();
+            const afterRunsNum= this.runs.length;
+            const newRunsNum = afterRunsNum - beforeRunsNum;
+            if (newRunsNum < 1){
+              return;
+            }
+            this.addThumbs();
+          }
+      };
+    },
+
+    async fillWindowWithRuns(){
+      while(true){
+        if (this.stopRunsLoading) break;
+        if (this.$el.getBoundingClientRect().bottom > window.innerHeight){
+          console.log("maybe not a bottom?" + this.$el.getBoundingClientRect().bottom)
+          break;
+        }
+        const result = await this.addRuns()
+        if (!result) break;
+        
+      }
+    },
+
+     
+
+    async addRuns() {
       try {
+        this.runsLoading = true;
+        const requestUrl = this.$runs_url.concat('/', this.$route.params.catalog, "?skip=", this.runs.length, "&limit=", PAGE_SIZE, this.buildQuery());
         const response = await this.$api.get(requestUrl);
-        this.runs = response.data;
-        this.showRuns = true;
+        this.runs.push(...response.data);
+        return true;
       } catch (error) {
         if (error.response) {
           console.log(error.response.data);
@@ -78,7 +180,60 @@ export default {
           console.log('Error', error.message);
         }
       }
+      this.runsLoading = false;
+      return false;
     },
+
+    async getJpeg(catalog_name, uid) {
+      try {
+        let url = this.$runs_url + "/" + catalog_name + "/" +uid + "/thumb";
+        const response = await this.$api
+          .get(url, {
+            responseType: 'arraybuffer',
+          });
+        return "data:image/jpg;base64," + Buffer.from(response.data, 'binary').toString('base64');
+
+      } catch (e) {
+        console.log(e)
+        return "";
+      }
+    },
+
+    async rowClickHandler(run){
+       this.$router.push({ path: `/run/${this.$route.params.catalog}/${run.uid}` });
+    },
+
+    async onSubmit(event){
+      event.preventDefault();
+      this.stopThumbsLoading = true;
+      this.stopRunsLoading = true;
+      this.runs = [];
+      this.thumbnails = {};
+      // this.$set(this.runs, []);
+      // this.$set(this.thumbnails, {});
+      this.stopRunsLoading = false;
+      this.$nextTick(this.fillWindowWithRuns);
+    },
+    onReset(event){
+      event.preventDefault();
+      this.runs = [];
+    },
+    buildQuery(){
+      let query = "";
+      if (this.searchUID){
+        query += "&uid=" + this.searchUID;
+      }
+      if (this.searchFrom){
+        let fromDT = this.searchFrom + " " + this.searchFromTime;
+
+        query += "&from=" + new Date(fromDT).valueOf() / 1000;
+      }
+      if (this.searchTo){
+        query += "&to=" + this.searchTo;
+      }
+      console.log(query)
+      return query;
+    }
   },
 
 };
@@ -87,5 +242,8 @@ export default {
 .runs-display {
    height: 70vh;
    overflow: auto;
+}
+.thumbnail-image{
+  max-height: 5em;
 }
 </style>

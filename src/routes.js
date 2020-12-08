@@ -1,6 +1,5 @@
 import Compound from './views/Compound.vue';
 import Compounds from './views/Compounds.vue';
-// import CreateUpdateExperiment from './views/CreateUpdateExperiment.vue';
 import Experiments from './views/Experiments.vue';
 import Home from './views/Home.vue';
 import Login from './views/Login.vue';
@@ -8,6 +7,7 @@ import Login from './views/Login.vue';
 import SearchPage from './views/SearchPage.vue';
 import ListCatalogs from './views/runs/ListCatalogs.vue';
 import ListRuns from './views/runs/ListRuns.vue';
+import Run from './views/runs/Run.vue';
 import NotFound from './views/404.vue';
 
 export default [
@@ -76,6 +76,14 @@ export default [
       requiresAuth: true,
     },
     component: ListRuns,
+  },
+  {
+    path: '/run/:catalog/:uid',
+    name: 'run',
+    meta: {
+      requiresAuth: true,
+    },
+    component: Run,
   },
   {
     path: '*',

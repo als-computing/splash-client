@@ -1,6 +1,5 @@
 <template>
   <div class="run-data">
-      <!--<plotly v-if="isPlotLoaded" :data="data" :layout="layout" :display-mode-bar="true"></plotly>-->
       <div v-if="showImageElement">
         <b-overlay
         id="overlay-background"
@@ -8,21 +7,23 @@
         variant="light"
         opacity="0.8"
         rounded="sm">
-          <b-img alt= "image of scan"
+          <b-img 
+          ref="image"
+          alt= "image of scan"
+          id="image"
           fluid
           v-bind:src="'data:image/png;base64,' + image"
           :aria-hidden="isImageLoading ? 'true' : null"/>
         </b-overlay>
-        <b-form-input id="range-1" v-model="frameNum" type="range" :min="0" :max="numFrames-1"></b-form-input>
-        <div class="mt-2">Frame Number: {{ frameNumDebounced }},   Beamline Energy: <span v-show="!isMetaDataLoading">{{imageMetadata['energy']}}</span></div>
+
+        <image-adjuster/>
       </div>
-      <h3 class="display-6" v-if="somethingWentWrong">Something went wrong. Try reloading the page. If the problem persists contact an administrator</h3>
   </div>
 </template>
 
 <script>
 import utils from '@/utils';
-
+import ImageAdjuster from "@/components/ImageAdjuster.vue";
 export default {
   props: {
     numFrames: Number,
@@ -52,49 +53,8 @@ export default {
   }),
 
 
-  watch: {
-    '$route.params': {
-      handler() {
-        // console.log('watched');
-        this.isImageLoading = false;
-        this.somethingWentWrong = false;
-        this.validateRoute();
-        this.getJpeg(this.$route);
-      },
-      deep: true,
-      immediate: true,
-    },
-
-    frameNum: utils.debounce(function setFrameNumDebounced() {
-      this.frameNumDebounced = this.frameNum;
-    }, 500),
-
-    frameNumDebounced: {
-      handler() {
-        // console.log('reacting to frame change');
-        if (Number(this.frameNumDebounced) === Number(this.$route.query.frame)) {
-          // console.log('no route change');
-          return;
-        }
-        // console.log('Route change!');
-        this.$router.replace({ path: this.$route.path, query: { frame: this.frameNumDebounced } });
-      },
-      immediate: true,
-    },
-  },
-
-  /* beforeRouteUpdate(to, from, next) {
-    console.log('hello');
-    if (this.$route.query.frame && !this.isNormalInteger(this.$route.query.frame)) {
-      this.$router.replace({ path: this.$route.path });
-      return next();
-    }
-    this.getJpeg(to);
-    next();
-  }, */
 
   mounted() {
-    // console.log('mounted!');
     this.validateRoute();
     this.getJpeg(this.$route);
   },
@@ -102,7 +62,6 @@ export default {
 
   methods: {
     validateRoute() {
-      // console.log('validating route!');
       if (this.$route.query.frame && !this.isPositiveInteger(this.$route.query.frame)) {
         this.$router.replace({ path: this.$route.path, query: { frame: 0 } });
         this.frameNumDebounced = '0';
@@ -154,7 +113,7 @@ export default {
       this.setLoading();
       this.isMetaDataLoading = true;
       if ($route.params.catalog && $route.params.uid) {
-        let requestUrl = this.$runs_url.concat('/', $route.params.catalog, '/', $route.params.uid + "/image");
+        let requestUrl = this.$runs_url.concat('/', $route.params.catalog, '/', $route.params.uid + "/thumb");
         if (this.$route.query.frame) {
           requestUrl = requestUrl.concat('?frame=', this.$route.query.frame);
         }
@@ -209,6 +168,8 @@ export default {
       }
     }, */
   },
-
+  components: {
+    "image-adjuster": ImageAdjuster
+  }
 };
 </script>
