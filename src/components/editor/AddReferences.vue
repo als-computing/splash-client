@@ -1,250 +1,215 @@
 <template>
   <div class="documentation_editor">
-    <div align="left"></div>
-    <b-card>
-      <h4 v-if="referencesArray.length === 0">No references found.</h4>
-      <span v-show="loading === true">Loading references...<b-spinner /></span>
-
-      <b-alert show v-show="errorLoadingRefs" variant="danger"
-        >Couldn't load all references (some may have been deleted from the
-        system):
-        <b-button @click="init">Retry</b-button>
-      </b-alert>
-      <b-table
-        :hover="true"
-        small
-        :fields="tableFields"
-        :items="references"
-        responsive="sm"
-        v-if="referencesArray.length !== 0 && !loading"
-      >
-        <template #cell(reference)="data">
-          <a
-            :name="insertionMode ? '' : data.item.uid"
-            :class="`${
-              ($route.hash === `#${data.item.uid}` && insertionMode === false)
-                ? 'active'
-                : ''
-            }`"
+    <div align="left">
+      <b-card title="Search Splash For References">
+        <mongo-search
+          query-key="search"
+          :query-endpoint="$references_url"
+          placeholder="Search References"
+          @updatedResults="updateItems(arguments[0])"
+        />
+        <b-table
+          :hover="true"
+          small
+          :items="items"
+          :fields="fields"
+          responsive="sm"
+        >
+          <template #cell(citation)="data">
+            <span v-html="data.value"></span>
+          </template>
+          <template #cell(insert)="data">
+            <b-icon-plus
+              class="pointer"
+              @click="plusClickHandler(items[data.index].DOI)"
+            />
+          </template>
+        </b-table>
+      </b-card>
+      <b-card title="Create a Reference" class="mt-4">
+        <b-input-group>
+          <b-form-input
+            placeholder="Copy paste a DOI in here..."
+            v-model.trim="referenceDoiToCreate"
+            class="form-control search-bar"
+            type="text"
+            @input="resetFlags()"
+            :disabled="createReferenceFlags.loading"
+          />
+          <b-input-group-append>
+            <b-button
+              class="search-button"
+              size="sm"
+              text="Button"
+              :disabled="
+                !isDoiFormat(referenceDoiToCreate) ||
+                createReferenceFlags.loading
+              "
+              @click="
+                resetFlags();
+                loader(getReferenceInfo, [referenceDoiToCreate])
+              "
+              >Create New</b-button
+            >
+          </b-input-group-append>
+        </b-input-group>
+        <b-alert
+          v-model="createReferenceFlags.notFound"
+          dismissible
+          align="center"
+          fade
+          variant="warning"
+        >
+          DOI cannot be found. Double check if it's correct.
+        </b-alert>
+        <b-alert
+          v-model="createReferenceFlags.connectionError"
+          dismissible
+          align="center"
+          fade
+          variant="warning"
+        >
+          Connection Error. Try clicking "Create New" again or reloading.
+        </b-alert>
+        <div v-if="createReferenceFlags.alreadyExists">
+          <h5>This reference already exists:</h5>
+          <span v-html="citationHTML"></span>
+          <b-button @click="plusClickHandler(referenceDoiToCreate)"
+            >Insert</b-button
           >
-            <span :class="{ 'text-red': data.item.error }">
-              {{ data.value }}
-            </span>
-          </a>
-        </template>
-        <template #cell(remove)="data">
-          <b-icon-x
-            :class="`${saving === false ? 'pointer' : ''}`"
-            @click="saving === false ? showRemoveConfirmation(data.index) : {}"
-            v-if="insertionMode === false"
-          />
-          <b-icon-plus
-            :class="`${saving === false ? 'pointer' : ''}`"
-            @click="saving === false ? plusClickHandler(data.item.uid) : {}"
-            v-if="insertionMode === true"
-          />
-        </template>
-      </b-table>
-      <b-modal
-        v-model="couldNotSave"
-        v-b-modal.modal-center
-        ok-only
-        :static="true"
-        >We couldn't save. Check your internet connection and try again. If the
-        problem persists, contact the administrator.</b-modal
-      >
-    </b-card>
-    <b-card class="mt-2" v-if="!insertionMode">
-      <mongo-search
-        button-text="Search References"
-        query-key="search"
-        :query-endpoint="$references_url"
-        :fields-array="['reference', 'doi_url']"
-        placeholder="Search References"
-        :uids="uids"
-        @dataToParent="addReference(arguments[0])"
-      />
-    </b-card>
+        </div>
+        <div v-if="createReferenceFlags.found">
+          <h5>Here is the reference info:</h5>
+          <span v-html="citationHTML"></span>
+          <b-button
+            @click="
+              createReferenceFlags.creationError = false;
+              loader(addNewReference, [referenceDoiToCreate]);
+            "
+            >Create</b-button
+          >
+          <b-alert
+            v-model="createReferenceFlags.creationError"
+            dismissible
+            align="center"
+            fade
+            variant="warning"
+          >
+            Error creating reference. Try clicking "Create" again, or try
+            reloading the page.
+          </b-alert>
+        </div>
+        <b-spinner v-show="createReferenceFlags.loading"/>
+      </b-card>
+    </div>
   </div>
 </template>
 
 <script>
-// import ExperimentLineChart from '@/components/ExperimentLineChart.vue';
-import utils from '@/utils';
-import { BIconPlus, BIconX } from 'bootstrap-vue';
+import Citation from 'citation-js';
+import { BIconPlus } from 'bootstrap-vue';
 import MongoSearch from '@/components/MongoSearch.vue';
 
+const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
-  props: {
-    referencesArray: Array,
-    // this tells me whether or not we want to
-    // display the refs for insertion into the text, or if we want to add/remove from them
-    insertionMode: {
-      type: Boolean,
-      default: false,
-    },
-  },
   data() {
     return {
-      tableFields: ['reference', 'doi_url', { key: 'remove', label: '' }],
-      uids: [],
-      references: [],
-      saving: false,
-      loading: true,
-      errorLoadingRefs: false,
-      couldNotSave: false,
+      fields: ['citation', { key: 'insert', label: '' }],
+      items: [],
+      createReferenceFlags: {
+        alreadyExists: false,
+        notFound: false,
+        found: false,
+        connectionError: false,
+        creationError: false,
+        loading: false,
+      },
+      referenceDoiToCreate: '',
+      citationHTML: '',
+      referenceResponseObject: {},
     };
   },
-  async mounted() {
-    this.uids = this.referencesArray.slice();
-    await this.init();
-  },
+  async mounted() {},
   methods: {
-    async init() {
-      this.loading = true;
-      this.errorLoadingRefs = false;
-      this.references = await this.getReferences();
-      this.loading = false;
+    async getDOIFromService(doi) {
+      const response = await this.$doi_service.get(`/${doi}`);
+      return response;
     },
-    plusClickHandler(uid) {
-      this.emitToParent('clickedRef', uid);
+    async getSplashReference(doi) {
+      const response = await this.$api.get(`${this.$references_url}/doi/${doi}`);
+      return response;
     },
-    async getReferences() {
-      // TODO create a smarter system for dealing with 404s
-      let error = false;
-      const responseArray = await Promise.all(
-        [...this.uids].map(async (elem) => {
-          try {
-            const response = await this.$api.get(
-              `${this.$references_url}/${elem}`,
-            );
-            return response.data;
-          } catch (e) {
-            console.log(e);
-            error = true;
-            return {
-              reference: 'ERROR LOADING REFERENCE',
-              doi_url: '',
-              error: true,
-              uid: 'NOT_FOUND',
-            };
-          }
-        }),
-      );
-      this.errorLoadingRefs = error;
-      return responseArray;
+    async createReference(reference) {
+      const response = await this.$api.post(`${this.$references_url}`, reference);
+      return response;
     },
-    async emitToParent(eventName, data) {
-      // This emits an object with the altered data section, the index, and
-      // a callback for the parent component to call with a boolean as the argument,
-      // so that this component can know whether not the data was saved succesfully
-      // if the data was succesfully saved then the code will execute as normal.
-      // if not then this function will throw an error
-      // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
-      return new Promise((resolve, reject) => this.$emit(eventName, {
-        data,
-        callback: (success) => {
-          if (success) {
-            resolve();
-          } else {
-            reject();
-          }
-        },
+    isDoiFormat(string) {
+      if (string.startsWith('10.') && string.includes('/')) {
+        return true;
+      }
+      return false;
+    },
+    resetFlags() {
+      Object.keys(this.createReferenceFlags).forEach((v) => {
+        this.createReferenceFlags[v] = false;
+      });
+    },
+    async loader(func, args) {
+      this.createReferenceFlags.loading = true;
+      await func(...args);
+      this.createReferenceFlags.loading = false;
+    },
+    async addNewReference(doi) {
+      const referenceObject = this.referenceResponseObject.data;
+      referenceObject.DOI = doi;
+      referenceObject.origin_url = this.referenceResponseObject.request.responseURL;
+      try {
+        await this.createReference(referenceObject);
+        this.plusClickHandler(doi);
+      } catch (e) {
+        console.log(e);
+        this.createReferenceFlags.creationError = true;
+      }
+    },
+    async getReferenceInfo(doi) {
+      let response = {};
+      try {
+        response = await this.getSplashReference(doi);
+        this.citationHTML = new Citation(response.data).format('bibliography', CITE_FORMAT);
+        this.createReferenceFlags.alreadyExists = true;
+        return;
+      } catch (e) {
+        console.log(e);
+        if (e.response.status !== 404) {
+          this.createReferenceFlags.connectionError = true;
+          return;
+        }
+      }
+      try {
+        response = await this.getDOIFromService(doi);
+        this.citationHTML = new Citation(response.data).format('bibliography', CITE_FORMAT);
+        this.referenceResponseObject = response;
+        this.createReferenceFlags.found = true;
+      } catch (e) {
+        console.log(e);
+        if (e.response.status !== 404) {
+          this.createReferenceFlags.connectionError = true;
+        } else {
+          this.createReferenceFlags.notFound = true;
+        }
+      }
+    },
+    updateItems(references) {
+      this.items = references.map((elem) => ({
+        citation: new Citation(elem).format('bibliography', CITE_FORMAT),
+        DOI: elem.DOI,
       }));
     },
-    async emitEdit(indexChanged, originalSection) {
-      try {
-      } catch (error) {
-        this.sections[indexChanged] = originalSection;
-        this.saving = false;
-        this.couldNotSave = true;
-      }
-    },
-    async addReference(eventObj) {
-      this.uids.push(eventObj.data.uid);
-      this.saving = true;
-      try {
-        await this.emitToParent('dataToParent', this.uids);
-        this.references.push(eventObj.data);
-        this.saving = false;
-        eventObj.callback(true);
-      } catch (e) {
-        this.uids.pop();
-        this.saving = false;
-        this.couldNotSave = true;
-        eventObj.callback(false);
-        console.log(e);
-      }
-    },
-    async removeReference(index) {
-      if (!Number.isInteger(index)) {
-        throw Error('Index should be integer');
-      }
-
-      this.saving = true;
-      const uid = this.uids[index];
-      try {
-        // delete from array without leaving a hole
-        this.uids.splice(index, 1);
-        await this.emitToParent('dataToParent', this.uids);
-        this.references.splice(index, 1);
-        this.saving = false;
-      } catch (error) {
-        this.uids.splice(index, 0, uid);
-        this.saving = false;
-        this.couldNotSave = true;
-      }
-    },
-    edit(index, text, title) {
-      if (this.saving) {
-        return;
-      }
-      if (index !== this.currently_edited_index) {
-        this.currently_edited_index = index;
-        this.edited_data[this.textKey] = text;
-        this.edited_data[this.titleKey] = title;
-      }
-    },
-    showRemoveConfirmation(index) {
-      this.$bvModal
-        .msgBoxConfirm(
-          'Are you sure you want to remove this reference? (You can add it back in later)',
-          {
-            title: 'Please Confirm',
-            size: 'sm',
-            buttonSize: 'sm',
-            okVariant: 'danger',
-            okTitle: 'YES',
-            cancelTitle: 'NO',
-            footerClass: 'p-2',
-            hideHeaderClose: false,
-            centered: true,
-          },
-        )
-        .then((value) => {
-          if (value) {
-            this.removeReference(index);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    },
-    deleteIfNew(index, section) {
-      if (section[this.titleKey] === '' && section[this.textKey] === '') {
-        // delete from array without leaving a hole
-        this.sections.splice(index, 1);
-      }
-    },
-    parseText(text) {
-      if (this.markdown) {
-        return utils.parseMarkDown(text);
-      }
-      return utils.sanitizeInput(text);
+    plusClickHandler(doi) {
+      this.$emit('clickedRef', doi);
     },
   },
   components: {
-    'b-icon-x': BIconX,
     'b-icon-plus': BIconPlus,
     'mongo-search': MongoSearch,
   },

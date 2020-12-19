@@ -14,7 +14,12 @@ export default {
       }, delay);
     };
   },
-  parseMarkDown(markdown) {
+  parseMarkDown(markdown, renderer) {
+    if (typeof renderer === 'object') {
+      marked.use({ renderer });
+    } else if (renderer !== undefined) {
+      throw TypeError('2nd positional arg `renderer` must be undefined or an object');
+    }
     const html = marked(markdown);
     return DOMPurify.sanitize(html);
   },

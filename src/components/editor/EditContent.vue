@@ -34,7 +34,7 @@
           <!--This displays each section of the documentation-->
           <div
             @dblclick="
-              currently_edited_index === undefined
+              currently_edited_index === undefined && saving !== true
                 ? edit(index, section[textKey], section[titleKey])
                 : {}
             "
@@ -53,7 +53,12 @@
                 >
               </p>
               <!--This parses the markdown and displays it-->
-              <div class="user-text" v-html="parseText(section[textKey])" />
+              <div
+                class="user-text"
+                v-if="markdown"
+                v-html="parseText(section[textKey])"
+              />
+              <div v-else>{{ section[textKey] }}</div>
             </div>
 
             <!--This appears when we want to edit the documentation-->
@@ -89,7 +94,7 @@
 
                 <!--The cancel button is disabled when the app is in the process of saving-->
                 <b-button
-                  variant="danger"
+                  variant="warning"
                   @click="
                     removeFocus();
                     deleteIfNew(index, section);
@@ -102,7 +107,7 @@
                         or section[textKey] is empty (implying that this is a brand new section)
                         and when the app is in the process of saving-->
                 <b-button
-                  variant="warning"
+                  variant="danger"
                   @click="showDeleteConfirmation(index)"
                   v-show="
                     !(section[titleKey] === '' || section[textKey] === '') &&
@@ -111,16 +116,15 @@
                   >{{ removeButtonText }}</b-button
                 >
                 <b-button
-                  @mousedown="this.insert_reference = true;"
+                  @mousedown="insert_reference = true"
                   :disabled="!focused"
                   v-show="markdown === true"
                   >Insert Reference</b-button
                 >
                 <b-modal v-model="insert_reference" ok-only>
                   <add-references
-                    :references-array="references"
-                    :insertion-mode="true"
-                    @clickedRef="insertReference(arguments[0].data)"
+                    :references="items"
+                    @clickedRef="insertReference(arguments[0])"
                   />
                 </b-modal>
 
@@ -151,7 +155,37 @@
           "
         />
       </div>
-      <b-table striped hover :items="items" />
+      <b-overlay :show="refsLoading" rounded="sm">
+        <b-table
+          v-if="markdown"
+          striped
+          hover
+          :items="items"
+          :fields="table_fields"
+        >
+          <template #cell(index)="data"> {{ data.index + 1 }}. </template>
+          <template #cell(citation)="data">
+            <div align="left">
+              <a :name="data.item.doi">
+                <span
+                  :class="`${
+                    $route.hash === `#${data.item.doi}` ? 'active' : ''
+                  }`"
+                  v-if="items[data.index].error"
+                  >{{ data.value }}</span
+                >
+                <span
+                  :class="`${
+                    $route.hash === `#${data.item.doi}` ? 'raw-html-active' : ''
+                  }`"
+                  v-else
+                  v-html="data.value"
+                ></span>
+              </a>
+            </div>
+          </template>
+        </b-table>
+      </b-overlay>
     </div>
   </div>
 </template>
@@ -161,7 +195,9 @@
 import utils from '@/utils';
 import AddReferences from '@/components/editor/AddReferences.vue';
 import { BIconPlusCircleFill } from 'bootstrap-vue';
+import Citation from 'citation-js';
 
+const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
   props: {
     sectionsArray: Array,
@@ -210,10 +246,11 @@ export default {
         [this.titleKey]: '',
         [this.textKey]: '',
       },
-      references: [],
       referencesCount: {},
       items: [],
+      table_fields: [{ key: 'index', label: '' }, 'citation'],
       saving: false,
+      refsLoading: false,
       couldNotSave: false,
       insert_reference: false,
       focused: false,
@@ -226,6 +263,8 @@ export default {
     referencesCount: {
       deep: true,
       async handler() {
+        this.saving = true;
+        this.refsLoading = true;
         const { referencesCount } = this;
         const items = await Promise.all(
           Object.keys(this.referencesCount)
@@ -236,16 +275,27 @@ export default {
               return true;
             })
             .map(async (doi) => {
+              // First search through the previous items array to ensure
+              // that we are not making unnecessary requests
+              const reference = this.items.find((elem) => elem.doi === doi);
+              if (reference !== undefined && reference.error === false) {
+                return reference;
+              }
               try {
                 const response = await this.getSplashReference(doi);
-                if (Object.keys(response.data).length > 1) {
-                  return { title: response.data.title, reference: doi };
-                }
-                return { reference: `${doi} ONLY HAVE DOI FOR THIS REFERENCE. GET INFO???? FOR THE DEV: IMPLEMENT GET INFO FUNCTIONALITY.` };
+                return {
+                  doi,
+                  citation: new Citation(response.data).format('bibliography', CITE_FORMAT),
+                  error: false,
+                };
               } catch (e) {
                 console.log(e);
                 if (e.response.status !== 404) {
-                  return { reference: `${doi} COULDN'T CONNECT WITH SERVER. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY` };
+                  return {
+                    doi,
+                    citation: `Error connecting to server when getting: ${doi}. Try reloading the page.`,
+                    error: true,
+                  };
                 }
               }
               let response = {};
@@ -255,25 +305,51 @@ export default {
               } catch (e) {
                 console.log(e);
                 if (e.response.status === 404) {
-                  try {
-                    await this.createReference({ DOI: doi });
-                    return { reference: `${doi} COULDN'T GET REFERENCE INFO. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY` };
-                  } catch (err) {
-                    return { reference: `${doi} COULDN'T SAVE REFERENCE TO SERVER OR GET REFERENCE INFO. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY` };
-                  }
+                  // All the code commented out is when we attempt to create a new empty reference
+                  // If one in the document does not exist. For now we are only notifying the user
+                  // That it doesn't exist rather than making an empty one in the database
+                  // try {
+                  // await this.createReference({ DOI: doi, origin_url: 'none' });
+                  return {
+                    doi,
+                    citation: `Could not find: ${doi}`,
+                    error: true,
+                  };
+                  /* } catch (err) {
+                    return {
+                      doi,
+                      citation: `${doi} COULDN'T SAVE REFERENCE TO SERVER OR GET REFERENCE INFO. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY`,
+                      html: false,
+                    };
+                  } */
                 }
-                return { reference: `${doi} COULDN'T CONNECT TO REFERENCE SERVICE. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY` };
+                return {
+                  doi,
+                  citation: `Error in creating new reference: ${doi}. Try reloading the page.`,
+                  error: true,
+                };
               }
               try {
                 response.data.DOI = doi;
+                response.data.origin_url = response.request.responseURL;
                 await this.createReference(response.data);
-                return { title: response.data.title, reference: doi };
+                return {
+                  doi,
+                  citation: new Citation(response.data).format('bibliography', CITE_FORMAT),
+                  error: false,
+                };
               } catch (e) {
                 console.log(e);
-                return { reference: `${doi} COULDN'T SAVE REFERENCE TO SERVER. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY` };
+                return {
+                  doi,
+                  citation: `Error in creating new reference: ${doi}. Try reloading the page.`,
+                  error: true,
+                };
               }
             }),
         );
+        this.refsLoading = false;
+        this.saving = false;
         this.items = items;
       },
     },
@@ -288,29 +364,19 @@ export default {
   },
   methods: {
     async getDOIFromService(doi) {
-      const response = await this.$doi_service.get(
-        `/${doi}`,
-      );
+      const response = await this.$doi_service.get(`/${doi}`);
       return response;
     },
     async getSplashReference(doi) {
-      const response = await this.$api.get(
-        `${this.$references_url}/doi/${doi}`,
-      );
+      const response = await this.$api.get(`${this.$references_url}/doi/${doi}`);
       return response;
     },
     async createReference(reference) {
-      const response = await this.$api.post(
-        `${this.$references_url}`,
-        reference,
-      );
+      const response = await this.$api.post(`${this.$references_url}`, reference);
       return response;
     },
     async updateReference(reference, doi) {
-      const response = await this.$api.put(
-        `${this.$references_url}/doi/${doi}`,
-        reference,
-      );
+      const response = await this.$api.put(`${this.$references_url}/doi/${doi}`, reference);
       return response;
     },
     async removeFocus() {
@@ -325,31 +391,26 @@ export default {
       // if the data was succesfully saved then the code will execute as normal.
       // if not then this function will throw an error
       // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
-      return new Promise((resolve, reject) => this.$emit('dataToParent', {
-        data,
-        callback: (success) => {
-          if (success) {
-            resolve();
-          } else {
-            reject();
-          }
-        },
-      }));
+      return new Promise((resolve, reject) =>
+        this.$emit('dataToParent', {
+          data,
+          callback: (success) => {
+            if (success) {
+              resolve();
+            } else {
+              reject();
+            }
+          },
+        }),
+      );
     },
     async emitEdit(indexChanged, originalSection) {
       try {
         this.saving = true;
         this.sections[indexChanged] = { ...this.edited_data };
         await this.emitToParent(this.sections);
-
-        // update references
-        const doiRefs = this.extractReferences(this.sections[indexChanged][this.textKey]);
-        this.subtractReferencesFromCount(this.references[indexChanged]);
-        this.addReferencesToCount(doiRefs);
-        // Preserve reactivity
-        this.$set(this.references, indexChanged, doiRefs);
-
         this.removeFocus();
+        this.buildReferences();
         this.saving = false;
       } catch (error) {
         this.sections[indexChanged] = originalSection;
@@ -384,22 +445,6 @@ export default {
       textArea.selectionEnd = cursorPos;
       this.insert_reference = false;
     },
-    async insertNewReference(eventObj) {
-      this.references.push(eventObj.data.doi);
-      this.saving = true;
-      try {
-        this.createReference();
-        this.references.push(eventObj.data);
-        this.saving = false;
-        eventObj.callback(true);
-      } catch (e) {
-        this.references.pop();
-        this.saving = false;
-        this.couldNotSave = true;
-        eventObj.callback(false);
-        console.log(e);
-      }
-    },
     addSection(index) {
       if (!Number.isInteger(index)) {
         throw Error('Index should be integer');
@@ -409,7 +454,6 @@ export default {
         [this.textKey]: '',
       };
       this.sections.splice(index, 0, blankSection);
-      this.references.splice(index, 0, []);
       this.edit(index, blankSection[this.titleKey], blankSection[this.textKey]);
     },
     async deleteSection(index) {
@@ -424,8 +468,7 @@ export default {
         this.sections.splice(index, 1);
         await this.emitToParent(this.sections);
         this.removeFocus();
-        this.subtractReferencesFromCount(this.references[index]);
-        this.references.splice(index, 1);
+        this.buildReferences();
         this.saving = false;
       } catch (error) {
         this.sections.splice(index, 0, section);
@@ -472,13 +515,11 @@ export default {
       });
     },
     buildReferences() {
-      const references = [];
+      this.referencesCount = {};
       this.sections.forEach((section) => {
         const doiRefs = this.extractReferences(section[this.textKey]);
         this.addReferencesToCount(doiRefs);
-        references.push(doiRefs);
       });
-      this.references = references;
     },
     edit(index, text, title) {
       if (this.saving) {
@@ -516,14 +557,25 @@ export default {
       if (section[this.titleKey] === '' && section[this.textKey] === '') {
         // delete from array without leaving a hole
         this.sections.splice(index, 1);
-        this.references.splice(index, 1);
       }
     },
-    parseText(text) {
-      if (this.markdown) {
-        return utils.parseMarkDown(text);
-      }
-      return utils.sanitizeInput(text);
+    parseText(htmlText) {
+      const { referencesCount } = this;
+      const renderer = {
+        link(href, title, text) {
+          if (text !== '[reference]') {
+            return false;
+          }
+          const references = Object.keys(referencesCount);
+          // Slice removes the # at the beginning
+          const index = references.indexOf(href.slice(1));
+          if (index === -1) {
+            return false;
+          }
+          return `<a href="${href}">[${index + 1}]</a>`;
+        },
+      };
+      return utils.parseMarkDown(htmlText, renderer);
     },
   },
   components: {
@@ -536,5 +588,12 @@ export default {
 <style scoped>
 .pointer {
   cursor: pointer;
+}
+.active {
+  background-color: lightblue;
+}
+/*This is necessary so that the style will apply to v-html*/
+.raw-html-active >>> div {
+  background-color: lightblue;
 }
 </style>

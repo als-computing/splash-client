@@ -3,13 +3,13 @@
     <div>
         <b-card-group deck>
 
-             <!-- <b-nav>
+              <b-nav>
               <b-nav-item v-bind:to="'/compounds'">
                 <b-card>Model Fluid Platform </b-card>
               </b-nav-item>
              </b-nav>
 
-            <b-nav>
+            <!--<b-nav>
               <b-nav-item v-bind:to="'/'">
                 <b-card>Techniques </b-card>
               </b-nav-item>
