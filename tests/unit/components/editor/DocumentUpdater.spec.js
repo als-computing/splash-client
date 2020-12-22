@@ -38,17 +38,20 @@ describe('documentUpdater class', () => {
 
     await testFunctionErrors(TypeError, /^1st positional argument must be a string$/, 5, 'bar', {});
     await testFunctionErrors(TypeError, /^2nd positional argument must be a string$/, 'bar', 5, {});
-    await testFunctionErrors(TypeError, /^3rd positional argument cannot be null or undefined$/, 'bar', 'foo');
-    await testFunctionErrors(TypeError, /^1st positional argument: species\.bar, leads to undefined or null property in data$/, 'species.bar', 'foo', {});
-    await testFunctionErrors(TypeError, /^1st positional argument: species\.bar, leads to undefined or null property in data$/, 'species.bar', 'foo', {});
-    await testFunctionErrors(TypeError, /^1st positional argument: species, must lead to an object, not a primitive$/, 'species', 'foo', {});
+    await testFunctionErrors(TypeError, /^3rd positional argument must be a string, boolean, number, or object$/, 'bar', 'foo');
+    await testFunctionErrors(TypeError, /^1st positional argument: title\.bar, must lead to an object, not a primitive$/, 'title.bar', 'foo', {});
+    await testFunctionErrors(TypeError, /^1st positional argument: title, must lead to an object, not a primitive$/, 'title', 'foo', {});
+    await testFunctionErrors(TypeError, /^1st positional argument: documentation\.tree, leads to undefined or null property in data$/, 'documentation.tree', 'foo', {});
+    await testFunctionErrors(TypeError, /^1st positional argument: documentation\.__proto__, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'documentation.__proto__', 'foo', {});
+    await testFunctionErrors(TypeError, /^2nd positional argument: hasOwnProperty, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'documentation', 'hasOwnProperty', {});
+
   });
 
   it('restores the original data object when an axios error is thrown and re-throws axios error', async () => {
     Vue.prototype.$api.put.mockImplementation(async () => {
       throw new Error('Test Error');
     });
-    const update = async () => testUpdater.updateDataProperty('metadata', '', []);
+    const update = async () => testUpdater.updateDataProperty('', 'metadata', []);
     await expect(update()).rejects.toThrowError(/^Test Error$/);
 
     expect(testUpdater.data).toEqual(mockResponse.data);
