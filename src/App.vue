@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <b-navbar toggleable="lg" type="dark" variant="dark">
-        <b-navbar-brand href="#">Splash</b-navbar-brand>
+        <b-navbar-brand to="/">Splash</b-navbar-brand>
 
         <!-- <router-link to="/about">About</router-link> -->
 

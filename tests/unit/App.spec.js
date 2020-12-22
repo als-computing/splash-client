@@ -21,7 +21,7 @@ localVue.use({
 // test to ensure that if the user is not authenticated
 // they don't have access to authenticated pages, test 404 and 500 pages
 
-describe('App.vue (Search Page)', () => {
+describe('App.vue', () => {
   let getters;
   let store;
   let logonUser = {};
@@ -36,10 +36,10 @@ describe('App.vue (Search Page)', () => {
     store = new Vuex.Store({ getters });
   });
 
-  it('renders the Search Bar component', () => {
+  /* it('renders the Search Bar component', () => {
     const localwrapper = mount(App, { store, localVue, router });
     expect(localwrapper.findComponent({ name: 'SearchBar' }).exists()).toBe(true);
-  });
+  }); */
 
   it('shows logged out without store login', async () => {
     const localwrapper = mount(App, { store, localVue, router });

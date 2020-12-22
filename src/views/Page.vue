@@ -1,5 +1,5 @@
 <template>
-  <div class="compound">
+  <div class="page">
     <b-modal
       v-model="couldNotRetrieve"
       :static="true"
@@ -9,13 +9,13 @@
       connection and reload.</b-modal
     >
     <div v-if="mounted">
-      <h1>{{ compoundDoc.data.species }}</h1>
+      <h1>{{ pageDoc.data.title }}</h1>
       <b-jumbotron>
         <b-container fluid>
           <b-row>
             <b-col lg="3">
               <edit-content
-                :sections-array="compoundDoc.data.metadata"
+                :sections-array="pageDoc.data.metadata"
                 :markdown="false"
                 empty-message="No fields found. Be the first to add some."
                 remove-button-text="Delete field"
@@ -28,7 +28,7 @@
             </b-col>
             <b-col lg="9">
               <edit-content
-                :sections-array="compoundDoc.data.documentation.sections"
+                :sections-array="pageDoc.data.documentation.sections"
                 :markdown="true"
                 empty-message="No documentation found. Be the first to add some."
                 remove-button-text="Delete section"
@@ -49,30 +49,28 @@
 </template>
 
 <script>
-import DocumentUpdater from "@/components/editor/DocumentUpdater";
-import EditContent from "@/components/editor/EditContent.vue";
-import AddReferences from "@/components/editor/AddReferences.vue";
+import DocumentUpdater from '@/components/editor/DocumentUpdater';
+import EditContent from '@/components/editor/EditContent.vue';
 
 export default {
   data() {
     return {
-      compoundDoc: {},
+      pageDoc: {},
       couldNotRetrieve: false,
       mounted: false,
     };
   },
 
   async mounted() {
-    const compoundDoc = new DocumentUpdater(
-      this.$compounds_url,
-      this.$route.params.uid
+    const pageDoc = new DocumentUpdater(
+      this.$pages_url,
+      this.$route.params.uid,
     );
     try {
-      await compoundDoc.init();
-      this.compoundDoc = compoundDoc;
+      await pageDoc.init();
+      this.pageDoc = pageDoc;
       this.mounted = true;
     } catch (e) {
-      console.log("line 39");
       console.log(e);
       this.couldNotRetrieve = true;
     }
@@ -81,7 +79,7 @@ export default {
   methods: {
     async updateDatabase(path, key, eventObj) {
       try {
-        await this.compoundDoc.updateDataProperty(path, key, eventObj.data);
+        await this.pageDoc.updateDataProperty(path, key, eventObj.data);
         eventObj.callback(true);
       } catch (error) {
         eventObj.callback(false);
@@ -90,8 +88,7 @@ export default {
     },
   },
   components: {
-    "edit-content": EditContent,
-    "add-references": AddReferences,
+    'edit-content': EditContent,
   },
 };
 </script>

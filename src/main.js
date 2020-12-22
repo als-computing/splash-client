@@ -37,7 +37,8 @@ Vue.use({
       headers: { Accept: 'application/citeproc+json' },
     });
     Vue.prototype.$api_url = apiUrl;
-    Vue.prototype.$compounds_url = 'compounds';
+    Vue.prototype.$compounds_url = 'pages/page_type/compound';
+    Vue.prototype.$pages_url = 'pages';
     Vue.prototype.$runs_url = 'runs';
     Vue.prototype.$login_url = 'idtokensignin';
     Vue.prototype.$references_url = 'references';
