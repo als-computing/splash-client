@@ -1,7 +1,8 @@
 export default {
   xss_attack: {
     data: {
-      species: 'Boron',
+      title: 'Boron',
+      page_type: 'dangerous',
       metadata: [
         {
           title: 'contributors',
@@ -20,7 +21,8 @@ export default {
   },
   boron: {
     data: {
-      species: 'Boron',
+      title: 'Boron',
+      page_type: 'compound',
       metadata: [
         {
           title: 'produced_water_relevance',
