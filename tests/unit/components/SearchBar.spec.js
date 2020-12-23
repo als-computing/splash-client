@@ -3,10 +3,8 @@ import VueRouter from 'vue-router';
 import { mount, /* shallowMount, */ createLocalVue } from '@vue/test-utils';
 import mockAxios from 'axios'; // This comes from the __mocks__ folder
 import SearchBar from '@/components/SearchBar.vue';
-import responses from './search-responses';
+import responses from '../../responses/search-responses';
 
-// const util = require('util');
-const flushPromises = require('flush-promises');
 
 const localVue = createLocalVue();
 
@@ -62,12 +60,14 @@ describe('SearchBar Component when isLoggedIn is true', () => {
   it('renders a search button', () => {
     expect(wrapper.find('.search-button').exists()).toBe(true);
   });
+  // These test autocomplete functionality, which we have
+  // disabled for now so I'm commenting it out
 
-  it('doesn\'t render autocomplete with no input', () => {
+  /* it('doesn\'t render autocomplete with no input', () => {
     expect(wrapper.find('.autocomplete-results').element).not.toBeVisible();
   });
 
-  it('given an input with autocomplete response calls axios once and passes correct URL endpoint and input data to axios', (done) => {
+   it('given an input with autocomplete response calls axios once and passes correct URL endpoint and input data to axios', (done) => {
     mockAxios.post.mockReturnValue(Promise.resolve(responses.s));
     const searchInputTextField = wrapper.findComponent({ name: 'BFormInput' });
     searchInputTextField.element.value = 's';
@@ -245,6 +245,24 @@ describe('SearchBar Component when isLoggedIn is true', () => {
 
     searchInputTextField.trigger('keydown.esc');
     expect(wrapper.find('.autocomplete-results').element).toBeVisible();
+  }); */
+
+  it('navigates to correct url when search button is pressed', async () => {
+    const searchInputTextField = wrapper.findComponent({ name: 'BFormInput' });
+    searchInputTextField.element.value = 'the_one_ring';
+    searchInputTextField.trigger('input');
+    searchInputTextField.trigger('keydown.enter');
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.$route.path).toBe('/search');
+    expect(wrapper.vm.$route.query.query).toBe('the_one_ring');
+
+    searchInputTextField.element.value = 'the_seven_rings';
+    searchInputTextField.trigger('input');
+    const searchButton = wrapper.find('button');
+    await searchButton.trigger('click');
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.$route.path).toBe('/search');
+    expect(wrapper.vm.$route.query.query).toBe('the_seven_rings');
   });
   // TODO: Write unit tests for testing fuzzy search rendering
 });

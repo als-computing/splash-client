@@ -1,11 +1,12 @@
 export default {
   xss_attack: {
     data: {
-      species: 'Boron',
+      title: 'Boron',
+      page_type: 'dangerous',
       metadata: [
         {
-          name: 'contributors',
-          value: 'Matt Landsman, Lauren Nalley',
+          title: 'contributors',
+          text: 'Matt Landsman, Lauren Nalley',
         },
       ],
       documentation: {
@@ -20,55 +21,20 @@ export default {
   },
   boron: {
     data: {
-      species: 'Boron',
+      title: 'Boron',
+      page_type: 'compound',
       metadata: [
         {
-          name: 'produced_water_relevance',
-          value: 'Toxicity (319)',
+          title: 'produced_water_relevance',
+          text: 'Toxicity (319)',
         },
         {
-          name: 'origin',
-          value: 'Presence in geologic formations (196)',
+          title: 'origin',
+          text: 'Presence in geologic formations (196)',
         },
         {
-          name: 'fundamental_relevance',
-          value: 'Uncharged at neutral pH (196)',
-        },
-        {
-          name: 'researchers',
-          value: 'Matthew Landsman, Lynn Katz',
-        },
-        {
-          name: 'molecular_weight',
-          value: '10.81',
-        },
-        {
-          name: 'aqueous_species',
-          value: 'H3BO3, H2BO3-, Polyborate (at high concentration)',
-        },
-        {
-          name: 'water_solubility',
-          value: '55 (320)',
-        },
-        {
-          name: 'pka',
-          value: '9.3',
-        },
-        {
-          name: 'adsorption',
-          value: 'Chelating resins (320)',
-        },
-        {
-          name: 'analytical',
-          value: 'ICP (318)',
-        },
-        {
-          name: 'spectroscopic',
-          value: 'XAS (238)',
-        },
-        {
-          name: 'contributors',
-          value: 'Matt Landsman, Lauren Nalley',
+          title: 'fundamental_relevance',
+          text: 'Uncharged at neutral pH (196)',
         },
       ],
       documentation: {

@@ -22,6 +22,8 @@
           <b-button class="search-button" size="sm" text="Button" @click="goToSearch">Search</b-button>
         </b-input-group-append>
       </b-input-group>
+      <!--Following code is meant to be the autocomplete menu,
+        however, we have disabled autocomplete functionality-->
       <ul v-show="suggestions.length>0" class="autocomplete-results">
         <li
           v-for="(suggestion, i) in suggestions"
