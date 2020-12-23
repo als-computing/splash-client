@@ -29,12 +29,13 @@
       <b-card title="Create a Reference" class="mt-4">
         <b-input-group>
           <b-form-input
-            placeholder="Copy paste a DOI in here..."
+            placeholder="10.XXX/XXXXX"
             v-model.trim="referenceDoiToCreate"
             class="form-control search-bar"
             type="text"
             @input="resetFlags()"
             :disabled="createReferenceFlags.loading"
+            :state="doiValid"
           />
           <b-input-group-append>
             <b-button
@@ -42,7 +43,7 @@
               size="sm"
               text="Button"
               :disabled="
-                !isDoiFormat(referenceDoiToCreate) ||
+                !doiValid ||
                 createReferenceFlags.loading
               "
               @click="
@@ -53,6 +54,9 @@
             >
           </b-input-group-append>
         </b-input-group>
+        <b-form-invalid-feedback :state="doiValid">
+        The DOI must be this format: 10.XXX/XXXXX
+      </b-form-invalid-feedback>
         <b-alert
           v-model="createReferenceFlags.notFound"
           dismissible
@@ -112,6 +116,11 @@ import MongoSearch from '@/components/MongoSearch.vue';
 
 const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
+  computed: {
+    doiValid() {
+      return this.isDoiFormat(this.referenceDoiToCreate);
+    },
+  },
   data() {
     return {
       fields: ['citation', { key: 'insert', label: '' }],
@@ -129,7 +138,6 @@ export default {
       referenceResponseObject: {},
     };
   },
-  async mounted() {},
   methods: {
     async getDOIFromService(doi) {
       const response = await this.$doi_service.get(`/${doi}`);
