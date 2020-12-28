@@ -3,10 +3,10 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import mockAxios from 'axios'; // This comes from the __mocks__ folder
 import Page from '@/views/Page.vue';
 import EditContent from '@/components/editor/EditContent.vue';
-import DocumentUpdater from '@/components/editor/DocumentUpdater';
-import mockDocumentUpdater from '../../moduleMocks/documentUpdaterMock';
+import PageUpdater from '@/components/editor/PageUpdater';
+import mockPageUpdater from '../../moduleMocks/pageUpdaterMock';
 
-jest.mock('@/components/editor/DocumentUpdater', () => jest.fn().mockImplementation(() => (mockDocumentUpdater.mock)));
+jest.mock('@/components/editor/PageUpdater', () => jest.fn().mockImplementation(() => (mockPageUpdater.mock)));
 
 
 const localVue = createLocalVue();
@@ -15,12 +15,11 @@ localVue.use(BootstrapVue);
 localVue.use({
   install(Vue) {
     Vue.prototype.$pages_url = 'test_url';
-    Vue.prototype.$route = { params: { uid: 'test_uid' } };
   },
 });
 
-const mockData = mockDocumentUpdater.data;
-const mockUpdater = mockDocumentUpdater.mock;
+const mockData = mockPageUpdater.data;
+const mockUpdater = mockPageUpdater.mock;
 
 const metadataProps = {
   sectionsArray: mockData.metadata,
@@ -47,15 +46,19 @@ const documentationProps = {
 const wrapper = mount(Page,
   {
     localVue,
+    mocks: {
+      $route: {
+        params: { uid: 'test_uid' },
+        query: {},
+      },
+    },
   });
 
 describe('Page View', () => {
-
-
   it('constructs and then initializes the DocumentUpdater class', async () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
-    expect(DocumentUpdater).toBeCalledWith(localVue.prototype.$pages_url, localVue.prototype.$route.params.uid);
+    expect(PageUpdater).toBeCalledWith(localVue.prototype.$pages_url, wrapper.vm.$route.params.uid);
     expect(mockUpdater.init).toBeCalledTimes(1);
   });
 

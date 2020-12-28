@@ -5,7 +5,7 @@ import EditContent from '@/components/editor/EditContent.vue';
 import * as bootstrap from 'bootstrap-vue';
 import marked from 'marked';
 import DOMPurify from 'dompurify';
-import responses from '../../../responses/compound-responses';
+import responses from '../../../responses/pages-responses';
 
 
 const localVue = createLocalVue();
@@ -73,7 +73,7 @@ describe('EditContent component', () => {
       expect(markdowns.at(i).html().replace(/\s/g, '')).toBe(`<div class="user-text">${isMarkdown ? parseMarkDown(expectedArray[i].text) : expectedArray[i].text}</div>`.replace(/\s/g, ''));
     });
   }
-  
+
   async function findButton(wrapper, text, index) {
     const buttons = wrapper.findAllComponents(bootstrap.BButton);
     let currentIndex = 0;

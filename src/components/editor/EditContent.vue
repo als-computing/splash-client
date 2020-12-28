@@ -2,6 +2,7 @@
   <div class="documentation_editor">
     <div align="left">
       <b-icon-plus-circle-fill
+        v-show="readOnly !== true"
         :class="`${currently_edited_index === undefined ? 'pointer' : ''} mt-2`"
         @click="currently_edited_index === undefined ? addSection(0) : {}"
       />
@@ -34,7 +35,9 @@
           <!--This displays each section of the documentation-->
           <div
             @dblclick="
-              currently_edited_index === undefined && saving !== true
+              readOnly === false &&
+              currently_edited_index === undefined &&
+              saving !== true
                 ? edit(index, section[textKey], section[titleKey])
                 : {}
             "
@@ -45,10 +48,14 @@
                 <span
                   class="pointer"
                   @click="edit(index, section[textKey], section[titleKey])"
+                  v-if="readOnly !== true"
                 >
                   <u>[edit]</u>
                 </span>
-                <span class="text-muted" style="font-size: 0.8rem"
+                <span
+                  class="text-muted"
+                  style="font-size: 0.8rem"
+                  v-if="readOnly !== true"
                   >(or double click)</span
                 >
               </p>
@@ -146,7 +153,7 @@
           >
         </b-card>
         <b-icon-plus-circle-fill
-          v-show="currently_edited_index !== index"
+          v-show="currently_edited_index !== index && readOnly !== true"
           :class="`${
             currently_edited_index === undefined ? 'pointer' : ''
           } mt-2`"
@@ -202,6 +209,10 @@ export default {
   props: {
     sectionsArray: Array,
     markdown: {
+      type: Boolean,
+      default: false,
+    },
+    readOnly: {
       type: Boolean,
       default: false,
     },

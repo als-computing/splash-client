@@ -1,20 +1,31 @@
 /* eslint-disable no-underscore-dangle */
 import Vue from 'vue';
 
-export default class DocumentUpdater {
-  constructor(endpoint, uid) {
+export default class PageUpdater {
+  constructor(endpoint, uid, version = undefined) {
     this.uid = uid;
     this.endpoint = endpoint;
+
+    if (!Number.isInteger(version) && version !== undefined) {
+      throw new TypeError('4th parameter `version` must be an integer or undefined');
+    }
+    if (version <= 0) {
+      throw new RangeError('4th parameter `version` must be positive');
+    }
+    this.version = version;
   }
 
   async init() {
     const resp = await Vue.prototype.$api.get(
-      `${this.endpoint}/${this.uid}`,
+      `${this.endpoint}/${this.uid}${this.version !== undefined ? `?version=${this.version}` : ''}`,
     );
     this.data = resp.data;
   }
 
   async updateDataProperty(path, property, newValue) {
+    if (this.version !== undefined) {
+      throw new Error('Cannot update a specific version of a document.');
+    }
     let { data } = this;
     if (typeof path !== 'string') throw new TypeError('1st positional argument must be a string');
     if (typeof property !== 'string') throw new TypeError('2nd positional argument must be a string');
@@ -23,19 +34,19 @@ export default class DocumentUpdater {
       path.split('.').forEach((key) => {
         // Check to make sure we don't get an undefined or null property
         if (data[key] === undefined || data[key] === null) {
-          throw TypeError(
+          throw new TypeError(
             `1st positional argument: ${path}, leads to undefined or null property in data`,
           );
         }
         // Check to make sure we are getting one of the object's real properties
         if (!Object.prototype.hasOwnProperty.call(data, key)) {
-          throw TypeError(
+          throw new TypeError(
             `1st positional argument: ${path}, leads to an inherited property in the data, it must lead to one of the object's own properties`,
           );
         }
         // Check to make sure that we get an object
         if (typeof data[key] !== 'object') {
-          throw TypeError(
+          throw new TypeError(
             `1st positional argument: ${path}, must lead to an object, not a primitive`,
           );
         }
@@ -45,7 +56,7 @@ export default class DocumentUpdater {
     }
     // Check to make sure that this second argument is not an inherited property
     if (!Object.prototype.hasOwnProperty.call(data, property) && data[property] !== undefined) {
-      throw TypeError(
+      throw new TypeError(
         `2nd positional argument: ${property}, leads to an inherited property in the data, it must lead to one of the object's own properties`,
       );
     }
@@ -61,8 +72,9 @@ export default class DocumentUpdater {
 
 
   async _updateDatabase() {
-    function removeUidFromStringify(data) {
+    function removeFromStringify(data) {
       return JSON.stringify(data, (key, value) => {
+        if (key === 'document_version') return undefined;
         if (key === 'uid') return undefined;
         return value;
       });
@@ -72,7 +84,7 @@ export default class DocumentUpdater {
       `${this.endpoint}/${this.uid}`,
       this.data,
       {
-        transformRequest: [removeUidFromStringify],
+        transformRequest: [removeFromStringify],
       },
     );
   }
