@@ -47,7 +47,7 @@ export default {
 
   methods: {
     renderButton() {
-      console.log('rendered')
+      console.log('rendered');
       window.gapi.signin2.render('google-sign-in-button', {
         scope: 'profile email',
         width: 240,
@@ -72,7 +72,7 @@ export default {
 
         const config = { headers: { 'Content-Type': 'application/json' } };
         const response = await this.$api.post(
-          this.$login_url + "?auth_provider=google",
+          `${this.$login_url}?auth_provider=google`,
           { token: idToken },
           config,
         );
@@ -88,11 +88,12 @@ export default {
       } catch (error) {
         console.error(error);
         if (error.response) {
-          if (error.response.data.error === 'user_not_found') {
+          if (error.response.data.detail === 'user_not_found') {
             this.userNotRegisteredError = true;
-          } else if (error.response.data.error === 'multiple_users') {
-            this.tooManyUsers = true;
-          } else {
+          } // else if (error.response.data.error === 'multiple_users') {
+          // this.tooManyUsers = true;
+          // }
+          else {
             this.otherError = true;
           }
         } else {
