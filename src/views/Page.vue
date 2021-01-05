@@ -10,11 +10,24 @@
     >
 
     <div v-if="ready">
-    <b-button :to="this.$route.path+'?version='+pageDoc.data.document_version" v-if="!view_version" class="m-3">View past versions</b-button>
-    <b-button :to="this.$route.path" class="m-3" v-if="view_version">Go back to editing</b-button>
+      <b-button
+        :to="this.$route.path + '?version=' + numVersions"
+        v-if="!view_version"
+        class="m-3"
+        >View past versions</b-button
+      >
+      <b-button :to="this.$route.path" class="m-3" v-if="view_version"
+        >Go back to editing</b-button
+      >
       <div>
         <h1>{{ pageDoc.data.title }}</h1>
-        <b-pagination-nav :link-gen="linkGen" :number-of-pages="numVersions" use-router v-if="view_version" align="center"></b-pagination-nav>
+        <b-pagination-nav
+          :link-gen="linkGen"
+          :number-of-pages="numVersions"
+          use-router
+          v-if="view_version"
+          align="center"
+        ></b-pagination-nav>
         <b-jumbotron>
           <b-container fluid>
             <b-row>
@@ -23,7 +36,7 @@
                   v-if="view_version"
                   :sections-array="pageDoc.data.metadata"
                   :read-only="true"
-                  :key="'edit-content1'+version"
+                  :key="'edit-content1' + version"
                   empty-message="No fields in this version."
                 />
                 <edit-content
@@ -45,7 +58,7 @@
                   :sections-array="pageDoc.data.documentation.sections"
                   :read-only="true"
                   :markdown="true"
-                  :key="'edit-content2'+version"
+                  :key="'edit-content2' + version"
                   empty-message="No documentation in this version."
                 />
                 <edit-content
@@ -90,8 +103,7 @@ export default {
       version: undefined,
     };
   },
-  computed: {
-  },
+  computed: {},
   watch: {
     // Whenever the route query changes this will execute,
     // It is essentially like running code in the mount function,
@@ -107,6 +119,8 @@ export default {
     await this.fetchPageData();
   }, */
   methods: {
+    // This waits for a condition to be true
+    // before finishing execution
     waitFor(conditionFunction) {
       const poll = (resolve) => {
         if (conditionFunction()) resolve();
@@ -134,41 +148,12 @@ export default {
       }
       let pageDoc = {};
 
-      // If we haven't already retrieved the number of versions,
-      // then do so
-      if (this.numVersions === undefined) {
-        try {
-          pageDoc = new PageUpdater(
-            this.$pages_url,
-            this.$route.params.uid,
-          );
-          await pageDoc.init();
-          this.numVersions = pageDoc.data.document_version;
-        } catch (e) {
-          console.log(e);
-          this.couldNotRetrieve = true;
-        }
-        // If the version is not specified, set pageDoc data property to the current pageDoc
-        // and set view_version to false, this if statement prevents a duplicate request
-        if (this.$route.query.version === undefined) {
-          this.pageDoc = pageDoc;
-          this.ready = true;
-          this.view_version = false;
-          this.version = this.$route.query.version;
-          return;
-        }
-        // if the number of versions is equal to the specified versions do the same as above
-        // but set view_version to true, this if statement prevents a duplicate request
-        if (this.numVersions === Number(this.$route.query.version)) {
-          this.pageDoc = pageDoc;
-          this.ready = true;
-          this.view_version = true;
-          this.version = this.$route.query.version;
-          return;
-        }
-      }
+      // Retrieve number of versions
+      const response = await this.$api.get(`${this.$pages_url}/num_versions/${this.$route.params.uid}`);
+      this.numVersions = response.data.number;
 
       // If the version query param exists then get the specific version
+      let viewVersion;
       if (Object.prototype.hasOwnProperty.call(this.$route.query, 'version')) {
         pageDoc = new PageUpdater(
           this.$pages_url,
@@ -176,16 +161,17 @@ export default {
           Number(this.$route.query.version),
         );
 
-        this.view_version = true;
+        viewVersion = true;
       } else {
-        this.view_version = false;
         pageDoc = new PageUpdater(this.$pages_url, this.$route.params.uid);
+        viewVersion = false;
       }
       try {
         await pageDoc.init();
         this.pageDoc = pageDoc;
         this.ready = true;
         this.version = this.$route.query.version;
+        this.view_version = viewVersion;
       } catch (e) {
         console.log(e);
         this.couldNotRetrieve = true;
@@ -198,9 +184,15 @@ export default {
       try {
         await this.pageDoc.updateDataProperty(path, key, eventObj.data);
         this.lockSave = false;
+        this.numVersions += 1;
+
+        // This tells the component that emitted this event
+        // that the update was successful
         eventObj.callback(true);
       } catch (error) {
         this.lockSave = false;
+        // This tells the component that emitted this event
+        // that the update failed
         eventObj.callback(false);
         console.log(error);
       }

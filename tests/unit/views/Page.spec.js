@@ -15,6 +15,7 @@ localVue.use(BootstrapVue);
 localVue.use({
   install(Vue) {
     Vue.prototype.$pages_url = 'test_url';
+    Vue.prototype.$api = mockAxios.create();
   },
 });
 
@@ -43,6 +44,8 @@ const documentationProps = {
   deleteConfirmationMessage: "Are you sure you want to delete this section? This can't be undone.",
 };
 
+localVue.prototype.$api.get.mockResolvedValue({ data: { number: 4 } });
+
 const wrapper = mount(Page,
   {
     localVue,
@@ -55,7 +58,12 @@ const wrapper = mount(Page,
   });
 
 describe('Page View', () => {
-  it('constructs and then initializes the DocumentUpdater class', async () => {
+  it('retrieves number of versions', async () => {
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.$api.get).toBeCalledWith(`${wrapper.vm.$pages_url}/num_versions/${wrapper.vm.$route.params.uid}`);
+  });
+  it('constructs and then initializes the PageUpdater class', async () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
     expect(PageUpdater).toBeCalledWith(localVue.prototype.$pages_url, wrapper.vm.$route.params.uid);

@@ -72,8 +72,10 @@ describe('PageUpdater no version argument', () => {
   it('passes the correct args to axios, and changes the data prop to match when the request is successful', async () => {
     Vue.prototype.$api.put.mockReset();
     await testUpdater.updateDataProperty('', 'metadata', [{ title: 'test', text: 'test' }]);
+    // Deep copy
     const expectedData = JSON.parse(JSON.stringify(mockResponse.data));
     expectedData.metadata = [{ title: 'test', text: 'test' }];
+    expectedData.document_version += 1;
 
     expect(Vue.prototype.$api.put.mock.calls[0][0]).toEqual(`${mockEndpoint}/${mockUid}`);
     expect(Vue.prototype.$api.put.mock.calls[0][1]).toEqual(expectedData);
@@ -93,6 +95,7 @@ describe('PageUpdater no version argument', () => {
 
     await testUpdater.updateDataProperty('documentation', 'sections', [{ title: 'test', text: 'test' }]);
     expectedData.documentation.sections = [{ title: 'test', text: 'test' }];
+    expectedData.document_version += 1;
 
     expect(Vue.prototype.$api.put.mock.calls[0][1]).toEqual(expectedData);
 

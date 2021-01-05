@@ -64,6 +64,11 @@ export default class PageUpdater {
     data[property] = newValue;
     try {
       await this._updateDatabase();
+      // increase the document_version property because this will
+      // be increased on the server as well
+      if (Object.prototype.hasOwnProperty.call(this.data, 'document_version')) {
+        this.data.document_version += 1;
+      }
     } catch (error) {
       data[property] = oldValue;
       throw error;
