@@ -178,11 +178,6 @@ describe('Login component', () => {
     await testModalErrors('Looks like you\'re not registered.');
   });
 
-  it('on google sign in success, sends axios request with correct parameters, but user has multiple accounts, so it renders correct modal, and dispatches login/logout to store', async () => {
-    await testAxios(responses.multipleAccounts);
-    await testModalErrors('Looks like you have multiple accounts. That shouldn\'t happen! Please contact the system admins.');
-  });
-
   it('on google sign in success, sends axios request with correct parameters, but another error is received from axios, so it renders correct modal, and dispatches login/logout to store', async () => {
     await testAxios(responses.otherError);
     await testModalErrors('Something went wrong on our end. Please try again. If the problem persists contact the system admins.');

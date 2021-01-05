@@ -8,12 +8,6 @@
       :static="true"
     >Looks like you're not registered.</b-modal>
     <b-modal
-      v-model="tooManyUsers"
-      v-b-modal.modal-center
-      ok-only
-      :static="true"
-    >Looks like you have multiple accounts. That shouldn't happen! Please contact the system admins.</b-modal>
-    <b-modal
       v-model="otherError"
       v-b-modal.modal-center
       ok-only
@@ -36,7 +30,6 @@ export default {
       loading: true,
       gapiInitFailed: false,
       userNotRegisteredError: false,
-      tooManyUsers: false,
       otherError: false,
     };
   },
