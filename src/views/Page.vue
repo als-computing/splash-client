@@ -149,8 +149,13 @@ export default {
       let pageDoc = {};
 
       // Retrieve number of versions
-      const response = await this.$api.get(`${this.$pages_url}/num_versions/${this.$route.params.uid}`);
-      this.numVersions = response.data.number;
+      try {
+        const response = await this.$api.get(`${this.$pages_url}/num_versions/${this.$route.params.uid}`);
+        this.numVersions = response.data.number;
+      } catch (e) {
+        this.couldNotRetrieve = true;
+        return;
+      }
 
       // If the version query param exists then get the specific version
       let viewVersion;
