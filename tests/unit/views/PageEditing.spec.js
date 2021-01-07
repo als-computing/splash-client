@@ -1,7 +1,7 @@
 import BootstrapVue from 'bootstrap-vue';
 import { mount, createLocalVue } from '@vue/test-utils';
 import mockAxios from 'axios'; // This comes from the __mocks__ folder
-import Page from '@/views/Page.vue';
+import PageEditing from '@/views/PageEditing.vue';
 import EditContent from '@/components/editor/EditContent.vue';
 import PageUpdater from '@/components/editor/PageUpdater';
 import mockPageUpdater from '../../moduleMocks/pageUpdaterMock';
@@ -46,7 +46,7 @@ const documentationProps = {
 
 localVue.prototype.$api.get.mockResolvedValue({ data: { number: 4 } });
 
-const wrapper = mount(Page,
+const wrapper = mount(PageEditing,
   {
     localVue,
     mocks: {
@@ -57,12 +57,12 @@ const wrapper = mount(Page,
     },
   });
 
-describe('Page View', () => {
-  it('retrieves number of versions', async () => {
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
-    expect(wrapper.vm.$api.get).toBeCalledWith(`${wrapper.vm.$pages_url}/num_versions/${wrapper.vm.$route.params.uid}`);
-  });
+describe('PageEditing View', () => {
+  // it('retrieves number of versions', async () => {
+  //  await wrapper.vm.$nextTick();
+  //  await wrapper.vm.$nextTick();
+  //  expect(wrapper.vm.$api.get).toBeCalledWith(`${wrapper.vm.$pages_url}/num_versions/${wrapper.vm.$route.params.uid}`);
+  // });
   it('constructs and then initializes the PageUpdater class', async () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();

@@ -1,4 +1,5 @@
-import Page from './views/Page.vue';
+import PageEditing from './views/PageEditing.vue';
+import PageVersions from './views/PageVersions.vue';
 import Pages from './views/Pages.vue';
 import Experiments from './views/Experiments.vue';
 import Home from './views/Home.vue';
@@ -48,7 +49,15 @@ export default [
   {
     path: '/pages/:uid',
     name: 'page',
-    component: Page,
+    component: PageEditing,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/pages/:uid/v/:version?',
+    name: 'page-versions',
+    component: PageVersions,
     meta: {
       requiresAuth: true,
     },
