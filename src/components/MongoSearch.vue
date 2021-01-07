@@ -10,6 +10,7 @@
       class="form-control search-bar"
       type="text"
     ></b-form-input>
+    <h4 v-show="!connectionError && results.length === 0 && query !== ''">No results found</h4>
      <b-alert
           v-model="connectionError"
           dismissible
@@ -39,6 +40,7 @@ export default {
       displayedSearchInput: '',
       saving: false,
       connectionError: false,
+      results: [],
     };
   },
   computed: {
@@ -61,10 +63,11 @@ export default {
       };
       try {
         const response = await this.$api.get(this.queryEndpoint, config);
+        this.results = response.data;
         this.$emit('updatedResults', response.data);
       } catch (e) {
         this.connectionError = true;
-
+        this.results = [];
         this.$emit('updatedResults', []);
       }
     },
