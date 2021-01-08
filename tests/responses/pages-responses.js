@@ -18,11 +18,15 @@ export default {
         ],
       },
     },
+    uid: 'test_uid',
+    document_version: 4,
   },
   boron: {
     data: {
       title: 'Boron',
       page_type: 'compound',
+      uid: 'test_uid',
+      document_version: 4,
       metadata: [
         {
           title: 'produced_water_relevance',
