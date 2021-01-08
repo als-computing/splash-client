@@ -1,15 +1,7 @@
 export default {
   userNotRegistered: {
     data: {
-      error: 'user_not_found',
-      message: 'user not found',
-    },
-  },
-  multipleAccounts: {
-    data: {
-      error: 'multiple_users',
-      message: 'Multiple Users',
-
+      detail: 'user_not_found',
     },
   },
   otherError: {

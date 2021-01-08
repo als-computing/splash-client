@@ -5,7 +5,7 @@ import routes from '@/routes.js';
 import BootstrapVue, { BCardText } from 'bootstrap-vue';
 import * as bootstrap from 'bootstrap-vue';
 import mockAxios from 'axios';
-import responses from './login-responses';
+import responses from '../../responses/login-responses';
 
 
 const localVue = createLocalVue();
@@ -176,11 +176,6 @@ describe('Login component', () => {
   it('on google sign in success,  sends axios request with correct parameters, but user is not registered in splash, and so renders correct modal, and dispatches login/logout to store', async () => {
     await testAxios(responses.userNotRegistered);
     await testModalErrors('Looks like you\'re not registered.');
-  });
-
-  it('on google sign in success, sends axios request with correct parameters, but user has multiple accounts, so it renders correct modal, and dispatches login/logout to store', async () => {
-    await testAxios(responses.multipleAccounts);
-    await testModalErrors('Looks like you have multiple accounts. That shouldn\'t happen! Please contact the system admins.');
   });
 
   it('on google sign in success, sends axios request with correct parameters, but another error is received from axios, so it renders correct modal, and dispatches login/logout to store', async () => {

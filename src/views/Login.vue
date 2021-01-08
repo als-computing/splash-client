@@ -8,12 +8,6 @@
       :static="true"
     >Looks like you're not registered.</b-modal>
     <b-modal
-      v-model="tooManyUsers"
-      v-b-modal.modal-center
-      ok-only
-      :static="true"
-    >Looks like you have multiple accounts. That shouldn't happen! Please contact the system admins.</b-modal>
-    <b-modal
       v-model="otherError"
       v-b-modal.modal-center
       ok-only
@@ -36,7 +30,6 @@ export default {
       loading: true,
       gapiInitFailed: false,
       userNotRegisteredError: false,
-      tooManyUsers: false,
       otherError: false,
     };
   },
@@ -47,7 +40,7 @@ export default {
 
   methods: {
     renderButton() {
-      console.log('rendered')
+      console.log('rendered');
       window.gapi.signin2.render('google-sign-in-button', {
         scope: 'profile email',
         width: 240,
@@ -72,7 +65,7 @@ export default {
 
         const config = { headers: { 'Content-Type': 'application/json' } };
         const response = await this.$api.post(
-          this.$login_url + "?auth_provider=google",
+          `${this.$login_url}?auth_provider=google`,
           { token: idToken },
           config,
         );
@@ -88,11 +81,12 @@ export default {
       } catch (error) {
         console.error(error);
         if (error.response) {
-          if (error.response.data.error === 'user_not_found') {
+          if (error.response.data.detail === 'user_not_found') {
             this.userNotRegisteredError = true;
-          } else if (error.response.data.error === 'multiple_users') {
-            this.tooManyUsers = true;
-          } else {
+          } // else if (error.response.data.error === 'multiple_users') {
+          // this.tooManyUsers = true;
+          // }
+          else {
             this.otherError = true;
           }
         } else {

@@ -8,10 +8,10 @@
               <small>Search</small>
                 <b-row class="pt-2 pb-2">
                   <b-col sm="2">
-                    <label class="font-weight-bold text-muted" for="input-small">UID</label>
+                    <label class="font-weight-bold text-muted" for="input-small">Text</label>
                   </b-col>
                   <b-col sm="10">
-                    <b-form-input id="input-uid" v-model="searchUID" ref="uid" size="sm" placeholder="Enter UID"></b-form-input>
+                    <b-form-input id="input-uid" v-model="searchStart" ref="uid" size="sm" placeholder="Enter Search Text"></b-form-input>
                   </b-col>
                 </b-row>
                 <b-row class="pt-2 pb-2">
@@ -90,7 +90,7 @@ export default {
     runsLoading: false, // helps control spinner
     stopRunsLoading: false,  // signal to stop loading runs
     stopThumbsLoading: false, // signal to stop loading thumbs
-    searchUID: "",
+    searchStart: "",
     searchFrom: "",
     searchFromTime: "",
     searchTo: "",
@@ -142,11 +142,14 @@ export default {
       while(true){
         if (this.stopRunsLoading) break;
         if (this.$el.getBoundingClientRect().bottom > window.innerHeight){
-          console.log("maybe not a bottom?" + this.$el.getBoundingClientRect().bottom)
+          this.runsLoading = false;
           break;
         }
-        const result = await this.addRuns()
-        if (!result) break;
+        const numToAdd = await this.addRuns()
+        if (numToAdd == 0){
+          this.runsLoading = false;
+          break;
+        } 
         
       }
     },
@@ -159,7 +162,7 @@ export default {
         const requestUrl = this.$runs_url.concat('/', this.$route.params.catalog, "?skip=", this.runs.length, "&limit=", PAGE_SIZE, this.buildQuery());
         const response = await this.$api.get(requestUrl);
         this.runs.push(...response.data);
-        return true;
+        return response.data.length;
       } catch (error) {
         if (error.response) {
           console.log(error.response.data);
@@ -220,8 +223,8 @@ export default {
     },
     buildQuery(){
       let query = "";
-      if (this.searchUID){
-        query += "&uid=" + this.searchUID;
+      if (this.searchStart){
+        query += "&text_query=" + this.searchStart;
       }
       if (this.searchFrom){
         let fromDT = this.searchFrom + " " + this.searchFromTime;
