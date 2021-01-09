@@ -1,6 +1,7 @@
 import PageEditing from './views/PageEditing.vue';
 import PageVersions from './views/PageVersions.vue';
-import Pages from './views/Pages.vue';
+import AllPages from './views/AllPages.vue';
+import Compound from './views/Compounds.vue'
 import Experiments from './views/Experiments.vue';
 import Home from './views/Home.vue';
 import Login from './views/Login.vue';
@@ -41,7 +42,15 @@ export default [
   {
     path: '/pages',
     name: 'pages',
-    component: Pages,
+    component: AllPages,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/compounds',
+    name: 'compounds',
+    component: Compound,
     meta: {
       requiresAuth: true,
     },
