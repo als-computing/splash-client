@@ -108,6 +108,11 @@ export default {
     
   },
 
+  async beforeDestroy() {
+    console.log("closing");
+    this.stopThumbsLoading = true;
+  },
+
   methods: {
     async addThumbs(){
        for (let index in this.runs){
@@ -115,8 +120,7 @@ export default {
         const run = this.runs[index];
         if (this.thumbnails[run.uid] === undefined){
               this.$set(this.thumbnails, run.uid, null);
-              const jpeg = await this.getJpeg(this.$route.params.catalog, run.uid);
-              this.$set(this.thumbnails, run.uid, jpeg);
+              const jpeg = this.getThumb(this.$route.params.catalog, run.uid);
         }
        }
       this.stopThumbsLoading = false;
@@ -187,14 +191,14 @@ export default {
       return false;
     },
 
-    async getJpeg(catalog_name, uid) {
+    async getThumb(catalog_name, uid) {
       try {
         let url = this.$runs_url + "/" + catalog_name + "/" +uid + "/thumb";
         const response = await this.$api
           .get(url, {
             responseType: 'arraybuffer',
           });
-        return "data:image/jpg;base64," + Buffer.from(response.data, 'binary').toString('base64');
+        this.$set(this.thumbnails, uid, "data:image/jpg;base64," + Buffer.from(response.data, 'binary').toString('base64'));
 
       } catch (e) {
         console.log(e)
@@ -228,11 +232,11 @@ export default {
       }
       if (this.searchFrom){
         let fromDT = this.searchFrom + " " + this.searchFromTime;
-
-        query += "&from=" + new Date(fromDT).valueOf() / 1000;
+        query += "&fromDT=" + new Date(fromDT).valueOf() / 1000;
       }
       if (this.searchTo){
-        query += "&to=" + this.searchTo;
+        let toDT = this.searchTo + " " + this.searchToTime;
+        query += "&toDT=" + new Date(toDT).valueOf() / 1000;
       }
       console.log(query)
       return query;

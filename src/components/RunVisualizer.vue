@@ -93,21 +93,7 @@ export default {
       const n = Math.floor(Number(str));
       return n !== Infinity && String(n) === str && n >= 0;
     },
-    // TODO: Implement some sort of caching so that it doesn't request every time
-    async getMetadata() {
-      let url = this.$route.path.concat("/metadata");
 
-      if (this.$route.query.frame) {
-        url = url.concat('?frame=', this.$route.query.frame);
-      }
-      try {
-        const response = await this.$api.get(url);
-        this.imageMetadata = response.data;
-        this.isMetaDataLoading = false;
-      } catch (error) {
-        this.setSomethingWentWrong();
-      }
-    },
 
     async getJpeg($route) {
       this.setLoading();
@@ -128,7 +114,7 @@ export default {
           this.setSomethingWentWrong();
           return;
         }
-        await this.getMetadata();
+        // await this.getMetadata();
         this.showImageElement = true;
       } else {
         this.showImageElement = false;
