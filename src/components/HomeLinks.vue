@@ -8,6 +8,11 @@
                 <b-card>Pages </b-card>
               </b-nav-item>
              </b-nav>
+             <b-nav>
+              <b-nav-item v-bind:to="'/compounds'">
+                <b-card>Compounds</b-card>
+              </b-nav-item>
+             </b-nav>
 
             <!--<b-nav>
               <b-nav-item v-bind:to="'/'">
