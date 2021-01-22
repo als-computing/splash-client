@@ -22,8 +22,8 @@
 </template>
 
 <script>
-import utils from '@/utils';
 import ImageAdjuster from "@/components/ImageAdjuster.vue";
+
 export default {
   props: {
     numFrames: Number,
