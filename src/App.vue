@@ -1,53 +1,81 @@
 <template>
   <div id="app">
     <b-navbar toggleable="lg" type="dark" variant="dark">
-        <b-navbar-brand to="/">Splash</b-navbar-brand>
+      <b-navbar-brand to="/" v-if="!error">Splash</b-navbar-brand>
+      <!-- The reason for the href is so that if there is an error it will actually reload
+      when navigating to the splash home page rather than just changing the router-view, which is hidden at
+      the moment -->
+      <b-navbar-brand href="/" v-else>Splash</b-navbar-brand>
+      <!-- <router-link to="/about">About</router-link> -->
 
-        <!-- <router-link to="/about">About</router-link> -->
+      <b-navbar-toggle target="nav_collapse" />
 
-        <b-navbar-toggle target="nav_collapse" />
-
-        <b-collapse is-nav id="nav_collapse">
+      <b-collapse is-nav id="nav_collapse">
+        <div v-if="!error">
           <b-navbar-nav>
-<!-- 
+            <!--
             <b-nav-item v-bind:to="'/'">Home</b-nav-item> -->
             <b-nav-item v-bind:to="'/runs'">Runs</b-nav-item>
-
           </b-navbar-nav>
-        </b-collapse>
+        </div>
+      </b-collapse>
+      <div v-if="!error">
         <b-nav-text class="mx-3" id="user_name">
-          {{user ? user.name : ''}}
+          {{ user ? user.given_name : "" }}
         </b-nav-text>
-        <span id="logout" v-if="isLoggedIn" >   | <b-button variant="light" @click="logout" class="mx-3">Logout</b-button></span>
+        <span id="logout" v-if="isLoggedIn">
+          |
+          <b-button variant="light" @click="logout" class="mx-3"
+            >Logout</b-button
+          ></span
+        >
+      </div>
     </b-navbar>
+    <b-container>
+      <b-row>
+        <error-card
+          v-if="error"
+          error-msg="There is a problem contacting the Splash server, and the application cannot load."
+          class="mt-5"
+        />
+      </b-row>
+    </b-container>
     <!-- <b-navbar>
       <SearchBar/>
     </b-navbar> -->
-    <router-view/>
-
+    <router-view v-if="!error" />
   </div>
 </template>
 
 <script>
-import SearchBar from './components/SearchBar.vue';
+// import SearchBar from './components/SearchBar.vue';
+import ErrorCard from '@/components/ErrorCard.vue';
 
 export default {
+  props: {
+    error: {
+      type: Boolean,
+      default: false,
+    },
+  },
   computed: {
     isLoggedIn() {
       return this.$store.getters['login/isLoggedIn'];
     },
-    user() { return this.$store.getters['login/user']; },
+    user() {
+      return this.$store.getters['login/user'];
+    },
   },
   methods: {
     logout() {
-      this.$store.dispatch('login/logout')
-        .then(() => {
-          this.$router.push('/login');
-        });
+      this.$store.dispatch('login/logout').then(() => {
+        this.$router.push('/login');
+      });
     },
   },
   components: {
-    SearchBar,
+    // SearchBar,
+    ErrorCard,
   },
   created() {
     const store = this.$store;
@@ -60,14 +88,23 @@ export default {
       request.headers.Authorization = `Bearer ${access_token}`;
       return request;
     });
-    this.$api.interceptors.response.use(undefined, (err) => new Promise(((resolve, reject) => {
-      if (err.response && err.response.status === 401 && err.config && !err.config.__isRetryRequest) {
-        store.dispatch('login/logout').then(() => {
-          router.push('/login');
-        });
-      }
-      throw err;
-    })));
+    this.$api.interceptors.response.use(
+      undefined,
+      (err) =>
+        new Promise((resolve, reject) => {
+          if (
+            err.response &&
+            err.response.status === 401 &&
+            err.config &&
+            !err.config.__isRetryRequest
+          ) {
+            store.dispatch('login/logout').then(() => {
+              router.push('/login');
+            });
+          }
+          throw err;
+        }),
+    );
   },
 };
 </script>
@@ -75,7 +112,7 @@ export default {
 
 <style>
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
