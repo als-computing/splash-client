@@ -1,19 +1,16 @@
 <template>
   <div>
   <h1>Compounds</h1>
-    <create-page button-text="Create Compound Page" form-text="Page Title" page-type="compound" modal-title="Enter Compound Name"/>
-    <list-pages pageType="compound"/>
+    <pages-wrapper button-text="Create Compound Page" form-text="Page Title" page-type="compound" modal-title="Enter Compound Name"/>
   </div>
 </template>
 
 <script>
-import CreatePage from '@/components/CreatePage.vue';
-import ListPages from '@/components/ListPages.vue';
+import PagesWrapper from '../components/pages/PagesWrapper.vue';
 
 export default {
   components: {
-    'create-page': CreatePage,
-    'list-pages': ListPages,
+    PagesWrapper,
   },
 };
 </script>

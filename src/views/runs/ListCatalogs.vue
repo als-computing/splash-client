@@ -2,10 +2,11 @@
   <div class="lists">
     <b-container>
       <b-row>
-        <h3 class="display-6" v-if="somethingWentWrong">Something went wrong. Try reloading the page. If the problem persists contact an administrator</h3>
-        <b-col v-if=showCatalogs>
-          <h1 class="display-4">Catalogs: </h1>
+        <b-col>
+          <h1 class="display-4 mt-3">Catalogs: </h1>
+          <error-card class="mt-5" v-if="somethingWentWrong"/>
           <p v-if="noCatalogs"> 0 catalogs found </p>
+          <div v-if=showCatalogs>
           <b-list-group>
             <b-list-group-item v-for="catalog in catalogs" :key="catalog" :to="{ path: catalog}" append>{{catalog}}</b-list-group-item>
           </b-list-group>
@@ -15,6 +16,7 @@
               <!-- <b-img :src="getJpeg(row.item.image_url)" fluid  rounded blank-color="#777" img-lazy thumbnail alt="Responsive image"></b-img> -->
             </template>
           </b-table>
+          </div>
         </b-col>
       </b-row>
     </b-container>
@@ -22,8 +24,10 @@
 </template>
 
 <script>
+import ErrorCard from '../../components/ErrorCard.vue';
 
 export default {
+  components: { ErrorCard },
   data: () => ({
     somethingWentWrong: false,
     showCatalogs: false,

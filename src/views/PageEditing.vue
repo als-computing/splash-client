@@ -1,18 +1,13 @@
 <template>
   <div class="page">
-    <b-modal
-      v-model="couldNotRetrieve"
-      :static="true"
-      v-b-modal.modal-center
-      ok-only
-      >We couldn't retrieve the document. Check the url or your internet
-      connection and reload.</b-modal
-    >
+    <b-container>
+      <b-row>
+        <error-card v-if="couldNotRetrieve" />
+      </b-row>
+    </b-container>
 
     <div v-if="ready">
-      <b-button
-        :to="$route.path + '/v/'"
-        class="m-3"
+      <b-button :to="$route.path + '/v/'" class="m-3"
         >View past versions</b-button
       >
       <div>
@@ -59,6 +54,7 @@
 <script>
 import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
+import ErrorCard from '../components/ErrorCard.vue';
 
 export default {
   data() {
@@ -118,7 +114,8 @@ export default {
     },
   },
   components: {
-    'edit-content': EditContent,
+    ErrorCard,
+    EditContent,
   },
 };
 </script>

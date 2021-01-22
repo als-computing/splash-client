@@ -1,20 +1,17 @@
 <template>
   <div>
   <h1>Pages</h1>
-    <create-page button-text="Create Uncategorized Page" form-text="Page Title" page-type="generic_page" modal-title="Enter Page Title"/>
-    <list-pages/>
+    <pages-wrapper button-text="Create Uncategorized Page" form-text="Page Title" modal-title="Enter Page Title"/>
   </div>
 </template>
 
 <script>
-import CreatePage from '@/components/CreatePage.vue';
-import ListPages from '@/components/ListPages.vue';
+import PagesWrapper from '../components/pages/PagesWrapper.vue';
+
 
 export default {
-  components: {
-    'create-page': CreatePage,
-    'list-pages': ListPages,
-  },
+  components: { PagesWrapper },
+
 };
 </script>
 

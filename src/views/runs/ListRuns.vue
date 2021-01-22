@@ -49,7 +49,7 @@
                     <small>{{ new Date(data.value * 1000).toLocaleString() }}</small>
                 </div>
               </template>
-              
+
               <template #cell()="data">
                 <div class="sm">
                     <small>{{ data.value }}</small>
@@ -69,32 +69,33 @@
       </b-col>
       </b-row>
     </b-container>
-   
-   
+
+
   </div>
 </template>
 
 <script>
 import RunVisualizer from '@/components/RunVisualizer.vue';
 import SearchBar from '@/components/SearchBar.vue';
+
 const PAGE_SIZE = 5;
 
 export default {
   data: () => ({
     catalogNotFound: false,
-    fields: ['collection_date', 'experiment_name' , 'sample_name', 'experimenter_name', 'uid', 'image'],
+    fields: ['collection_date', 'experiment_name', 'sample_name', 'experimenter_name', 'uid', 'image'],
     runs: [],
     currentRun: {},
     runSelected: false,
     thumbnails: {},
     runsLoading: false, // helps control spinner
-    stopRunsLoading: false,  // signal to stop loading runs
+    stopRunsLoading: false, // signal to stop loading runs
     stopThumbsLoading: false, // signal to stop loading thumbs
-    searchStart: "",
-    searchFrom: "",
-    searchFromTime: "",
-    searchTo: "",
-    searchToTime: ""
+    searchStart: '',
+    searchFrom: '',
+    searchFromTime: '',
+    searchTo: '',
+    searchToTime: '',
   }),
   components: {
     'run-visualizer': RunVisualizer,
@@ -105,65 +106,62 @@ export default {
     await this.fillWindowWithRuns();
     this.addThumbs();
     this.currentUid = this.$route.params.uid;
-    
   },
 
   async beforeDestroy() {
-    console.log("closing");
+    console.log('closing');
     this.stopThumbsLoading = true;
   },
 
   methods: {
-    async addThumbs(){
-       for (let index in this.runs){
+    async addThumbs() {
+      for (const index in this.runs) {
         if (this.stopThumbsLoading) break;
         const run = this.runs[index];
-        if (this.thumbnails[run.uid] === undefined){
-              this.$set(this.thumbnails, run.uid, null);
-              const jpeg = this.getThumb(this.$route.params.catalog, run.uid);
+        if (this.thumbnails[run.uid] === undefined) {
+          this.$set(this.thumbnails, run.uid, null);
+          const jpeg = this.getThumb(this.$route.params.catalog, run.uid);
         }
-       }
+      }
       this.stopThumbsLoading = false;
     },
 
-     async scroll(){
+    async scroll() {
       window.onscroll = async () => {
-        let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
-          if (bottomOfWindow) {
-            const beforeRunsNum = this.runs.length;
-            await this.addRuns();
-            const afterRunsNum= this.runs.length;
-            const newRunsNum = afterRunsNum - beforeRunsNum;
-            if (newRunsNum < 1){
-              return;
-            }
-            this.addThumbs();
+        const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+        if (bottomOfWindow) {
+          const beforeRunsNum = this.runs.length;
+          await this.addRuns();
+          const afterRunsNum = this.runs.length;
+          const newRunsNum = afterRunsNum - beforeRunsNum;
+          if (newRunsNum < 1) {
+            return;
           }
+          this.addThumbs();
+        }
       };
     },
 
-    async fillWindowWithRuns(){
-      while(true){
+    async fillWindowWithRuns() {
+      while (true) {
         if (this.stopRunsLoading) break;
-        if (this.$el.getBoundingClientRect().bottom > window.innerHeight){
+        if (this.$el.getBoundingClientRect().bottom > window.innerHeight) {
           this.runsLoading = false;
           break;
         }
-        const numToAdd = await this.addRuns()
-        if (numToAdd == 0){
+        const numToAdd = await this.addRuns();
+        if (numToAdd == 0) {
           this.runsLoading = false;
           break;
-        } 
-        
+        }
       }
     },
 
-     
 
     async addRuns() {
       try {
         this.runsLoading = true;
-        const requestUrl = this.$runs_url.concat('/', this.$route.params.catalog, "?skip=", this.runs.length, "&limit=", PAGE_SIZE, this.buildQuery());
+        const requestUrl = this.$runs_url.concat('/', this.$route.params.catalog, '?skip=', this.runs.length, '&limit=', PAGE_SIZE, this.buildQuery());
         const response = await this.$api.get(requestUrl);
         this.runs.push(...response.data);
         return response.data.length;
@@ -193,24 +191,23 @@ export default {
 
     async getThumb(catalog_name, uid) {
       try {
-        let url = this.$runs_url + "/" + catalog_name + "/" +uid + "/thumb";
+        const url = `${this.$runs_url}/${catalog_name}/${uid}/thumb`;
         const response = await this.$api
           .get(url, {
             responseType: 'arraybuffer',
           });
-        this.$set(this.thumbnails, uid, "data:image/jpg;base64," + Buffer.from(response.data, 'binary').toString('base64'));
-
+        this.$set(this.thumbnails, uid, `data:image/jpg;base64,${Buffer.from(response.data, 'binary').toString('base64')}`);
       } catch (e) {
-        console.log(e)
-        return "";
+        console.log(e);
+        return '';
       }
     },
 
-    async rowClickHandler(run){
-       this.$router.push({ path: `/run/${this.$route.params.catalog}/${run.uid}` });
+    async rowClickHandler(run) {
+      this.$router.push({ path: `/run/${this.$route.params.catalog}/${run.uid}` });
     },
 
-    async onSubmit(event){
+    async onSubmit(event) {
       event.preventDefault();
       this.stopThumbsLoading = true;
       this.stopRunsLoading = true;
@@ -221,26 +218,26 @@ export default {
       this.stopRunsLoading = false;
       this.$nextTick(this.fillWindowWithRuns);
     },
-    onReset(event){
+    onReset(event) {
       event.preventDefault();
       this.runs = [];
     },
-    buildQuery(){
-      let query = "";
-      if (this.searchStart){
-        query += "&text_query=" + this.searchStart;
+    buildQuery() {
+      let query = '';
+      if (this.searchStart) {
+        query += `&text_query=${this.searchStart}`;
       }
-      if (this.searchFrom){
-        let fromDT = this.searchFrom + " " + this.searchFromTime;
-        query += "&fromDT=" + new Date(fromDT).valueOf() / 1000;
+      if (this.searchFrom) {
+        const fromDT = `${this.searchFrom} ${this.searchFromTime}`;
+        query += `&fromDT=${new Date(fromDT).valueOf() / 1000}`;
       }
-      if (this.searchTo){
-        let toDT = this.searchTo + " " + this.searchToTime;
-        query += "&toDT=" + new Date(toDT).valueOf() / 1000;
+      if (this.searchTo) {
+        const toDT = `${this.searchTo} ${this.searchToTime}`;
+        query += `&toDT=${new Date(toDT).valueOf() / 1000}`;
       }
-      console.log(query)
+      console.log(query);
       return query;
-    }
+    },
   },
 
 };

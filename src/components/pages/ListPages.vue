@@ -15,14 +15,12 @@
 <script>
 export default {
   props: {
-    pageType: {
-      optional: true,
-      type: String,
-    },
+    pageType: String,
   },
   data() {
     return {
       fields: [{ key: 'title', label: 'Title' }],
+      error: false,
     };
   },
 
@@ -40,6 +38,7 @@ export default {
           })
           .catch((e) => {
             console.log(e);
+            this.$emit('errorConnecting');
           });
       } else {
         this.$api
@@ -49,6 +48,7 @@ export default {
           })
           .catch((e) => {
             console.log(e);
+            this.$emit('errorConnecting');
           });
       }
     },
