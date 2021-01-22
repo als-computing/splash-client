@@ -27,7 +27,10 @@ export default {
       type: String,
       default: 'Title',
     },
-    pageType: String,
+    pageType: {
+      type: String,
+      required: true,
+    },
     modalTitle: {
       type: String,
       default: 'Enter The Title',

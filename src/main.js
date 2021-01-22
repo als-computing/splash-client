@@ -7,7 +7,6 @@ import axios from 'axios';
 // import { Plotly } from "vue-plotly"
 import { axisBottom } from 'd3';
 import App from './App.vue';
-import FiveHundred from './views/500.vue';
 import router from './router';
 import store from './store';
 import './assets/css/main.css';
@@ -52,8 +51,21 @@ function onGoogleError() {
   new Vue({
     router,
     store,
-    render: (h) => h(FiveHundred),
+    render: (h) => h(App, { props: { error: true } }),
   }).$mount('#app');
+}
+
+async function getSettings() {
+  const response = await axios.get(`${apiUrl}/settings`, {
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+      Expires: '0',
+    },
+  });
+  if (response.data) {
+    settings = response.data;
+  }
 }
 
 async function onGoogleLoad() {
@@ -93,18 +105,7 @@ async function onGoogleLoad() {
   }).$mount('#app');
 }
 
-async function getSettings() {
-  const response = await axios.get(`${apiUrl}/settings`, {
-    headers: {
-      'Cache-Control': 'no-cache',
-      Pragma: 'no-cache',
-      Expires: '0',
-    },
-  });
-  if (response.data) {
-    settings = response.data;
-  }
-}
+
 
 // document.onload = getSettings();
 
