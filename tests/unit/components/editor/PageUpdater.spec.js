@@ -28,7 +28,13 @@ describe('PageUpdater class construction', () => {
 });
 
 describe('PageUpdater no version argument', () => {
+
+  beforeEach(() => {
+    Vue.prototype.$api.get.mockClear();
+    Vue.prototype.$api.put.mockClear();
+  });
   const testUpdater = new PageUpdater(mockEndpoint, mockUid);
+
 
   it('initializes by sending the correct axios request', async () => {
     // I do JSON.parse(JSON.stringify(mockData)) to deep clone so that any edits
@@ -36,6 +42,7 @@ describe('PageUpdater no version argument', () => {
     Vue.prototype.$api.get.mockResolvedValue(JSON.parse(JSON.stringify(mockResponse)));
     await testUpdater.init();
     expect(Vue.prototype.$api.get).toBeCalledWith(`${mockEndpoint}/${mockUid}`);
+    expect(Vue.prototype.$api.get).toBeCalledTimes(1);
     expect(testUpdater.data).toEqual(mockResponse.data);
   });
 
@@ -57,6 +64,11 @@ describe('PageUpdater no version argument', () => {
     await testFunctionErrors(TypeError, /^1st positional argument: documentation\.tree, leads to undefined or null property in data$/, 'documentation.tree', 'foo', {});
     await testFunctionErrors(TypeError, /^1st positional argument: documentation\.__proto__, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'documentation.__proto__', 'foo', {});
     await testFunctionErrors(TypeError, /^2nd positional argument: hasOwnProperty, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'documentation', 'hasOwnProperty', {});
+    await testFunctionErrors(Error, /^Cannot update root level property `splash_md`$/, 'splash_md.h.l', 'bar', {});
+    await testFunctionErrors(Error, /^Cannot update root level property `splash_md`$/, 'splash_md', 'bar', {});
+    await testFunctionErrors(Error, /^Cannot update root level property `splash_md`$/, '', 'splash_md', {});
+
+    expect(Vue.prototype.$api.put).toHaveBeenCalledTimes(0);
   });
 
   it('restores the original data object when an axios error is thrown and re-throws axios error', async () => {
@@ -69,41 +81,36 @@ describe('PageUpdater no version argument', () => {
     expect(testUpdater.data).toEqual(mockResponse.data);
   });
 
-  it('passes the correct args to axios, and changes the data prop to match when the request is successful', async () => {
+  it('passes the correct args to axios, axios transforms the request correctly, and it updates data prop accordingly', async () => {
     Vue.prototype.$api.put.mockReset();
+
     await testUpdater.updateDataProperty('', 'metadata', [{ title: 'test', text: 'test' }]);
     // Deep copy
     const expectedData = JSON.parse(JSON.stringify(mockResponse.data));
     expectedData.metadata = [{ title: 'test', text: 'test' }];
-    expectedData.document_version += 1;
 
+    // Check to make sure the correct arguments are passed to axios
     expect(Vue.prototype.$api.put.mock.calls[0][0]).toEqual(`${mockEndpoint}/${mockUid}`);
     expect(Vue.prototype.$api.put.mock.calls[0][1]).toEqual(expectedData);
+
+    // Ensure that the function in axios's transform request array argument removes the appropriate keys
+    // from the document
     const removeVersionAndUid = Vue.prototype.$api.put.mock.calls[0][2].transformRequest[0];
-
     const cleanDoc = JSON.parse(removeVersionAndUid(expectedData));
-
-    const { uid } = expectedData;
-    const { document_version } = expectedData;
+    const { uid, splash_md } = expectedData;
     delete expectedData.uid;
-    delete expectedData.document_version;
+    delete expectedData.splash_md;
     expect(cleanDoc).toEqual(expectedData);
+
+    // Restore expectedData and compare with the updated data prop
     expectedData.uid = uid;
-    expectedData.document_version = document_version;
-    expect(testUpdater.data).toEqual(expectedData);
-
-
-    await testUpdater.updateDataProperty('documentation', 'sections', [{ title: 'test', text: 'test' }]);
-    expectedData.documentation.sections = [{ title: 'test', text: 'test' }];
-    expectedData.document_version += 1;
-
-    expect(Vue.prototype.$api.put.mock.calls[0][1]).toEqual(expectedData);
-
+    expectedData.splash_md = splash_md;
     expect(testUpdater.data).toEqual(expectedData);
   });
 });
 
 describe('Page Updater with the version argument', () => {
+  Vue.prototype.$api.get.mockClear();
   const testUpdater = new PageUpdater(mockEndpoint, mockUid, 4);
 
   it('initializes by sending the correct axios request', async () => {
@@ -112,6 +119,7 @@ describe('Page Updater with the version argument', () => {
     Vue.prototype.$api.get.mockResolvedValue(JSON.parse(JSON.stringify(mockResponse)));
     await testUpdater.init();
     expect(Vue.prototype.$api.get).toBeCalledWith(`${mockEndpoint}/${mockUid}?version=4`);
+    expect(Vue.prototype.$api.get).toBeCalledTimes(1);
     expect(testUpdater.data).toEqual(mockResponse.data);
   });
 
@@ -120,3 +128,9 @@ describe('Page Updater with the version argument', () => {
     expect(update()).rejects.toThrowError(/^Cannot update a specific version of a document.$/);
   });
 });
+
+// To be used for a later test
+// Vue.prototype.$api.get.mockResolvedValue(JSON.parse(JSON.stringify(responses.boron2.data)));
+// expect(Vue.prototype.$api.get).toBeCalledTimes(1);
+// expect(Vue.prototype.$api.get).toBeCalledWith(`${mockEndpoint}/${mockUid}`);
+// expect(testUpdater.data).toEqual(responses.boron2.data);

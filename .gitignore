@@ -84,3 +84,4 @@ __pycache__/
 out/
 
 public/static/
+.netrc.gpg

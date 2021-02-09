@@ -145,7 +145,7 @@ export default {
     async fillWindowWithRuns() {
       while (true) {
         if (this.stopRunsLoading) break;
-        if (this.$el.getBoundingClientRect().bottom > window.innerHeight) {
+        if (this.$el.getBoundingClientRect().bottom > 1.5 * window.innerHeight) {
           this.runsLoading = false;
           break;
         }
