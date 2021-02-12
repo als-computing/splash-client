@@ -27,7 +27,11 @@ export default class PageUpdater {
   }
 
   async updateDataProperty(path, property, newValue) {
-    // Note that this only changes
+    // The argument path should be a `string`, the argument `property` should also be a string, and
+    // newValue should be what we want the new value of the specified property to be.
+    // For example say I had a document like thus: {'data':{ 'sample': {'list':[]}}}
+    // In order to update list I would call `updateDataProperty('data.sample', 'list', [1,2,3])`
+    // If I wanted to update data, I would call: `updateDataProperty('','data', {})`
     if (this.version !== undefined) {
       throw new Error('Cannot update a specific version of a document.');
     }
