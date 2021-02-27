@@ -1,6 +1,6 @@
 process.env.VUE_CLI_BABEL_TARGET_NODE = true;
 process.env.VUE_CLI_BABEL_TRANSPILE_MODULES = true;
-process.env.VUE_APP_CLIENT_ID = "testing_client_id"
+process.env.VUE_APP_CLIENT_ID = 'testing_client_id';
 module.exports = {
   collectCoverage: false,
   collectCoverageFrom: ['**/*.{js,vue}', '!**/node_modules/**', '!**/dist/**'],
@@ -19,6 +19,7 @@ module.exports = {
     '/node_modules/',
   ],
   moduleNameMapper: {
+    '^.+.(css|styl|less|sass|scss|png|jpg|ttf|woff|woff2)$': 'jest-transform-stub',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   snapshotSerializers: [

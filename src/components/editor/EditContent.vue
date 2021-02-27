@@ -60,10 +60,10 @@
                 >
               </p>
               <!--This parses the markdown and displays it-->
-              <div
+              <viewer
                 class="user-text"
                 v-if="markdown"
-                v-html="parseText(section[textKey])"
+                :initialValue="section[textKey]"
               />
               <div v-else>{{ section[textKey] }}</div>
             </div>
@@ -76,22 +76,31 @@
                 :readonly="saving"
               />
               <span class="text-muted">{{ valueInputName }}:</span>
+              <editor
+                v-if="markdown"
+                :initialValue="edited_data[textKey]"
+                :options="editorOptions"
+                :ref="`input${index}`"
+                initialEditType="wysiwyg"
+                @change="onContentChange"
+                @focus="focused = true"
+                @blur="focused = false"
+              />
               <b-form-textarea
                 v-model="edited_data[textKey]"
                 max-rows="100"
                 :readonly="saving"
-                :ref="`input${index}`"
-                @focus="focused = true"
-                @blur="focused = false"
+                v-if="!markdown"
               />
+
               <b-button-toolbar>
                 <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
                 <b-button
                   variant="primary"
                   @click="emitEdit(index, section)"
                   :disabled="
-                    edited_data[titleKey] === '' ||
                     edited_data[textKey] === '' ||
+                    edited_data[titleKey] === '' ||
                     (edited_data[titleKey] === section[titleKey] &&
                       edited_data[textKey] === section[textKey]) ||
                     saving
@@ -131,7 +140,7 @@
                 <b-modal v-model="insert_reference" ok-only>
                   <add-references
                     :references="items"
-                    @clickedRef="insertReference(arguments[0])"
+                    @clickedRef="insertReference(arguments[0], arguments[1])"
                   />
                 </b-modal>
 
@@ -204,8 +213,19 @@ import AddReferences from '@/components/editor/AddReferences.vue';
 import { BIconPlusCircleFill } from 'bootstrap-vue';
 import Citation from 'citation-js';
 
+import 'codemirror/lib/codemirror.css';
+import '@toast-ui/editor/dist/toastui-editor.css';
+// import '@toast-ui/editor/dist/toastui-editor-viewer.css';
+import { Editor, Viewer } from '@toast-ui/vue-editor';
+
 const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
+  components: {
+    'b-icon-plus-circle-fill': BIconPlusCircleFill,
+    'add-references': AddReferences,
+    Editor,
+    Viewer,
+  },
   props: {
     sectionsArray: Array,
     markdown: {
@@ -251,6 +271,31 @@ export default {
   },
   data() {
     return {
+      editorOptions: {
+        usageStatistics: false,
+        // This array contains all default items in toolbar except for images
+        toolbarItems: [
+          'heading',
+          'bold',
+          'italic',
+          'strike',
+          'divider',
+          'hr',
+          'quote',
+          'divider',
+          'ul',
+          'ol',
+          'task',
+          'indent',
+          'outdent',
+          'divider',
+          'table',
+          'link',
+          'divider',
+          'code',
+          'codeblock',
+        ],
+      },
       sections: [],
       currently_edited_index: undefined,
       edited_data: {
@@ -374,6 +419,11 @@ export default {
     this.buildReferences();
   },
   methods: {
+    onContentChange() {
+      this.edited_data[this.textKey] = this.$refs[`input${this.currently_edited_index}`][0].invoke(
+        'getMarkdown',
+      );
+    },
     async getDOIFromService(doi) {
       const response = await this.$doi_service.get(`/${doi}`);
       return response;
@@ -402,18 +452,16 @@ export default {
       // if the data was succesfully saved then the code will execute as normal.
       // if not then this function will throw an error
       // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
-      return new Promise((resolve, reject) =>
-        this.$emit('dataToParent', {
-          data,
-          callback: (success) => {
-            if (success) {
-              resolve();
-            } else {
-              reject();
-            }
-          },
-        }),
-      );
+      return new Promise((resolve, reject) => this.$emit('dataToParent', {
+        data,
+        callback: (success) => {
+          if (success) {
+            resolve();
+          } else {
+            reject();
+          }
+        },
+      }));
     },
     async emitEdit(indexChanged, originalSection) {
       try {
@@ -431,29 +479,11 @@ export default {
       }
     },
 
-    // adapted from https://forum.vuejs.org/t/vuejs-vuetify-add-some-text-to-focus-position-on-textarea/33279/4
-    async insertReference(doi) {
+
+    async insertReference(text, doi) {
       console.log(doi);
-      const referenceLink = `[[reference]](#${doi})`;
-      const textArea = this.$refs[`input${this.currently_edited_index}`][0];
-      console.log(textArea);
-      textArea.focus();
-      const startPos = textArea.selectionStart;
-      // get cursor's position:
-      let cursorPos = startPos;
-      const tmpStr = textArea.value;
-
-      // insert:
-      this.edited_data[this.textKey] = `${tmpStr.substring(
-        0,
-        startPos,
-      )}${referenceLink}${tmpStr.substring(startPos, tmpStr.length)}`;
-
-      // move cursor:
-      await this.$nextTick();
-      cursorPos += referenceLink.length;
-      textArea.selectionStart = cursorPos;
-      textArea.selectionEnd = cursorPos;
+      const editor = this.$refs[`input${this.currently_edited_index}`][0];
+      editor.invoke('exec', 'AddLink', { linkText: text, url: `#${doi}` });
       this.insert_reference = false;
     },
     addSection(index) {
@@ -489,8 +519,8 @@ export default {
     },
     extractReferences(text) {
       const doiRefs = [];
-      // The regex here matches this pattern: [[reference]](#url goes here)
-      const matches = [...text.matchAll(/\[\[reference\]\]\(#([^\s].*?)\)/g)];
+      // The regex here matches this pattern: [(citation goes here)](#url goes here)
+      const matches = [...text.matchAll(/\[\([^\s].*\)\]\(#([^\s].*?)\)/g)];
       matches.forEach((match) => {
         const doiRef = match[1];
         if (!this.isDoiFormat(doiRef)) {
@@ -570,7 +600,7 @@ export default {
         this.sections.splice(index, 1);
       }
     },
-    parseText(htmlText) {
+    /* parseText(htmlText) {
       const { referencesCount } = this;
       const renderer = {
         link(href, title, text) {
@@ -587,11 +617,7 @@ export default {
         },
       };
       return utils.parseMarkDown(htmlText, renderer);
-    },
-  },
-  components: {
-    'b-icon-plus-circle-fill': BIconPlusCircleFill,
-    'add-references': AddReferences,
+    }, */
   },
 };
 </script>
