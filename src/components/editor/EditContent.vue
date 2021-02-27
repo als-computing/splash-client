@@ -100,7 +100,7 @@
                         size="sm"
                         :disabled="curr_mode === 'markdown'"
                         @click="changeMode"
-                        >Raw text</b-button
+                        >Raw editor</b-button
                       >
                     </b-button-group>
                   </b-row>
