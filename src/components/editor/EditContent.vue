@@ -76,16 +76,36 @@
                 :readonly="saving"
               />
               <span class="text-muted">{{ valueInputName }}:</span>
-              <editor
-                v-if="markdown"
-                :initialValue="edited_data[textKey]"
-                :options="editorOptions"
-                :ref="`input${index}`"
-                initialEditType="wysiwyg"
-                @change="onContentChange"
-                @focus="focused = true"
-                @blur="focused = false"
-              />
+              <div v-if="markdown">
+                <editor
+                  :initialValue="edited_data[textKey]"
+                  :options="editorOptions"
+                  :ref="`input${index}`"
+                  initialEditType="wysiwyg"
+                  height="40vh"
+                  @change="onContentChange"
+                  @focus="focused = true"
+                  @blur="focused = false"
+                />
+                <b-container>
+                  <b-row align-h="end">
+                    <b-button-group>
+                      <b-button
+                        size="sm"
+                        :disabled="curr_mode === 'wysiwyg'"
+                        @click="changeMode"
+                        >Easy editor</b-button
+                      >
+                      <b-button
+                        size="sm"
+                        :disabled="curr_mode === 'markdown'"
+                        @click="changeMode"
+                        >Raw text</b-button
+                      >
+                    </b-button-group>
+                  </b-row>
+                </b-container>
+              </div>
               <b-form-textarea
                 v-model="edited_data[textKey]"
                 max-rows="100"
@@ -273,6 +293,7 @@ export default {
     return {
       editorOptions: {
         usageStatistics: false,
+        hideModeSwitch: true,
         // This array contains all default items in toolbar except for images
         toolbarItems: [
           'heading',
@@ -310,105 +331,8 @@ export default {
       couldNotSave: false,
       insert_reference: false,
       focused: false,
+      curr_mode: 'wysiwyg',
     };
-  },
-
-  watch: {
-    // Derive a list of references from the count object
-    // for the b-table to render from
-    referencesCount: {
-      deep: true,
-      async handler() {
-        this.saving = true;
-        this.refsLoading = true;
-        const { referencesCount } = this;
-        const items = await Promise.all(
-          Object.keys(this.referencesCount)
-            .filter((doi) => {
-              if (referencesCount[doi] === 0) {
-                return false;
-              }
-              return true;
-            })
-            .map(async (doi) => {
-              // First search through the previous items array to ensure
-              // that we are not making unnecessary requests
-              const reference = this.items.find((elem) => elem.doi === doi);
-              if (reference !== undefined && reference.error === false) {
-                return reference;
-              }
-              try {
-                const response = await this.getSplashReference(doi);
-                return {
-                  doi,
-                  citation: new Citation(response.data).format('bibliography', CITE_FORMAT),
-                  error: false,
-                };
-              } catch (e) {
-                console.log(e);
-                if (e.response.status !== 404) {
-                  return {
-                    doi,
-                    citation: `Error connecting to server when getting: ${doi}. Try reloading the page.`,
-                    error: true,
-                  };
-                }
-              }
-              let response = {};
-              try {
-                response = await this.getDOIFromService(doi);
-                console.log(response);
-              } catch (e) {
-                console.log(e);
-                if (e.response.status === 404) {
-                  // All the code commented out is when we attempt to create a new empty reference
-                  // If one in the document does not exist. For now we are only notifying the user
-                  // That it doesn't exist rather than making an empty one in the database
-                  // try {
-                  // await this.createReference({ DOI: doi, origin_url: 'none' });
-                  return {
-                    doi,
-                    citation: `Could not find: ${doi}`,
-                    error: true,
-                  };
-                  /* } catch (err) {
-                    return {
-                      doi,
-                      citation: `${doi} COULDN'T SAVE REFERENCE TO SERVER OR GET REFERENCE INFO. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY`,
-                      html: false,
-                    };
-                  } */
-                }
-                return {
-                  doi,
-                  citation: `Error in creating new reference: ${doi}. Try reloading the page.`,
-                  error: true,
-                };
-              }
-              try {
-                response.data.DOI = doi;
-                response.data.origin_url = response.request.responseURL;
-                await this.createReference(response.data);
-                return {
-                  doi,
-                  citation: new Citation(response.data).format('bibliography', CITE_FORMAT),
-                  error: false,
-                };
-              } catch (e) {
-                console.log(e);
-                return {
-                  doi,
-                  citation: `Error in creating new reference: ${doi}. Try reloading the page.`,
-                  error: true,
-                };
-              }
-            }),
-        );
-        this.refsLoading = false;
-        this.saving = false;
-        this.items = items;
-      },
-    },
   },
   mounted() {
     // clone the array of objects along with their primitives
@@ -419,6 +343,16 @@ export default {
     this.buildReferences();
   },
   methods: {
+    changeMode() {
+      const editor = this.$refs[`input${this.currently_edited_index}`][0];
+      if (this.curr_mode === 'markdown') {
+        this.curr_mode = 'wysiwyg';
+        editor.invoke('changeMode', 'wysiwyg');
+      } else if (this.curr_mode === 'wysiwyg') {
+        editor.invoke('changeMode', 'markdown');
+        this.curr_mode = 'markdown';
+      }
+    },
     onContentChange() {
       this.edited_data[this.textKey] = this.$refs[`input${this.currently_edited_index}`][0].invoke(
         'getMarkdown',
@@ -452,16 +386,18 @@ export default {
       // if the data was succesfully saved then the code will execute as normal.
       // if not then this function will throw an error
       // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
-      return new Promise((resolve, reject) => this.$emit('dataToParent', {
-        data,
-        callback: (success) => {
-          if (success) {
-            resolve();
-          } else {
-            reject();
-          }
-        },
-      }));
+      return new Promise((resolve, reject) =>
+        this.$emit('dataToParent', {
+          data,
+          callback: (success) => {
+            if (success) {
+              resolve();
+            } else {
+              reject();
+            }
+          },
+        }),
+      );
     },
     async emitEdit(indexChanged, originalSection) {
       try {
@@ -478,7 +414,6 @@ export default {
         console.log(error);
       }
     },
-
 
     async insertReference(text, doi) {
       console.log(doi);
@@ -618,6 +553,103 @@ export default {
       };
       return utils.parseMarkDown(htmlText, renderer);
     }, */
+  },
+  watch: {
+    // Derive a list of references from the count object
+    // for the b-table to render from
+    referencesCount: {
+      deep: true,
+      async handler() {
+        this.saving = true;
+        this.refsLoading = true;
+        const { referencesCount } = this;
+        const items = await Promise.all(
+          Object.keys(this.referencesCount)
+            .filter((doi) => {
+              if (referencesCount[doi] === 0) {
+                return false;
+              }
+              return true;
+            })
+            .map(async (doi) => {
+              // First search through the previous items array to ensure
+              // that we are not making unnecessary requests
+              const reference = this.items.find((elem) => elem.doi === doi);
+              if (reference !== undefined && reference.error === false) {
+                return reference;
+              }
+              try {
+                const response = await this.getSplashReference(doi);
+                return {
+                  doi,
+                  citation: new Citation(response.data).format('bibliography', CITE_FORMAT),
+                  error: false,
+                };
+              } catch (e) {
+                console.log(e);
+                if (e.response.status !== 404) {
+                  return {
+                    doi,
+                    citation: `Error connecting to server when getting: ${doi}. Try reloading the page.`,
+                    error: true,
+                  };
+                }
+              }
+              let response = {};
+              try {
+                response = await this.getDOIFromService(doi);
+                console.log(response);
+              } catch (e) {
+                console.log(e);
+                if (e.response.status === 404) {
+                  // All the code commented out is when we attempt to create a new empty reference
+                  // If one in the document does not exist. For now we are only notifying the user
+                  // That it doesn't exist rather than making an empty one in the database
+                  // try {
+                  // await this.createReference({ DOI: doi, origin_url: 'none' });
+                  return {
+                    doi,
+                    citation: `Could not find: ${doi}`,
+                    error: true,
+                  };
+                  /* } catch (err) {
+                    return {
+                      doi,
+                      citation: `${doi} COULDN'T SAVE REFERENCE TO SERVER OR GET REFERENCE INFO. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY`,
+                      html: false,
+                    };
+                  } */
+                }
+                return {
+                  doi,
+                  citation: `Error in creating new reference: ${doi}. Try reloading the page.`,
+                  error: true,
+                };
+              }
+              try {
+                response.data.DOI = doi;
+                response.data.origin_url = response.request.responseURL;
+                await this.createReference(response.data);
+                return {
+                  doi,
+                  citation: new Citation(response.data).format('bibliography', CITE_FORMAT),
+                  error: false,
+                };
+              } catch (e) {
+                console.log(e);
+                return {
+                  doi,
+                  citation: `Error in creating new reference: ${doi}. Try reloading the page.`,
+                  error: true,
+                };
+              }
+            }),
+        );
+        this.refsLoading = false;
+        this.saving = false;
+        this.items = items;
+      },
+    },
   },
 };
 </script>
