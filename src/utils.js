@@ -38,4 +38,16 @@ export default {
       .replace(/\s+/g, ' ') // collapse repeated whitespace
       .replace(/^\s+|\s+$/, ''); // remove leading/trailing whitespace
   },
+
+  sortNameValueArray(array) {
+    array.sort((a, b) => {
+      if (a.name < b.name) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    });
+  },
 };

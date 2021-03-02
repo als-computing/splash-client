@@ -60,10 +60,10 @@
                 >
               </p>
               <!--This parses the markdown and displays it-->
-              <div
+              <viewer
                 class="user-text"
                 v-if="markdown"
-                v-html="parseText(section[textKey])"
+                :initialValue="section[textKey]"
               />
               <div v-else>{{ section[textKey] }}</div>
             </div>
@@ -76,22 +76,51 @@
                 :readonly="saving"
               />
               <span class="text-muted">{{ valueInputName }}:</span>
+              <div v-if="markdown">
+                <editor
+                  :initialValue="edited_data[textKey]"
+                  :options="editorOptions"
+                  :ref="`input${index}`"
+                  initialEditType="wysiwyg"
+                  height="40vh"
+                  @change="onContentChange"
+                  @focus="focused = true"
+                  @blur="focused = false"
+                />
+                <b-container>
+                  <b-row align-h="end">
+                    <b-button-group>
+                      <b-button
+                        size="sm"
+                        :disabled="curr_mode === 'wysiwyg'"
+                        @click="changeMode"
+                        >Easy editor</b-button
+                      >
+                      <b-button
+                        size="sm"
+                        :disabled="curr_mode === 'markdown'"
+                        @click="changeMode"
+                        >Raw editor</b-button
+                      >
+                    </b-button-group>
+                  </b-row>
+                </b-container>
+              </div>
               <b-form-textarea
                 v-model="edited_data[textKey]"
                 max-rows="100"
                 :readonly="saving"
-                :ref="`input${index}`"
-                @focus="focused = true"
-                @blur="focused = false"
+                v-if="!markdown"
               />
+
               <b-button-toolbar>
                 <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
                 <b-button
                   variant="primary"
                   @click="emitEdit(index, section)"
                   :disabled="
-                    edited_data[titleKey] === '' ||
                     edited_data[textKey] === '' ||
+                    edited_data[titleKey] === '' ||
                     (edited_data[titleKey] === section[titleKey] &&
                       edited_data[textKey] === section[textKey]) ||
                     saving
@@ -131,7 +160,7 @@
                 <b-modal v-model="insert_reference" ok-only>
                   <add-references
                     :references="items"
-                    @clickedRef="insertReference(arguments[0])"
+                    @clickedRef="insertReference(arguments[0], arguments[1])"
                   />
                 </b-modal>
 
@@ -204,8 +233,19 @@ import AddReferences from '@/components/editor/AddReferences.vue';
 import { BIconPlusCircleFill } from 'bootstrap-vue';
 import Citation from 'citation-js';
 
+import 'codemirror/lib/codemirror.css';
+import '@toast-ui/editor/dist/toastui-editor.css';
+// import '@toast-ui/editor/dist/toastui-editor-viewer.css';
+import { Editor, Viewer } from '@toast-ui/vue-editor';
+
 const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
+  components: {
+    'b-icon-plus-circle-fill': BIconPlusCircleFill,
+    'add-references': AddReferences,
+    Editor,
+    Viewer,
+  },
   props: {
     sectionsArray: Array,
     markdown: {
@@ -251,6 +291,32 @@ export default {
   },
   data() {
     return {
+      editorOptions: {
+        usageStatistics: false,
+        hideModeSwitch: true,
+        // This array contains all default items in toolbar except for images
+        toolbarItems: [
+          'heading',
+          'bold',
+          'italic',
+          'strike',
+          'divider',
+          'hr',
+          'quote',
+          'divider',
+          'ul',
+          'ol',
+          'task',
+          'indent',
+          'outdent',
+          'divider',
+          'table',
+          'link',
+          'divider',
+          'code',
+          'codeblock',
+        ],
+      },
       sections: [],
       currently_edited_index: undefined,
       edited_data: {
@@ -265,9 +331,229 @@ export default {
       couldNotSave: false,
       insert_reference: false,
       focused: false,
+      curr_mode: 'wysiwyg',
     };
   },
+  mounted() {
+    // clone the array of objects along with their primitives
+    // into an internal data property we can mess around with
+    // note that this does not clone nested objects
+    // https://stackoverflow.com/a/40283265/8903570
+    this.sections = this.sectionsArray.map((a) => ({ ...a }));
+    this.buildReferences();
+  },
+  methods: {
+    changeMode() {
+      const editor = this.$refs[`input${this.currently_edited_index}`][0];
+      if (this.curr_mode === 'markdown') {
+        this.curr_mode = 'wysiwyg';
+        editor.invoke('changeMode', 'wysiwyg');
+      } else if (this.curr_mode === 'wysiwyg') {
+        editor.invoke('changeMode', 'markdown');
+        this.curr_mode = 'markdown';
+      }
+    },
+    onContentChange() {
+      this.edited_data[this.textKey] = this.$refs[`input${this.currently_edited_index}`][0].invoke(
+        'getMarkdown',
+      );
+    },
+    async getDOIFromService(doi) {
+      const response = await this.$doi_service.get(`/${doi}`);
+      return response;
+    },
+    async getSplashReference(doi) {
+      const response = await this.$api.get(`${this.$references_url}/doi/${doi}`);
+      return response;
+    },
+    async createReference(reference) {
+      const response = await this.$api.post(`${this.$references_url}`, reference);
+      return response;
+    },
+    async updateReference(reference, doi) {
+      const response = await this.$api.put(`${this.$references_url}/doi/${doi}`, reference);
+      return response;
+    },
+    async removeFocus() {
+      this.currently_edited_index = undefined;
+      this.edited_data[this.titleKey] = '';
+      this.edited_data[this.textKey] = '';
+    },
+    async emitToParent(data) {
+      // This emits an object with the altered data section, and
+      // a callback for the parent component to call with a boolean as the argument,
+      // so that this component can know whether not the data was saved succesfully
+      // if the data was succesfully saved then the code will execute as normal.
+      // if not then this function will throw an error
+      // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
+      return new Promise((resolve, reject) =>
+        this.$emit('dataToParent', {
+          data,
+          callback: (success) => {
+            if (success) {
+              resolve();
+            } else {
+              reject();
+            }
+          },
+        }),
+      );
+    },
+    async emitEdit(indexChanged, originalSection) {
+      try {
+        this.saving = true;
+        this.sections[indexChanged] = { ...this.edited_data };
+        await this.emitToParent(this.sections);
+        this.removeFocus();
+        this.buildReferences();
+        this.saving = false;
+      } catch (error) {
+        this.sections[indexChanged] = originalSection;
+        this.saving = false;
+        this.couldNotSave = true;
+        console.log(error);
+      }
+    },
 
+    async insertReference(text, doi) {
+      console.log(doi);
+      const editor = this.$refs[`input${this.currently_edited_index}`][0];
+      editor.invoke('exec', 'AddLink', { linkText: text, url: `#${doi}` });
+      this.insert_reference = false;
+    },
+    addSection(index) {
+      if (!Number.isInteger(index)) {
+        throw Error('Index should be integer');
+      }
+      const blankSection = {
+        [this.titleKey]: '',
+        [this.textKey]: '',
+      };
+      this.sections.splice(index, 0, blankSection);
+      this.edit(index, blankSection[this.titleKey], blankSection[this.textKey]);
+    },
+    async deleteSection(index) {
+      if (!Number.isInteger(index)) {
+        throw Error('Index should be integer');
+      }
+
+      this.saving = true;
+      const section = this.sections[index];
+      try {
+        // delete from array without leaving a hole
+        this.sections.splice(index, 1);
+        await this.emitToParent(this.sections);
+        this.removeFocus();
+        this.buildReferences();
+        this.saving = false;
+      } catch (error) {
+        this.sections.splice(index, 0, section);
+        this.saving = false;
+        this.couldNotSave = true;
+      }
+    },
+    extractReferences(text) {
+      const doiRefs = [];
+      // The regex here matches this pattern: [(citation goes here)](#url goes here)
+      const matches = [...text.matchAll(/\[\([^\s].*\)\]\(#([^\s].*?)\)/g)];
+      matches.forEach((match) => {
+        const doiRef = match[1];
+        if (!this.isDoiFormat(doiRef)) {
+          return;
+        }
+        doiRefs.push(doiRef.trim());
+      });
+      return doiRefs;
+    },
+    isDoiFormat(string) {
+      if (string.startsWith('10.') && string.includes('/')) {
+        return true;
+      }
+      return false;
+    },
+    addReferencesToCount(doiRefs) {
+      doiRefs.forEach((doiRef) => {
+        if (this.referencesCount[doiRef] === undefined) {
+          // assign 1 to the property in this way to preserve
+          // reactivity https://vuejs.org/v2/guide/reactivity.html#For-Objects
+          this.$set(this.referencesCount, doiRef, 1);
+        } else {
+          this.referencesCount[doiRef] += 1;
+        }
+      });
+    },
+    subtractReferencesFromCount(doiRefs) {
+      doiRefs.forEach((doiRef) => {
+        if (this.referencesCount[doiRef] === undefined) {
+          return;
+        }
+        this.referencesCount[doiRef] -= 1;
+      });
+    },
+    buildReferences() {
+      this.referencesCount = {};
+      this.sections.forEach((section) => {
+        const doiRefs = this.extractReferences(section[this.textKey]);
+        this.addReferencesToCount(doiRefs);
+      });
+    },
+    edit(index, text, title) {
+      if (this.saving) {
+        return;
+      }
+      if (index !== this.currently_edited_index) {
+        this.currently_edited_index = index;
+        this.edited_data[this.textKey] = text;
+        this.edited_data[this.titleKey] = title;
+      }
+    },
+    showDeleteConfirmation(index) {
+      this.$bvModal
+        .msgBoxConfirm(this.deleteConfirmationMessage, {
+          title: 'Please Confirm',
+          size: 'sm',
+          buttonSize: 'sm',
+          okVariant: 'danger',
+          okTitle: 'YES',
+          cancelTitle: 'NO',
+          footerClass: 'p-2',
+          hideHeaderClose: false,
+          centered: true,
+        })
+        .then((value) => {
+          if (value) {
+            this.deleteSection(index);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    deleteIfNew(index, section) {
+      if (section[this.titleKey] === '' && section[this.textKey] === '') {
+        // delete from array without leaving a hole
+        this.sections.splice(index, 1);
+      }
+    },
+    /* parseText(htmlText) {
+      const { referencesCount } = this;
+      const renderer = {
+        link(href, title, text) {
+          if (text !== '[reference]') {
+            return false;
+          }
+          const references = Object.keys(referencesCount);
+          // Slice removes the # at the beginning
+          const index = references.indexOf(href.slice(1));
+          if (index === -1) {
+            return false;
+          }
+          return `<a href="${href}">[${index + 1}]</a>`;
+        },
+      };
+      return utils.parseMarkDown(htmlText, renderer);
+    }, */
+  },
   watch: {
     // Derive a list of references from the count object
     // for the b-table to render from
@@ -364,234 +650,6 @@ export default {
         this.items = items;
       },
     },
-  },
-  mounted() {
-    // clone the array of objects along with their primitives
-    // into an internal data property we can mess around with
-    // note that this does not clone nested objects
-    // https://stackoverflow.com/a/40283265/8903570
-    this.sections = this.sectionsArray.map((a) => ({ ...a }));
-    this.buildReferences();
-  },
-  methods: {
-    async getDOIFromService(doi) {
-      const response = await this.$doi_service.get(`/${doi}`);
-      return response;
-    },
-    async getSplashReference(doi) {
-      const response = await this.$api.get(`${this.$references_url}/doi/${doi}`);
-      return response;
-    },
-    async createReference(reference) {
-      const response = await this.$api.post(`${this.$references_url}`, reference);
-      return response;
-    },
-    async updateReference(reference, doi) {
-      const response = await this.$api.put(`${this.$references_url}/doi/${doi}`, reference);
-      return response;
-    },
-    async removeFocus() {
-      this.currently_edited_index = undefined;
-      this.edited_data[this.titleKey] = '';
-      this.edited_data[this.textKey] = '';
-    },
-    async emitToParent(data) {
-      // This emits an object with the altered data section, and
-      // a callback for the parent component to call with a boolean as the argument,
-      // so that this component can know whether not the data was saved succesfully
-      // if the data was succesfully saved then the code will execute as normal.
-      // if not then this function will throw an error
-      // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
-      return new Promise((resolve, reject) =>
-        this.$emit('dataToParent', {
-          data,
-          callback: (success) => {
-            if (success) {
-              resolve();
-            } else {
-              reject();
-            }
-          },
-        }),
-      );
-    },
-    async emitEdit(indexChanged, originalSection) {
-      try {
-        this.saving = true;
-        this.sections[indexChanged] = { ...this.edited_data };
-        await this.emitToParent(this.sections);
-        this.removeFocus();
-        this.buildReferences();
-        this.saving = false;
-      } catch (error) {
-        this.sections[indexChanged] = originalSection;
-        this.saving = false;
-        this.couldNotSave = true;
-        console.log(error);
-      }
-    },
-
-    // adapted from https://forum.vuejs.org/t/vuejs-vuetify-add-some-text-to-focus-position-on-textarea/33279/4
-    async insertReference(doi) {
-      console.log(doi);
-      const referenceLink = `[[reference]](#${doi})`;
-      const textArea = this.$refs[`input${this.currently_edited_index}`][0];
-      console.log(textArea);
-      textArea.focus();
-      const startPos = textArea.selectionStart;
-      // get cursor's position:
-      let cursorPos = startPos;
-      const tmpStr = textArea.value;
-
-      // insert:
-      this.edited_data[this.textKey] = `${tmpStr.substring(
-        0,
-        startPos,
-      )}${referenceLink}${tmpStr.substring(startPos, tmpStr.length)}`;
-
-      // move cursor:
-      await this.$nextTick();
-      cursorPos += referenceLink.length;
-      textArea.selectionStart = cursorPos;
-      textArea.selectionEnd = cursorPos;
-      this.insert_reference = false;
-    },
-    addSection(index) {
-      if (!Number.isInteger(index)) {
-        throw Error('Index should be integer');
-      }
-      const blankSection = {
-        [this.titleKey]: '',
-        [this.textKey]: '',
-      };
-      this.sections.splice(index, 0, blankSection);
-      this.edit(index, blankSection[this.titleKey], blankSection[this.textKey]);
-    },
-    async deleteSection(index) {
-      if (!Number.isInteger(index)) {
-        throw Error('Index should be integer');
-      }
-
-      this.saving = true;
-      const section = this.sections[index];
-      try {
-        // delete from array without leaving a hole
-        this.sections.splice(index, 1);
-        await this.emitToParent(this.sections);
-        this.removeFocus();
-        this.buildReferences();
-        this.saving = false;
-      } catch (error) {
-        this.sections.splice(index, 0, section);
-        this.saving = false;
-        this.couldNotSave = true;
-      }
-    },
-    extractReferences(text) {
-      const doiRefs = [];
-      // The regex here matches this pattern: [[reference]](#url goes here)
-      const matches = [...text.matchAll(/\[\[reference\]\]\(#([^\s].*?)\)/g)];
-      matches.forEach((match) => {
-        const doiRef = match[1];
-        if (!this.isDoiFormat(doiRef)) {
-          return;
-        }
-        doiRefs.push(doiRef.trim());
-      });
-      return doiRefs;
-    },
-    isDoiFormat(string) {
-      if (string.startsWith('10.') && string.includes('/')) {
-        return true;
-      }
-      return false;
-    },
-    addReferencesToCount(doiRefs) {
-      doiRefs.forEach((doiRef) => {
-        if (this.referencesCount[doiRef] === undefined) {
-          // assign 1 to the property in this way to preserve
-          // reactivity https://vuejs.org/v2/guide/reactivity.html#For-Objects
-          this.$set(this.referencesCount, doiRef, 1);
-        } else {
-          this.referencesCount[doiRef] += 1;
-        }
-      });
-    },
-    subtractReferencesFromCount(doiRefs) {
-      doiRefs.forEach((doiRef) => {
-        if (this.referencesCount[doiRef] === undefined) {
-          return;
-        }
-        this.referencesCount[doiRef] -= 1;
-      });
-    },
-    buildReferences() {
-      this.referencesCount = {};
-      this.sections.forEach((section) => {
-        const doiRefs = this.extractReferences(section[this.textKey]);
-        this.addReferencesToCount(doiRefs);
-      });
-    },
-    edit(index, text, title) {
-      if (this.saving) {
-        return;
-      }
-      if (index !== this.currently_edited_index) {
-        this.currently_edited_index = index;
-        this.edited_data[this.textKey] = text;
-        this.edited_data[this.titleKey] = title;
-      }
-    },
-    showDeleteConfirmation(index) {
-      this.$bvModal
-        .msgBoxConfirm(this.deleteConfirmationMessage, {
-          title: 'Please Confirm',
-          size: 'sm',
-          buttonSize: 'sm',
-          okVariant: 'danger',
-          okTitle: 'YES',
-          cancelTitle: 'NO',
-          footerClass: 'p-2',
-          hideHeaderClose: false,
-          centered: true,
-        })
-        .then((value) => {
-          if (value) {
-            this.deleteSection(index);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    },
-    deleteIfNew(index, section) {
-      if (section[this.titleKey] === '' && section[this.textKey] === '') {
-        // delete from array without leaving a hole
-        this.sections.splice(index, 1);
-      }
-    },
-    parseText(htmlText) {
-      const { referencesCount } = this;
-      const renderer = {
-        link(href, title, text) {
-          if (text !== '[reference]') {
-            return false;
-          }
-          const references = Object.keys(referencesCount);
-          // Slice removes the # at the beginning
-          const index = references.indexOf(href.slice(1));
-          if (index === -1) {
-            return false;
-          }
-          return `<a href="${href}">[${index + 1}]</a>`;
-        },
-      };
-      return utils.parseMarkDown(htmlText, renderer);
-    },
-  },
-  components: {
-    'b-icon-plus-circle-fill': BIconPlusCircleFill,
-    'add-references': AddReferences,
   },
 };
 </script>

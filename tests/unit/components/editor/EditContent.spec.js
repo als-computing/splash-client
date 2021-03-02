@@ -122,7 +122,7 @@ describe('EditContent component', () => {
     await wrapper.vm.$nextTick();
     const dangerMD = wrapper.findAll('.user-text').at(0);
     // Test to ensure that it is stripped of the script tag
-    expect(dangerMD.html()).toBe('<div class="user-text">\n  <p>DANGEROUS MARKDOWN</p>\n</div>');
+    expect(dangerMD.html()).toBe('<div class="user-text">\n  <div class="tui-editor-contents">\n    <p>DANGEROUS MARKDOWN</p>\n  </div>\n</div>');
   });
 
   /* it('emits correctly when save is pressed', async () => {

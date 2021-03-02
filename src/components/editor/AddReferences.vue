@@ -15,13 +15,13 @@
           :fields="fields"
           responsive="sm"
         >
-          <template #cell(citation)="data">
+          <template #cell(citation_html)="data">
             <span v-html="data.value"></span>
           </template>
           <template #cell(insert)="data">
             <b-icon-plus
               class="pointer"
-              @click="plusClickHandler(items[data.index].DOI)"
+              @click="plusClickHandler(items[data.index].inTextCitation,items[data.index].DOI)"
             />
           </template>
         </b-table>
@@ -42,21 +42,18 @@
               class="search-button"
               size="sm"
               text="Button"
-              :disabled="
-                !doiValid ||
-                createReferenceFlags.loading
-              "
+              :disabled="!doiValid || createReferenceFlags.loading"
               @click="
                 resetFlags();
-                loader(getReferenceInfo, [referenceDoiToCreate])
+                loader(getReferenceInfo, [referenceDoiToCreate]);
               "
               >Create New</b-button
             >
           </b-input-group-append>
         </b-input-group>
         <b-form-invalid-feedback :state="doiValid">
-        The DOI must be this format: 10.XXX/XXXXX
-      </b-form-invalid-feedback>
+          The DOI must be this format: 10.XXX/XXXXX
+        </b-form-invalid-feedback>
         <b-alert
           v-model="createReferenceFlags.notFound"
           dismissible
@@ -78,7 +75,7 @@
         <div v-if="createReferenceFlags.alreadyExists">
           <h5>This reference already exists:</h5>
           <span v-html="citationHTML"></span>
-          <b-button @click="plusClickHandler(referenceDoiToCreate)"
+          <b-button @click="plusClickHandler(inTextCitation, referenceDoiToCreate)"
             >Insert</b-button
           >
         </div>
@@ -103,7 +100,7 @@
             reloading the page.
           </b-alert>
         </div>
-        <b-spinner v-show="createReferenceFlags.loading"/>
+        <b-spinner v-show="createReferenceFlags.loading" />
       </b-card>
     </div>
   </div>
@@ -123,7 +120,7 @@ export default {
   },
   data() {
     return {
-      fields: ['citation', { key: 'insert', label: '' }],
+      fields: [{key: 'citation_html', label:'Citation'}, { key: 'insert', label: '' }],
       items: [],
       createReferenceFlags: {
         alreadyExists: false,
@@ -173,7 +170,7 @@ export default {
       referenceObject.origin_url = this.referenceResponseObject.request.responseURL;
       try {
         await this.createReference(referenceObject);
-        this.plusClickHandler(doi);
+        this.plusClickHandler(this.inTextCitation, doi);
       } catch (e) {
         console.log(e);
         this.createReferenceFlags.creationError = true;
@@ -183,7 +180,9 @@ export default {
       let response = {};
       try {
         response = await this.getSplashReference(doi);
-        this.citationHTML = new Citation(response.data).format('bibliography', CITE_FORMAT);
+        const citation = new Citation(response.data);
+        this.inTextCitation = citation.format('citation');
+        this.citationHTML = citation.format('bibliography', CITE_FORMAT);
         this.createReferenceFlags.alreadyExists = true;
         return;
       } catch (e) {
@@ -195,7 +194,9 @@ export default {
       }
       try {
         response = await this.getDOIFromService(doi);
-        this.citationHTML = new Citation(response.data).format('bibliography', CITE_FORMAT);
+        const citation = new Citation(response.data);
+        this.inTextCitation = citation.format('citation');
+        this.citationHTML = citation.format('bibliography', CITE_FORMAT);
         this.referenceResponseObject = response;
         this.createReferenceFlags.found = true;
       } catch (e) {
@@ -208,13 +209,17 @@ export default {
       }
     },
     updateItems(references) {
-      this.items = references.map((elem) => ({
-        citation: new Citation(elem).format('bibliography', CITE_FORMAT),
-        DOI: elem.DOI,
-      }));
+      this.items = references.map((elem) => {
+        const citation = new Citation(elem);
+        return {
+          inTextCitation: citation.format('citation'),
+          citation_html: citation.format('bibliography', CITE_FORMAT),
+          DOI: elem.DOI,
+        };
+      });
     },
-    plusClickHandler(doi) {
-      this.$emit('clickedRef', doi);
+    plusClickHandler(inTextCitation, doi) {
+      this.$emit('clickedRef', inTextCitation, doi);
     },
   },
   components: {
