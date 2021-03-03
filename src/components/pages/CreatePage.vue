@@ -19,6 +19,10 @@
 <script>
 export default {
   props: {
+    defaultDocumentation: {
+      type: String,
+      default: '# Title',
+    },
     buttonText: {
       type: String,
       default: 'Create New',
@@ -61,7 +65,7 @@ export default {
         const document = {
           page_type: this.pageType,
           title: this.title,
-          documentation: [],
+          documentation: this.defaultDocumentation,
           metadata: [],
         };
         const response = await this.$api.post(this.$pages_url, document);

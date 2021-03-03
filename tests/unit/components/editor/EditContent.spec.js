@@ -113,8 +113,7 @@ describe('EditContent component', () => {
     const wrapper = mount(EditContent,
       {
         propsData: {
-          sectionsArray: responses.xss_attack.data.documentation.sections,
-          markdown: true,
+          documentation: responses.xss_attack.data.documentation,
         },
         localVue,
       });
