@@ -1,6 +1,7 @@
 <template>
   <div>
     <create-page
+      :default-documentation="defaultDocumentation"
       :button-text="buttonText"
       :form-text="formText"
       :modal-title="modalTitle"
@@ -31,6 +32,7 @@ export default {
     formText: String,
     pageType: String,
     modalTitle: String,
+    defaultDocumentation: String,
   },
   data() {
     return {

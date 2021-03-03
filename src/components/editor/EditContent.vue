@@ -1,53 +1,18 @@
 <template>
   <div class="documentation_editor">
-    <div align="left">
-      <b-icon-plus-circle-fill
-        v-show="readOnly !== true"
-        :class="`${currently_edited_index === undefined ? 'pointer' : ''} mt-2`"
-        @click="currently_edited_index === undefined ? addSection(0) : {}"
-      />
-    </div>
-    <h4 v-if="sections.length == 0">
-      {{ emptyMessage }}
-    </h4>
-    <div v-if="sections.length !== 0">
-      <!--This part iterates over the sections and displays them-->
-      <!--Using the index as part of the key is bad practice here, If were moving
-                around forms, like b-input, with internal states we would want a unique key,
-                also if we wanted to force a component to be re-mounted when the list changes
-                then we would use a unique key. However, none of these components need to
-                be re-mounted to properly react to data change as of now. If things get weird,
-                like the DOM not being in sync with the data when the list updates then
-                we will want to add a unique key. This will happen when adding components
-                in here that need to be remounted when data changes. However adding a unique key
-                (by means of a counter or random num generator)
-                to every object will be complex, and isn't worth the effort yet
-                https://vuejs.org/v2/api/#key
-                https://forum.vuejs.org/t/v-for-with-simple-arrays-what-key-to-use/13692/8
-                https://forum.vuejs.org/t/what-key-to-use-in-v-for-where-items-have-no-identity/60111/7
-                  -->
-      <div
-        align="left"
-        v-for="(section, index) in sections"
-        :key="section[textKey] + section[titleKey] + index"
-      >
         <b-card>
-          <!--This displays each section of the documentation-->
           <div
             @dblclick="
-              readOnly === false &&
-              currently_edited_index === undefined &&
-              saving !== true
-                ? edit(index, section[textKey], section[titleKey])
+              readOnly === false
+                ? edit()
                 : {}
             "
           >
-            <div v-show="index !== currently_edited_index">
+            <div v-if="!editing" align="left">
               <p>
-                <strong>{{ section[titleKey] }}</strong>
                 <span
                   class="pointer"
-                  @click="edit(index, section[textKey], section[titleKey])"
+                  @click="edit()"
                   v-if="readOnly !== true"
                 >
                   <u>[edit]</u>
@@ -62,25 +27,15 @@
               <!--This parses the markdown and displays it-->
               <viewer
                 class="user-text"
-                v-if="markdown"
-                :initialValue="section[textKey]"
+                :initialValue="documentation"
               />
-              <div v-else>{{ section[textKey] }}</div>
             </div>
-
             <!--This appears when we want to edit the documentation-->
-            <div v-if="index === currently_edited_index">
-              <span class="text-muted">{{ titleInputName }}:</span>
-              <b-form-input
-                v-model="edited_data[titleKey]"
-                :readonly="saving"
-              />
-              <span class="text-muted">{{ valueInputName }}:</span>
-              <div v-if="markdown">
+            <div v-if="editing" align="left">
                 <editor
-                  :initialValue="edited_data[textKey]"
+                  :initialValue="edited_documentation"
                   :options="editorOptions"
-                  :ref="`input${index}`"
+                  ref="markdown-input"
                   initialEditType="wysiwyg"
                   height="40vh"
                   @change="onContentChange"
@@ -105,24 +60,15 @@
                     </b-button-group>
                   </b-row>
                 </b-container>
-              </div>
-              <b-form-textarea
-                v-model="edited_data[textKey]"
-                max-rows="100"
-                :readonly="saving"
-                v-if="!markdown"
-              />
 
               <b-button-toolbar>
                 <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
                 <b-button
                   variant="primary"
-                  @click="emitEdit(index, section)"
+                  @click="emitEdit()"
                   :disabled="
-                    edited_data[textKey] === '' ||
-                    edited_data[titleKey] === '' ||
-                    (edited_data[titleKey] === section[titleKey] &&
-                      edited_data[textKey] === section[textKey]) ||
+                    edited_documentation === '' ||
+                    edited_documentation === documentation ||
                     saving
                   "
                   >Save</b-button
@@ -133,28 +79,13 @@
                   variant="warning"
                   @click="
                     removeFocus();
-                    deleteIfNew(index, section);
                   "
                   :disabled="saving === true"
                   >Cancel</b-button
                 >
-
-                <!--The Delete Section button is hidden when the section[titleKey]
-                        or section[textKey] is empty (implying that this is a brand new section)
-                        and when the app is in the process of saving-->
-                <b-button
-                  variant="danger"
-                  @click="showDeleteConfirmation(index)"
-                  v-show="
-                    !(section[titleKey] === '' || section[textKey] === '') &&
-                    !saving
-                  "
-                  >{{ removeButtonText }}</b-button
-                >
                 <b-button
                   @mousedown="insert_reference = true"
                   :disabled="!focused"
-                  v-show="markdown === true"
                   >Insert Reference</b-button
                 >
                 <b-modal v-model="insert_reference" ok-only>
@@ -169,9 +100,6 @@
             </div>
           </div>
 
-          <!--Add section is disabled if a section is being edited.
-                  It is only shown for sections that are not being edited-->
-
           <b-modal
             v-model="couldNotSave"
             v-b-modal.modal-center
@@ -181,19 +109,8 @@
             the problem persists, contact the administrator.</b-modal
           >
         </b-card>
-        <b-icon-plus-circle-fill
-          v-show="currently_edited_index !== index && readOnly !== true"
-          :class="`${
-            currently_edited_index === undefined ? 'pointer' : ''
-          } mt-2`"
-          @click="
-            currently_edited_index === undefined ? addSection(index + 1) : {}
-          "
-        />
-      </div>
       <b-overlay :show="refsLoading" rounded="sm">
         <b-table
-          v-if="markdown"
           striped
           hover
           :items="items"
@@ -223,14 +140,10 @@
         </b-table>
       </b-overlay>
     </div>
-  </div>
 </template>
 
 <script>
-// import ExperimentLineChart from '@/components/ExperimentLineChart.vue';
-import utils from '@/utils';
 import AddReferences from '@/components/editor/AddReferences.vue';
-import { BIconPlusCircleFill } from 'bootstrap-vue';
 import Citation from 'citation-js';
 
 import 'codemirror/lib/codemirror.css';
@@ -241,52 +154,15 @@ import { Editor, Viewer } from '@toast-ui/vue-editor';
 const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
   components: {
-    'b-icon-plus-circle-fill': BIconPlusCircleFill,
     'add-references': AddReferences,
     Editor,
     Viewer,
   },
   props: {
-    sectionsArray: Array,
-    markdown: {
-      type: Boolean,
-      default: false,
-    },
+    documentation: String,
     readOnly: {
       type: Boolean,
       default: false,
-    },
-    titleKey: {
-      type: String,
-      default: 'title',
-    },
-    textKey: {
-      type: String,
-      default: 'text',
-    },
-    emptyMessage: {
-      type: String,
-      default: 'No documentation found. Be the first to add some.',
-    },
-    removeButtonText: {
-      type: String,
-      default: 'Remove section',
-    },
-    addButtonText: {
-      type: String,
-      default: 'Add section',
-    },
-    deleteConfirmationMessage: {
-      type: String,
-      default: "Are you sure you want to delete this section? This can't be undone.",
-    },
-    titleInputName: {
-      type: String,
-      default: 'Title',
-    },
-    valueInputName: {
-      type: String,
-      default: 'Documentation',
     },
   },
   data() {
@@ -317,15 +193,11 @@ export default {
           'codeblock',
         ],
       },
-      sections: [],
-      currently_edited_index: undefined,
-      edited_data: {
-        [this.titleKey]: '',
-        [this.textKey]: '',
-      },
+      edited_documentation: '',
       referencesCount: {},
       items: [],
       table_fields: [{ key: 'index', label: '' }, 'citation'],
+      editing: false,
       saving: false,
       refsLoading: false,
       couldNotSave: false,
@@ -335,16 +207,12 @@ export default {
     };
   },
   mounted() {
-    // clone the array of objects along with their primitives
-    // into an internal data property we can mess around with
-    // note that this does not clone nested objects
-    // https://stackoverflow.com/a/40283265/8903570
-    this.sections = this.sectionsArray.map((a) => ({ ...a }));
+    this.edited_documentation = this.documentation;
     this.buildReferences();
   },
   methods: {
     changeMode() {
-      const editor = this.$refs[`input${this.currently_edited_index}`][0];
+      const editor = this.$refs['markdown-input'];
       if (this.curr_mode === 'markdown') {
         this.curr_mode = 'wysiwyg';
         editor.invoke('changeMode', 'wysiwyg');
@@ -354,9 +222,7 @@ export default {
       }
     },
     onContentChange() {
-      this.edited_data[this.textKey] = this.$refs[`input${this.currently_edited_index}`][0].invoke(
-        'getMarkdown',
-      );
+      this.edited_documentation = this.$refs['markdown-input'].invoke('getMarkdown');
     },
     async getDOIFromService(doi) {
       const response = await this.$doi_service.get(`/${doi}`);
@@ -375,12 +241,12 @@ export default {
       return response;
     },
     async removeFocus() {
-      this.currently_edited_index = undefined;
-      this.edited_data[this.titleKey] = '';
-      this.edited_data[this.textKey] = '';
+      this.editing = false;
+      this.edited_documentation = this.documentation;
+      this.$emit('toggle-editing', false);
     },
     async emitToParent(data) {
-      // This emits an object with the altered data section, and
+      // This emits an object with the altered data, and
       // a callback for the parent component to call with a boolean as the argument,
       // so that this component can know whether not the data was saved succesfully
       // if the data was succesfully saved then the code will execute as normal.
@@ -399,16 +265,14 @@ export default {
         }),
       );
     },
-    async emitEdit(indexChanged, originalSection) {
+    async emitEdit() {
       try {
         this.saving = true;
-        this.sections[indexChanged] = { ...this.edited_data };
-        await this.emitToParent(this.sections);
+        await this.emitToParent(this.edited_documentation);
         this.removeFocus();
         this.buildReferences();
         this.saving = false;
       } catch (error) {
-        this.sections[indexChanged] = originalSection;
         this.saving = false;
         this.couldNotSave = true;
         console.log(error);
@@ -417,45 +281,15 @@ export default {
 
     async insertReference(text, doi) {
       console.log(doi);
-      const editor = this.$refs[`input${this.currently_edited_index}`][0];
+      const editor = this.$refs['markdown-input'];
       editor.invoke('exec', 'AddLink', { linkText: text, url: `#${doi}` });
       this.insert_reference = false;
     },
-    addSection(index) {
-      if (!Number.isInteger(index)) {
-        throw Error('Index should be integer');
-      }
-      const blankSection = {
-        [this.titleKey]: '',
-        [this.textKey]: '',
-      };
-      this.sections.splice(index, 0, blankSection);
-      this.edit(index, blankSection[this.titleKey], blankSection[this.textKey]);
-    },
-    async deleteSection(index) {
-      if (!Number.isInteger(index)) {
-        throw Error('Index should be integer');
-      }
 
-      this.saving = true;
-      const section = this.sections[index];
-      try {
-        // delete from array without leaving a hole
-        this.sections.splice(index, 1);
-        await this.emitToParent(this.sections);
-        this.removeFocus();
-        this.buildReferences();
-        this.saving = false;
-      } catch (error) {
-        this.sections.splice(index, 0, section);
-        this.saving = false;
-        this.couldNotSave = true;
-      }
-    },
     extractReferences(text) {
       const doiRefs = [];
       // The regex here matches this pattern: [(citation goes here)](#url goes here)
-      const matches = [...text.matchAll(/\[\([^\s].*\)\]\(#([^\s].*?)\)/g)];
+      const matches = [...text.matchAll(/\[\([^\s].*?\)\]\(#([^\s].*?)\)/g)];
       matches.forEach((match) => {
         const doiRef = match[1];
         if (!this.isDoiFormat(doiRef)) {
@@ -492,48 +326,13 @@ export default {
     },
     buildReferences() {
       this.referencesCount = {};
-      this.sections.forEach((section) => {
-        const doiRefs = this.extractReferences(section[this.textKey]);
-        this.addReferencesToCount(doiRefs);
-      });
+      const doiRefs = this.extractReferences(this.documentation);
+      this.addReferencesToCount(doiRefs);
     },
-    edit(index, text, title) {
-      if (this.saving) {
-        return;
-      }
-      if (index !== this.currently_edited_index) {
-        this.currently_edited_index = index;
-        this.edited_data[this.textKey] = text;
-        this.edited_data[this.titleKey] = title;
-      }
-    },
-    showDeleteConfirmation(index) {
-      this.$bvModal
-        .msgBoxConfirm(this.deleteConfirmationMessage, {
-          title: 'Please Confirm',
-          size: 'sm',
-          buttonSize: 'sm',
-          okVariant: 'danger',
-          okTitle: 'YES',
-          cancelTitle: 'NO',
-          footerClass: 'p-2',
-          hideHeaderClose: false,
-          centered: true,
-        })
-        .then((value) => {
-          if (value) {
-            this.deleteSection(index);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    },
-    deleteIfNew(index, section) {
-      if (section[this.titleKey] === '' && section[this.textKey] === '') {
-        // delete from array without leaving a hole
-        this.sections.splice(index, 1);
-      }
+    edit() {
+      this.editing = true;
+      this.curr_mode = "wysiwyg";
+      this.$emit('toggle-editing', true);
     },
     /* parseText(htmlText) {
       const { referencesCount } = this;

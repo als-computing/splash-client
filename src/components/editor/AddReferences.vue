@@ -187,7 +187,7 @@ export default {
         return;
       } catch (e) {
         console.log(e);
-        if (e.response.status !== 404) {
+        if (!e.response || e.response.status !== 404) {
           this.createReferenceFlags.connectionError = true;
           return;
         }
@@ -201,7 +201,7 @@ export default {
         this.createReferenceFlags.found = true;
       } catch (e) {
         console.log(e);
-        if (e.response.status !== 404) {
+        if (!e.response || e.response.status !== 404) {
           this.createReferenceFlags.connectionError = true;
         } else {
           this.createReferenceFlags.notFound = true;

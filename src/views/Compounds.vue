@@ -1,7 +1,13 @@
 <template>
   <div>
-  <h1>Compounds</h1>
-    <pages-wrapper button-text="Create Compound Page" form-text="Page Title" page-type="compound" modal-title="Enter Compound Name"/>
+    <h1>Compounds</h1>
+    <pages-wrapper
+      button-text="Create Compound Page"
+      form-text="Page Title"
+      page-type="compound"
+      modal-title="Enter Compound Name"
+      :default-documentation=defaultDocumentation
+    />
   </div>
 </template>
 
@@ -11,6 +17,11 @@ import PagesWrapper from '../components/pages/PagesWrapper.vue';
 export default {
   components: {
     PagesWrapper,
+  },
+  data() {
+    return {
+      defaultDocumentation: '# Relevance to MWET\n# Physiochemical Properties\n# Analysis',
+    };
   },
 };
 </script>

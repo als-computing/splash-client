@@ -9,14 +9,7 @@ export default {
           text: 'Matt Landsman, Lauren Nalley',
         },
       ],
-      documentation: {
-        sections: [
-          {
-            title: 'Internal publications',
-            text: 'DANGEROUS MARKDOWN<script>alert(\'hahahahahah\')</script>',
-          },
-        ],
-      },
+      documentation: 'DANGEROUS MARKDOWN<script>alert(\'hahahahahah\')</script>',
     },
     uid: 'test_uid',
 
@@ -47,14 +40,7 @@ export default {
           text: 'Value of Field',
         },
       ],
-      documentation: {
-        sections: [
-          {
-            title: 'Title of Markdown',
-            text: 'Markdown goes here',
-          },
-        ],
-      },
+      documentation: 'Markdown goes here',
     },
   },
 
@@ -71,14 +57,7 @@ export default {
       page_type: 'Type2 of page',
       uid: 'test_uid2',
       metadata: [{ title: 'test', text: 'test' }],
-      documentation: {
-        sections: [
-          {
-            title: 'Test Title',
-            text: ' Test Markdown',
-          },
-        ],
-      },
+      documentation: 'Test Markdown',
     },
   },
 };
