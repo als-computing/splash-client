@@ -25,7 +25,7 @@
           <b-container fluid>
             <b-row>
               <b-col lg="3">
-                <edit-content
+                <edit-fields
                   :sections-array="pageDoc.data.metadata"
                   :read-only="true"
                   :key="'edit-content1' + version"
@@ -34,11 +34,9 @@
               </b-col>
               <b-col lg="9">
                 <edit-content
-                  :sections-array="pageDoc.data.documentation.sections"
+                  :documentation="pageDoc.data.documentation"
                   :read-only="true"
-                  :markdown="true"
                   :key="'edit-content2' + version"
-                  empty-message="No documentation in this version."
                 />
               </b-col>
             </b-row>
@@ -52,6 +50,7 @@
 <script>
 import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
+import EditFields from '../components/editor/EditFields.vue';
 
 export default {
   data() {
@@ -125,6 +124,7 @@ export default {
   },
   components: {
     'edit-content': EditContent,
+    EditFields,
   },
 };
 </script>

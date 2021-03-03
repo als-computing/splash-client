@@ -16,7 +16,8 @@
           <b-container fluid>
             <b-row>
               <b-col lg="3">
-                <edit-content
+                <edit-fields
+                  @toggle-editing="editing_fields = $event"
                   :sections-array="pageDoc.data.metadata"
                   :markdown="false"
                   empty-message="No fields found. Be the first to add some."
@@ -26,20 +27,16 @@
                   value-input-name="Value"
                   delete-confirmation-message="Are you sure you want to delete this field? This can't be undone."
                   @dataToParent="updateDatabase('', 'metadata', arguments[0])"
+                  :read-only="editing_content"
                 />
               </b-col>
               <b-col lg="9">
                 <edit-content
-                  :sections-array="pageDoc.data.documentation.sections"
-                  :markdown="true"
-                  empty-message="No documentation found. Be the first to add some."
-                  remove-button-text="Delete section"
-                  add-button-text="Add section"
-                  title-input-name="Title"
-                  value-input-name="Documentation"
-                  delete-confirmation-message="Are you sure you want to delete this section? This can't be undone."
+                @toggle-editing="editing_content = $event"
+                :read-only="editing_fields"
+                  :documentation="pageDoc.data.documentation"
                   @dataToParent="
-                    updateDatabase('documentation', 'sections', arguments[0])
+                    updateDatabase('', 'documentation', arguments[0])
                   "
                 />
               </b-col>
@@ -54,34 +51,29 @@
 <script>
 import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
+import EditFields from '@/components/editor/EditFields.vue';
 import ErrorCard from '../components/ErrorCard.vue';
 
+
 export default {
+  components: {
+    ErrorCard,
+    EditContent,
+    EditFields,
+  },
   data() {
     return {
       pageDoc: {},
       couldNotRetrieve: false,
       ready: false,
-      // This condition is to make sure
-      // that we don't send another request before the first one is finished
-      // so that we don't accidentally overwrite data
-      lockSave: false,
+      editing_fields: false,
+      editing_content: false,
     };
   },
   mounted() {
     this.fetchPageData();
   },
   methods: {
-    // This waits for a condition to be true
-    // before finishing execution
-    waitFor(conditionFunction) {
-      const poll = (resolve) => {
-        if (conditionFunction()) resolve();
-        else setTimeout(() => poll(resolve), 100);
-      };
-
-      return new Promise(poll);
-    },
     async fetchPageData() {
       const pageDoc = new PageUpdater(this.$pages_url, this.$route.params.uid);
       try {
@@ -95,27 +87,19 @@ export default {
     },
     async updateDatabase(path, key, eventObj) {
       // Don't send off the request until all other requests are done
-      await this.waitFor(() => this.lockSave === false);
-      this.lockSave = true;
       try {
         await this.pageDoc.updateDataProperty(path, key, eventObj.data);
-        this.lockSave = false;
 
         // This tells the component that emitted this event
         // that the update was successful
         eventObj.callback(true);
       } catch (error) {
-        this.lockSave = false;
         // This tells the component that emitted this event
         // that the update failed
         eventObj.callback(false);
         console.log(error);
       }
     },
-  },
-  components: {
-    ErrorCard,
-    EditContent,
   },
 };
 </script>

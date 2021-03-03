@@ -3,6 +3,7 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import mockAxios from 'axios'; // This comes from the __mocks__ folder
 import PageEditing from '@/views/PageEditing.vue';
 import EditContent from '@/components/editor/EditContent.vue';
+import EditFields from '@/components/editor/EditFields.vue';
 import PageUpdater from '@/components/editor/PageUpdater';
 import mockPageUpdater from '../../moduleMocks/pageUpdaterMock';
 
@@ -24,7 +25,6 @@ const mockUpdater = mockPageUpdater.mock;
 
 const metadataProps = {
   sectionsArray: mockData.metadata,
-  markdown: false,
   emptyMessage: 'No fields found. Be the first to add some.',
   removeButtonText: 'Delete field',
   addButtonText: 'Add field',
@@ -34,14 +34,7 @@ const metadataProps = {
 };
 
 const documentationProps = {
-  sectionsArray: mockData.documentation.sections,
-  markdown: true,
-  emptyMessage: 'No documentation found. Be the first to add some.',
-  removeButtonText: 'Delete section',
-  addButtonText: 'Add section',
-  titleInputName: 'Title',
-  valueInputName: 'Documentation',
-  deleteConfirmationMessage: "Are you sure you want to delete this section? This can't be undone.",
+  documentation: mockData.documentation,
 };
 
 localVue.prototype.$api.get.mockResolvedValue({ data: { number: 4 } });
@@ -71,30 +64,29 @@ describe('PageEditing View', () => {
   });
 
   it('passes correct props to both edit-content components', async () => {
-    const editors = wrapper.findAllComponents(EditContent);
+    const fieldsEditor = wrapper.findComponent(EditFields);
     Object.keys(metadataProps).forEach((key) => {
-      if (typeof metadataProps[key] === 'object') expect(metadataProps[key]).toEqual(editors.at(0).props(key));
+      if (typeof metadataProps[key] === 'object') expect(metadataProps[key]).toEqual(fieldsEditor.props(key));
 
-      else expect(metadataProps[key]).toBe(editors.at(0).props(key));
+      else expect(metadataProps[key]).toBe(fieldsEditor.props(key));
     });
-
+    const contentEditor = wrapper.findComponent(EditContent);
     Object.keys(documentationProps).forEach((key) => {
-      if (typeof documentationProps[key] === 'object') expect(documentationProps[key]).toEqual(editors.at(1).props(key));
+      if (typeof documentationProps[key] === 'object') expect(contentEditor.props(key)).toEqual(documentationProps[key]);
 
-      else expect(documentationProps[key]).toBe(editors.at(1).props(key));
+      else expect(contentEditor.props(key)).toBe(documentationProps[key]);
     });
     // const title = wrapper.find('h1');
     // expect(title.text()).toBe(mockData.title);
   });
 
 
-  async function testEmittedEvents(appWrapper, editor, expectedPath, expectedKey) {
-    const newSections = [{ title: 'hello', text: 'hello' }];
+  async function testEmittedEvents(appWrapper, editor, testData, expectedPath, expectedKey) {
     mockUpdater.updateDataProperty.mockRejectedValue(new Error('Test'));
     const callback = jest.fn();
 
     editor.vm.$emit('dataToParent', {
-      data: newSections,
+      data: testData,
       callback,
     });
 
@@ -102,32 +94,30 @@ describe('PageEditing View', () => {
     await appWrapper.vm.$nextTick();
 
     expect(mockUpdater.updateDataProperty).toHaveBeenCalledWith(
-      expectedPath, expectedKey, newSections,
+      expectedPath, expectedKey, testData,
     );
     expect(callback).toHaveBeenCalledWith(false);
 
     mockUpdater.updateDataProperty.mockResolvedValue();
 
     editor.vm.$emit('dataToParent', {
-      data: newSections,
+      data: testData,
       callback,
     });
     await appWrapper.vm.$nextTick();
     await appWrapper.vm.$nextTick();
     expect(mockUpdater.updateDataProperty).toHaveBeenCalledWith(
-      expectedPath, expectedKey, newSections,
+      expectedPath, expectedKey, testData,
     );
     expect(callback).toHaveBeenCalledWith(true);
   }
 
 
   it('calls correct update methods on emitted events', async () => {
-    const editors = wrapper.findAllComponents(EditContent);
-    const metadataEditor = editors.at(0);
+    const fieldsEditor = wrapper.findComponent(EditFields);
+    await testEmittedEvents(wrapper, fieldsEditor, [{ title: 'hello', text: 'hello' }], '', 'metadata');
 
-    await testEmittedEvents(wrapper, metadataEditor, '', 'metadata');
-
-    const docEditor = editors.at(1);
-    await testEmittedEvents(wrapper, docEditor, 'documentation', 'sections');
+    const contentEditor = wrapper.findComponent(EditContent);
+    await testEmittedEvents(wrapper, contentEditor, 'SAMPLE MARKDOWN', '', 'documentation');
   });
 });

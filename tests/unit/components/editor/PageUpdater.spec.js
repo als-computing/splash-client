@@ -61,9 +61,9 @@ describe('PageUpdater no version argument', () => {
     await testFunctionErrors(TypeError, /^3rd positional argument must be a string, boolean, number, or object$/, 'bar', 'foo');
     await testFunctionErrors(TypeError, /^1st positional argument: title\.bar, must lead to an object, not a primitive$/, 'title.bar', 'foo', {});
     await testFunctionErrors(TypeError, /^1st positional argument: title, must lead to an object, not a primitive$/, 'title', 'foo', {});
-    await testFunctionErrors(TypeError, /^1st positional argument: documentation\.tree, leads to undefined or null property in data$/, 'documentation.tree', 'foo', {});
-    await testFunctionErrors(TypeError, /^1st positional argument: documentation\.__proto__, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'documentation.__proto__', 'foo', {});
-    await testFunctionErrors(TypeError, /^2nd positional argument: hasOwnProperty, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'documentation', 'hasOwnProperty', {});
+    await testFunctionErrors(TypeError, /^1st positional argument: metadata\.tree, leads to undefined or null property in data$/, 'metadata.tree', 'foo', {});
+    await testFunctionErrors(TypeError, /^1st positional argument: metadata\.__proto__, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'metadata.__proto__', 'foo', {});
+    await testFunctionErrors(TypeError, /^2nd positional argument: hasOwnProperty, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'metadata', 'hasOwnProperty', {});
     await testFunctionErrors(Error, /^Cannot update root level property `splash_md`$/, 'splash_md.h.l', 'bar', {});
     await testFunctionErrors(Error, /^Cannot update root level property `splash_md`$/, 'splash_md', 'bar', {});
     await testFunctionErrors(Error, /^Cannot update root level property `splash_md`$/, '', 'splash_md', {});
