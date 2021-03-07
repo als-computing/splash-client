@@ -21,7 +21,7 @@
           <template #cell(insert)="data">
             <b-icon-plus
               class="pointer"
-              @click="plusClickHandler(items[data.index].inTextCitation,items[data.index].DOI)"
+              @click="plusClickHandler(items[data.index].inTextCitation, items[data.index].DOI, items[data.index].citation_html)"
             />
           </template>
         </b-table>
@@ -75,7 +75,7 @@
         <div v-if="createReferenceFlags.alreadyExists">
           <h5>This reference already exists:</h5>
           <span v-html="citationHTML"></span>
-          <b-button @click="plusClickHandler(inTextCitation, referenceDoiToCreate)"
+          <b-button @click="plusClickHandler(inTextCitation, referenceDoiToCreate, citationHTML)"
             >Insert</b-button
           >
         </div>
@@ -170,7 +170,7 @@ export default {
       referenceObject.origin_url = this.referenceResponseObject.request.responseURL;
       try {
         await this.createReference(referenceObject);
-        this.plusClickHandler(this.inTextCitation, doi);
+        this.plusClickHandler(this.inTextCitation, doi, this.citationHTML);
       } catch (e) {
         console.log(e);
         this.createReferenceFlags.creationError = true;
@@ -218,8 +218,8 @@ export default {
         };
       });
     },
-    plusClickHandler(inTextCitation, doi) {
-      this.$emit('clickedRef', inTextCitation, doi);
+    plusClickHandler(inTextCitation, doi, html) {
+      this.$emit('clickedRef', inTextCitation, doi, html);
     },
   },
   components: {
