@@ -38,6 +38,7 @@
                   :read-only="true"
                   :key="'edit-content2' + version"
                 />
+                <additional-references :read-only="true" :references-array="pageDoc.data.more_references" :key="'edit-content2' + version"/>
               </b-col>
             </b-row>
           </b-container>
@@ -50,6 +51,7 @@
 <script>
 import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
+import AdditionalReferences from '@/components/editor/AdditionalReferences.vue';
 import EditFields from '../components/editor/EditFields.vue';
 
 export default {
@@ -125,6 +127,7 @@ export default {
   components: {
     'edit-content': EditContent,
     EditFields,
+    AdditionalReferences,
   },
 };
 </script>

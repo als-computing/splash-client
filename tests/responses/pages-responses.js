@@ -10,6 +10,7 @@ export default {
         },
       ],
       documentation: 'DANGEROUS MARKDOWN<script>alert(\'hahahahahah\')</script>',
+      references: [],
     },
     uid: 'test_uid',
 
@@ -41,6 +42,7 @@ export default {
         },
       ],
       documentation: 'Markdown goes here',
+      references: [{ doi: '10.XX/XXXX', in_text: false }],
     },
   },
 
@@ -58,6 +60,7 @@ export default {
       uid: 'test_uid2',
       metadata: [{ title: 'test', text: 'test' }],
       documentation: 'Test Markdown',
+      references: [{ doi: '10.XX/XXXX', in_text: false }],
     },
   },
 };

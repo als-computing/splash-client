@@ -67,6 +67,7 @@ export default {
           title: this.title,
           documentation: this.defaultDocumentation,
           metadata: [],
+          more_references: [],
         };
         const response = await this.$api.post(this.$pages_url, document);
         this.$router.push({ path: `pages/${response.data.uid}` });
