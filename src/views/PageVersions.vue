@@ -38,7 +38,7 @@
                   :read-only="true"
                   :key="'edit-content2' + version"
                 />
-                <additional-references :read-only="true" :references-array="pageDoc.data.more_references" :key="'edit-content2' + version"/>
+                <additional-references :read-only="true" :references-array="pageDoc.data.references" :key="'edit-content3' + version"/>
               </b-col>
             </b-row>
           </b-container>
