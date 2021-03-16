@@ -68,13 +68,14 @@
               :disabled="saving === true"
               >Cancel</b-button
             >
-            <b-button @mousedown="insert_reference = true" :disabled="!focused"
+            <b-button @mousedown="insert_reference = true" :disabled="!focused || saving"
               >Insert Reference</b-button
             >
             <b-modal v-model="insert_reference" ok-only>
               <add-references
-                :references="items"
-                @clickedRef="insertReference(arguments[0], arguments[1], arguments[2])"
+                @clickedRef="
+                  insertReference(arguments[0], arguments[1], arguments[2])
+                "
               />
             </b-modal>
 
@@ -113,10 +114,10 @@
                 >{{ data.value }}</span
               >
               <span
+                v-else
                 :class="`${
                   $route.hash === `#${data.item.doi}` ? 'raw-html-active' : ''
                 }`"
-                v-else
                 v-html="data.value"
               ></span>
             </a>
@@ -129,14 +130,13 @@
 
 <script>
 import AddReferences from '@/components/editor/AddReferences.vue';
-import Citation from 'citation-js';
 
 import 'codemirror/lib/codemirror.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
 // import '@toast-ui/editor/dist/toastui-editor-viewer.css';
 import { Editor, Viewer } from '@toast-ui/vue-editor';
+import utils from '@/components/editor/utils';
 
-const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
   components: {
     'add-references': AddReferences,
@@ -187,8 +187,7 @@ export default {
       justInsertedReferences: [],
       items: [],
       edited_documentation: '',
-      referencesCount: {},
-      table_fields: [{ key: 'index', label: '' }, 'citation'],
+      table_fields: [{ key: 'index', label: '' }, { key: 'citation', label: 'Citations' }],
       editing: false,
       saving: false,
       refsLoading: false,
@@ -200,7 +199,7 @@ export default {
   },
   mounted() {
     this.edited_documentation = this.documentation;
-    this.buildReferences();
+    this.extractReferences();
     this.$el.addEventListener('mouseover', this.onLinkMouseover);
     this.$el.addEventListener('mouseout', this.onLinkMouseout);
   },
@@ -250,22 +249,6 @@ export default {
     onContentChange() {
       this.edited_documentation = this.$refs['markdown-input'].invoke('getMarkdown');
     },
-    async getDOIFromService(doi) {
-      const response = await this.$doi_service.get(`/${doi}`);
-      return response;
-    },
-    async getSplashReference(doi) {
-      const response = await this.$api.get(`${this.$references_url}/doi/${doi}`);
-      return response;
-    },
-    async createReference(reference) {
-      const response = await this.$api.post(`${this.$references_url}`, reference);
-      return response;
-    },
-    async updateReference(reference, doi) {
-      const response = await this.$api.put(`${this.$references_url}/doi/${doi}`, reference);
-      return response;
-    },
     async removeFocus() {
       this.editing = false;
       this.edited_documentation = this.documentation;
@@ -295,7 +278,7 @@ export default {
         this.saving = true;
         await this.emitToParent(this.edited_documentation);
         this.removeFocus();
-        this.buildReferences();
+        await this.extractReferences();
         this.saving = false;
       } catch (error) {
         this.saving = false;
@@ -310,169 +293,44 @@ export default {
       this.justInsertedReferences.push({ doi, citation: citationHTML });
       this.insert_reference = false;
     },
-
-    extractReferences(text) {
-      const doiRefs = [];
-      // The regex here matches this pattern: [(citation goes here)](#url goes here)
-      const matches = [...text.matchAll(/\[\([^\s].*?\)\]\(#([^\s].*?)\)/g)];
-      matches.forEach((match) => {
-        const doiRef = match[1];
-        if (!this.isDoiFormat(doiRef)) {
-          return;
-        }
-        doiRefs.push(doiRef.trim());
-      });
-      return doiRefs;
-    },
     isDoiFormat(string) {
       if (string.startsWith('10.') && string.includes('/')) {
         return true;
       }
       return false;
     },
-    addReferencesToCount(doiRefs) {
-      doiRefs.forEach((doiRef) => {
-        if (this.referencesCount[doiRef] === undefined) {
-          // assign 1 to the property in this way to preserve
-          // reactivity https://vuejs.org/v2/guide/reactivity.html#For-Objects
-          this.$set(this.referencesCount, doiRef, 1);
-        } else {
-          this.referencesCount[doiRef] += 1;
-        }
-      });
-    },
-    subtractReferencesFromCount(doiRefs) {
-      doiRefs.forEach((doiRef) => {
-        if (this.referencesCount[doiRef] === undefined) {
+
+    extractReferences() {
+      const refsSet = new Set();
+      // The regex here matches this pattern: [(citation goes here)](#url goes here)
+      const matches = [...this.edited_documentation.matchAll(/\[\([^\s].*?\)\]\(#([^\s].*?)\)/g)];
+      matches.forEach((match) => {
+        const doiRef = match[1];
+        if (!this.isDoiFormat(doiRef)) {
           return;
         }
-        this.referencesCount[doiRef] -= 1;
+        refsSet.add(doiRef.trim());
       });
+      this.getReferenceCitations(refsSet);
     },
-    buildReferences() {
-      this.referencesCount = {};
-      const doiRefs = this.extractReferences(this.documentation);
-      this.addReferencesToCount(doiRefs);
+    async getReferenceCitations(referencesSet) {
+      this.refsLoading = true;
+      const items = await Promise.all(
+        [...referencesSet].map(async (doi) => {
+          const reference = this.items.find((elem) => elem.doi === doi);
+          if (reference !== undefined && reference.error === false) {
+            return reference;
+          }
+          return utils.getRefOrCreateIfNotExists(doi);
+        }),
+      );
+      this.refsLoading = false;
+      this.items = items;
     },
     edit() {
       this.editing = true;
       this.curr_mode = 'wysiwyg';
       this.$emit('toggle-editing', true);
-    },
-    /* parseText(htmlText) {
-      const { referencesCount } = this;
-      const renderer = {
-        link(href, title, text) {
-          if (text !== '[reference]') {
-            return false;
-          }
-          const references = Object.keys(referencesCount);
-          // Slice removes the # at the beginning
-          const index = references.indexOf(href.slice(1));
-          if (index === -1) {
-            return false;
-          }
-          return `<a href="${href}">[${index + 1}]</a>`;
-        },
-      };
-      return utils.parseMarkDown(htmlText, renderer);
-    }, */
-  },
-  watch: {
-    // Derive a list of references from the count object
-    // for the b-table to render from
-    referencesCount: {
-      deep: true,
-      async handler() {
-        this.saving = true;
-        this.refsLoading = true;
-        const { referencesCount } = this;
-        const items = await Promise.all(
-          Object.keys(this.referencesCount)
-            .filter((doi) => {
-              if (referencesCount[doi] === 0) {
-                return false;
-              }
-              return true;
-            })
-            .map(async (doi) => {
-              // First search through the previous items array to ensure
-              // that we are not making unnecessary requests
-              const reference = this.items.find((elem) => elem.doi === doi);
-              if (reference !== undefined && reference.error === false) {
-                return reference;
-              }
-              try {
-                const response = await this.getSplashReference(doi);
-                return {
-                  doi,
-                  citation: new Citation(response.data).format('bibliography', CITE_FORMAT),
-                  error: false,
-                };
-              } catch (e) {
-                console.log(e);
-                if (e.response.status !== 404) {
-                  return {
-                    doi,
-                    citation: `Error connecting to server when getting: ${doi}. Try reloading the page.`,
-                    error: true,
-                  };
-                }
-              }
-              let response = {};
-              try {
-                response = await this.getDOIFromService(doi);
-                console.log(response);
-              } catch (e) {
-                console.log(e);
-                if (e.response.status === 404) {
-                  // All the code commented out is when we attempt to create a new empty reference
-                  // If one in the document does not exist. For now we are only notifying the user
-                  // That it doesn't exist rather than making an empty one in the database
-                  // try {
-                  // await this.createReference({ DOI: doi, origin_url: 'none' });
-                  return {
-                    doi,
-                    citation: `Could not find: ${doi}`,
-                    error: true,
-                  };
-                  /* } catch (err) {
-                    return {
-                      doi,
-                      citation: `${doi} COULDN'T SAVE REFERENCE TO SERVER OR GET REFERENCE INFO. FOR THE DEV: IMPLEMENT TRY AGAIN FUNCTIONALITY`,
-                      html: false,
-                    };
-                  } */
-                }
-                return {
-                  doi,
-                  citation: `Error in creating new reference: ${doi}. Try reloading the page.`,
-                  error: true,
-                };
-              }
-              try {
-                response.data.DOI = doi;
-                response.data.origin_url = response.request.responseURL;
-                await this.createReference(response.data);
-                return {
-                  doi,
-                  citation: new Citation(response.data).format('bibliography', CITE_FORMAT),
-                  error: false,
-                };
-              } catch (e) {
-                console.log(e);
-                return {
-                  doi,
-                  citation: `Error in creating new reference: ${doi}. Try reloading the page.`,
-                  error: true,
-                };
-              }
-            }),
-        );
-        this.refsLoading = false;
-        this.saving = false;
-        this.items = items;
-      },
     },
   },
 };

@@ -27,17 +27,23 @@
                   value-input-name="Value"
                   delete-confirmation-message="Are you sure you want to delete this field? This can't be undone."
                   @dataToParent="updateDatabase('', 'metadata', arguments[0])"
-                  :read-only="editing_content"
+                  :read-only="editing_content || editing_references"
                 />
               </b-col>
               <b-col lg="9">
                 <edit-content
-                @toggle-editing="editing_content = $event"
-                :read-only="editing_fields"
+                  @toggle-editing="editing_content = $event"
+                  :read-only="editing_fields || editing_references"
                   :documentation="pageDoc.data.documentation"
                   @dataToParent="
                     updateDatabase('', 'documentation', arguments[0])
                   "
+                />
+                <additional-references
+                  @toggle-editing="editing_references = $event"
+                  :references-array="pageDoc.data.references"
+                  :read-only="editing_fields || editing_content"
+                  @dataToParent=" updateDatabase('', 'references', arguments[0])"
                 />
               </b-col>
             </b-row>
@@ -53,13 +59,14 @@ import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
 import EditFields from '@/components/editor/EditFields.vue';
 import ErrorCard from '../components/ErrorCard.vue';
-
+import AdditionalReferences from '../components/editor/AdditionalReferences.vue';
 
 export default {
   components: {
     ErrorCard,
     EditContent,
     EditFields,
+    AdditionalReferences,
   },
   data() {
     return {
@@ -68,6 +75,7 @@ export default {
       ready: false,
       editing_fields: false,
       editing_content: false,
+      editing_references: false,
     };
   },
   mounted() {
@@ -86,7 +94,6 @@ export default {
       }
     },
     async updateDatabase(path, key, eventObj) {
-      // Don't send off the request until all other requests are done
       try {
         await this.pageDoc.updateDataProperty(path, key, eventObj.data);
 
