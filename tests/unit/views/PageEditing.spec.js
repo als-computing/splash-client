@@ -63,7 +63,7 @@ describe('PageEditing View', () => {
     expect(mockUpdater.init).toBeCalledTimes(1);
   });
 
-  it('passes correct props to both edit-content components', async () => {
+  it('passes correct props to edit-content and edit-field components', async () => {
     const fieldsEditor = wrapper.findComponent(EditFields);
     Object.keys(metadataProps).forEach((key) => {
       if (typeof metadataProps[key] === 'object') expect(metadataProps[key]).toEqual(fieldsEditor.props(key));

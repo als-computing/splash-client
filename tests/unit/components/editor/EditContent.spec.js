@@ -10,7 +10,7 @@ import responses from '../../../responses/pages-responses';
 
 const localVue = createLocalVue();
 
-const noMarkdownPropsData = {
+/* const noMarkdownPropsData = {
   sectionsArray: responses.boron.data.metadata,
   markdown: false,
   emptyMessage: 'No fields found. Be the first to add some.',
@@ -30,7 +30,7 @@ const propsData = {
   titleInputName: 'Name',
   valueInputName: 'Value',
   deleteConfirmationMessage: "Are you sure you want to delete this field? This can't be undone.",
-};
+}; */
 
 // TODO We need to implement testing for when there are errors to ensure
 // that the UI continues to display the data that's in the database, and not the new stuff
