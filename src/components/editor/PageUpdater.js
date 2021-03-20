@@ -76,7 +76,8 @@ export default class PageUpdater {
     const oldValue = data[property];
     data[property] = newValue;
     try {
-      await this._updateDatabase();
+      const response = await this._updateDatabase();
+      this.data.splash_md = response.data.splash_md;
     } catch (error) {
       data[property] = oldValue;
       throw error;
@@ -93,7 +94,7 @@ export default class PageUpdater {
       });
     }
 
-    await Vue.prototype.$api.put(
+    return Vue.prototype.$api.put(
       `${this.endpoint}/${this.uid}`,
       this.data,
       {

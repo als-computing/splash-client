@@ -18,6 +18,10 @@
 </template>
 
 <script>
+import utils from '@/utils';
+
+const { localDateFromUtc } = utils;
+
 const PAGE_SIZE = 5;
 export default {
   props: {
@@ -53,7 +57,7 @@ export default {
           label: 'Created',
           formatter(value) {
             // Append .000Z so that Date knows it's UTC time
-            const date = new Date(`${value}.000Z`);
+            const date = localDateFromUtc(value);
             return date.toLocaleDateString();
           },
         },
@@ -73,7 +77,7 @@ export default {
             // In this case last_edit === create_date
             if (item.page.splash_md.edit_record.length === 0) return '-';
             // Append .000Z so that Date knows it's UTC time
-            const dateObj = new Date(`${value}.000Z`);
+            const dateObj = localDateFromUtc(value);
             const date = dateObj.toLocaleDateString();
             return date;
           },

@@ -42,6 +42,9 @@ localVue.prototype.$api.get.mockResolvedValue({ data: { number: 4 } });
 const wrapper = mount(PageEditing,
   {
     localVue,
+    stubs: {
+      'additional-references': true,
+    },
     mocks: {
       $route: {
         params: { uid: 'test_uid' },

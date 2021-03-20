@@ -50,7 +50,7 @@
                   @click="edit(index, section[textKey], section[titleKey])"
                   v-if="readOnly !== true"
                 >
-                  <u>[edit]</u>
+                  <b-icon-pencil-square class= "mx-1"/>
                 </span>
                 <span
                   class="text-muted"
@@ -148,10 +148,11 @@
 </template>
 
 <script>
-import { BIconPlusCircleFill } from 'bootstrap-vue';
+import { BIconPlusCircleFill, BIconPencilSquare } from 'bootstrap-vue';
 
 export default {
   components: {
+    BIconPencilSquare,
     'b-icon-plus-circle-fill': BIconPlusCircleFill,
   },
   props: {

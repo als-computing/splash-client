@@ -5,7 +5,7 @@
         <div v-if="!editing" align="left">
           <p>
             <span class="pointer" @click="edit()" v-if="readOnly !== true">
-              <u>[edit]</u>
+              <b-icon-pencil-square class="mx-1"/>
             </span>
             <span
               class="text-muted"
@@ -136,12 +136,14 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 // import '@toast-ui/editor/dist/toastui-editor-viewer.css';
 import { Editor, Viewer } from '@toast-ui/vue-editor';
 import utils from '@/components/editor/utils';
+import {BIconPencilSquare} from 'bootstrap-vue';
 
 export default {
   components: {
     'add-references': AddReferences,
     Editor,
     Viewer,
+    BIconPencilSquare,
   },
   props: {
     documentation: String,

@@ -34,7 +34,7 @@ export default {
       .replace(/([^A-Z])([A-Z])/g, '$1 $2') // split cameCase
       .replace(/[_\-]+/g, ' ') // split snake_case and lisp-case
       .toLowerCase()
-      .replace(/(^\w|\b\w)/g, function (m) { return m.toUpperCase(); }) // title case words
+      .replace(/(^\w|\b\w)/g, (m) => m.toUpperCase()) // title case words
       .replace(/\s+/g, ' ') // collapse repeated whitespace
       .replace(/^\s+|\s+$/, ''); // remove leading/trailing whitespace
   },
@@ -49,5 +49,10 @@ export default {
       }
       return 0;
     });
+  },
+
+  localDateFromUtc(utcDate) {
+    const localDate = new Date(`${utcDate}.000Z`);
+    return localDate;
   },
 };

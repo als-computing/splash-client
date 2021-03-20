@@ -8,19 +8,27 @@
       >We couldn't retrieve the document. Check the url or your internet
       connection and reload.</b-modal
     >
-
     <div v-if="ready">
-      <b-button :to="`/pages/${$route.params.uid}`" class="m-3"
-        >Go back to editing</b-button
-      >
-      <div>
-        <h1>{{ pageDoc.data.title }}</h1>
-        <b-pagination-nav
-          :link-gen="linkGen"
-          :number-of-pages="numVersions"
-          use-router
-          align="center"
-        ></b-pagination-nav>
+       <b-container fluid>
+        <b-row align-h="end">
+          <b-col lg="4" align-self="end" class>
+       <h1>{{ pageDoc.data.title }}</h1>
+        <b-button :to="`/pages/${$route.params.uid}`"
+                >Go back to editing</b-button
+              >
+              <b-pagination-nav
+                align="center"
+                class="my-1"
+                :link-gen="linkGen"
+                :number-of-pages="numVersions"
+                use-router
+              ></b-pagination-nav>
+       </b-col>
+       <b-col lg="4" align-self="end">
+         <meta-data :splash-md="pageDoc.data.splash_md" class="ml-lg-5"/>
+          </b-col>
+        </b-row>
+     </b-container>
         <b-jumbotron>
           <b-container fluid>
             <b-row>
@@ -38,7 +46,11 @@
                   :read-only="true"
                   :key="'edit-content2' + version"
                 />
-                <additional-references :read-only="true" :references-array="pageDoc.data.references" :key="'edit-content3' + version"/>
+                <additional-references
+                  :read-only="true"
+                  :references-array="pageDoc.data.references"
+                  :key="'edit-content3' + version"
+                />
               </b-col>
             </b-row>
           </b-container>
@@ -52,6 +64,7 @@
 import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
 import AdditionalReferences from '@/components/editor/AdditionalReferences.vue';
+import MetaData from '@/components/editor/MetaData.vue';
 import EditFields from '../components/editor/EditFields.vue';
 
 export default {
@@ -62,6 +75,8 @@ export default {
       ready: false,
       numVersions: undefined,
       version: undefined,
+      creatorName: '-',
+      editorName: '',
     };
   },
   // This is only called when we first navigate to the component
@@ -85,8 +100,9 @@ export default {
     },
     validateRoute() {
       if (
-        !Number.isInteger(Number(this.$route.params.version)
-        || Number(this.$route.params.version) <= 0)
+        !Number.isInteger(
+          Number(this.$route.params.version) || Number(this.$route.params.version) <= 0,
+        )
       ) {
         return false;
       }
@@ -112,7 +128,11 @@ export default {
       this.fetchPageData();
     },
     async fetchPageData() {
-      const pageDoc = new PageUpdater(this.$pages_url, this.$route.params.uid, Number(this.$route.params.version));
+      const pageDoc = new PageUpdater(
+        this.$pages_url,
+        this.$route.params.uid,
+        Number(this.$route.params.version),
+      );
       try {
         await pageDoc.init();
         this.pageDoc = pageDoc;
@@ -128,6 +148,8 @@ export default {
     'edit-content': EditContent,
     EditFields,
     AdditionalReferences,
+    MetaData,
+    MetaData,
   },
 };
 </script>
