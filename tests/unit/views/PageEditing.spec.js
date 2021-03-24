@@ -136,6 +136,8 @@ describe('PageEditing View', () => {
   it('calls correct update methods on emitted events', async () => {
     const fieldsEditor = wrapper.findComponent(EditFields);
     await testEmittedEvents(wrapper, fieldsEditor, '', 'metadata', [{ title: 'hello', text: 'hello' }], undefined);
+    // We remount here, because testing the etag error will cause the wrapper to not call
+    // updateDataProperty automatically
     wrapper = mount(PageEditing,
       {
         localVue,
