@@ -15,6 +15,7 @@ export default {
 
       splash_md: {
         creator: '969b56eb-7ca2-464b-83ad-5d879aa3aa0f',
+        etag: 'aaaaaa-aaaa-aaaaa-aaaa-aaaaaaaa',
         create_date: '2021-02-04T08:11:41',
         last_edit: '2021-02-04T08:11:41',
         edit_record: [],
@@ -26,6 +27,7 @@ export default {
   boron: {
     data: {
       splash_md: {
+        etag: 'bbbbb-bbbb-bbbbb-bbbbb-bbbbbbb',
         creator: 'creator_uid',
         create_date: 'Creation Date',
         last_edit: 'Last Time Edited',
@@ -49,6 +51,7 @@ export default {
   boron2: {
     data: {
       splash_md: {
+        etag: 'ccccc-ddddd-ffff-eeeee',
         creator: 'creator_uid2',
         create_date: 'CreationTime2',
         last_edit: 'LastEditTime2',

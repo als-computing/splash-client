@@ -50,7 +50,7 @@
                   @click="edit(index, section[textKey], section[titleKey])"
                   v-if="readOnly !== true"
                 >
-                  <b-icon-pencil-square class= "mx-1"/>
+                  <b-icon-pencil-square class="mx-1" />
                 </span>
                 <span
                   class="text-muted"
@@ -149,6 +149,8 @@
 
 <script>
 import { BIconPlusCircleFill, BIconPencilSquare } from 'bootstrap-vue';
+import utils from './utils';
+const { dataToParent } = utils;
 
 export default {
   components: {
@@ -224,36 +226,19 @@ export default {
       this.edited_data[this.textKey] = '';
       this.$emit('toggle-editing', false);
     },
-    async emitToParent(data) {
-      // This emits an object with the altered data section, and
-      // a callback for the parent component to call with a boolean as the argument,
-      // so that this component can know whether not the data was saved succesfully
-      // if the data was succesfully saved then the code will execute as normal.
-      // if not then this function will throw an error
-      // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
-      return new Promise((resolve, reject) =>
-        this.$emit('dataToParent', {
-          data,
-          callback: (success) => {
-            if (success) {
-              resolve();
-            } else {
-              reject();
-            }
-          },
-        }),
-      );
-    },
     async emitEdit(indexChanged, originalSection) {
       try {
         this.saving = true;
         this.sections[indexChanged] = { ...this.edited_data };
-        await this.emitToParent(this.sections);
+        await dataToParent({ thisObj: this, data: this.sections });
         this.removeFocus();
         this.saving = false;
       } catch (error) {
         this.sections[indexChanged] = originalSection;
         this.saving = false;
+        // In some cases, we only want the top level component to
+        // display the error message
+        if (error.displayMessage === false) return;
         this.couldNotSave = true;
         console.log(error);
       }
@@ -279,7 +264,7 @@ export default {
       try {
         // delete from array without leaving a hole
         this.sections.splice(index, 1);
-        await this.emitToParent(this.sections);
+        await dataToParent({ thisObj: this, data: this.sections });
         this.removeFocus();
         this.saving = false;
       } catch (error) {

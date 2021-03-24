@@ -82,6 +82,7 @@ describe('PageUpdater no version argument', () => {
     const mockPutResponse = { data: { uid: 'testing_uid', splash_md: { date: 'TEST DATE' } } };
     Vue.prototype.$api.put.mockResolvedValue(mockPutResponse);
 
+    const { etag } = testUpdater.data.splash_md;
     // Deep copy
     const apiArg = JSON.parse(JSON.stringify(testUpdater.data));
     apiArg.metadata = [{ title: 'test', text: 'test' }];
@@ -91,6 +92,8 @@ describe('PageUpdater no version argument', () => {
     expect(Vue.prototype.$api.put.mock.calls[0][0]).toEqual(`${mockEndpoint}/${mockUid}`);
     // Check to make sure that the data property was passed to the api
     expect(Vue.prototype.$api.put.mock.calls[0][1]).toBe(testUpdater.data);
+    // Check to make sure that the etag is included in the headers
+    expect(Vue.prototype.$api.put.mock.calls[0][2].headers).toEqual({ 'If-Match': etag });
 
     // Ensure that the function in axios's transform request array argument removes the appropriate keys
     // from the document
@@ -101,12 +104,21 @@ describe('PageUpdater no version argument', () => {
     delete apiArg.splash_md;
     expect(cleanDoc).toEqual(apiArg);
 
-    // Test to make sure that the final data prop is what we expect
+    // Test to make sure that the final data prop matches what we expect
     const expectedData = apiArg;
     expectedData.splash_md = mockPutResponse.data.splash_md;
-    // Restore expectedData and compare with the updated data prop
     expectedData.uid = uid;
     expect(testUpdater.data).toEqual(expectedData);
+  });
+  it('makes a request with the correct etag when it is passed as an argument', async () => {
+    const mockPutResponse = { data: { uid: 'testing_uid', splash_md: { date: 'TEST DATE' } } };
+    Vue.prototype.$api.put.mockResolvedValue(mockPutResponse);
+
+    const CUSTOM_ETAG = "I'M THE NEW ETAG";
+    await testUpdater.updateDataProperty('', 'metadata', [{ title: 'test', text: 'test' }], CUSTOM_ETAG);
+
+    // Check to make sure that the etag is included in the headers
+    expect(Vue.prototype.$api.put.mock.calls[0][2].headers).toEqual({ 'If-Match': CUSTOM_ETAG });
   });
 });
 

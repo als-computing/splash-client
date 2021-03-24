@@ -9,7 +9,6 @@ import mockPageUpdater from '../../moduleMocks/pageUpdaterMock';
 
 jest.mock('@/components/editor/PageUpdater', () => jest.fn().mockImplementation(() => (mockPageUpdater.mock)));
 
-
 const localVue = createLocalVue();
 
 localVue.use(BootstrapVue);
@@ -83,9 +82,10 @@ describe('PageEditing View', () => {
     // expect(title.text()).toBe(mockData.title);
   });
 
-
   async function testEmittedEvents(appWrapper, editor, testData, expectedPath, expectedKey) {
-    mockUpdater.updateDataProperty.mockRejectedValue(new Error('Test'));
+    let error = new Error('Test');
+    error.response = { status: 500, data: { detail: 'something went wrong' } };
+    mockUpdater.updateDataProperty.mockRejectedValue(error);
     const callback = jest.fn();
 
     editor.vm.$emit('dataToParent', {
@@ -99,7 +99,7 @@ describe('PageEditing View', () => {
     expect(mockUpdater.updateDataProperty).toHaveBeenCalledWith(
       expectedPath, expectedKey, testData,
     );
-    expect(callback).toHaveBeenCalledWith(false);
+    expect(callback).toHaveBeenCalledWith({ displayMessage: true, success: false });
 
     mockUpdater.updateDataProperty.mockResolvedValue();
 
@@ -112,9 +112,24 @@ describe('PageEditing View', () => {
     expect(mockUpdater.updateDataProperty).toHaveBeenCalledWith(
       expectedPath, expectedKey, testData,
     );
-    expect(callback).toHaveBeenCalledWith(true);
-  }
+    expect(callback).toHaveBeenCalledWith({ success: true });
 
+    // Test that on 412 etag errors we pass the correct argument
+    error = new Error('412 axios error');
+    error.response = { status: 412, data: { err: 'etag_mismatch_error', etag: 'test_etag' } };
+    mockUpdater.updateDataProperty.mockRejectedValue(error);
+
+    editor.vm.$emit('dataToParent', {
+      data: testData,
+      callback,
+    });
+    await appWrapper.vm.$nextTick();
+    await appWrapper.vm.$nextTick();
+    expect(mockUpdater.updateDataProperty).toHaveBeenCalledWith(
+      expectedPath, expectedKey, testData,
+    );
+    expect(callback).toHaveBeenCalledWith({ success: false, displayMessage: false });
+  }
 
   it('calls correct update methods on emitted events', async () => {
     const fieldsEditor = wrapper.findComponent(EditFields);
