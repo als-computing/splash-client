@@ -1,28 +1,10 @@
-const data = {
-
-  species: 'Boron',
-  metadata: [
-    {
-      title: 'produced_water_relevance',
-      text: 'Toxicity (319)',
-    },
-    {
-      title: 'origin',
-      text: 'Presence in geologic formations (196)',
-    },
-    {
-      title: 'fundamental_relevance',
-      text: 'Uncharged at neutral pH (196)',
-    },
-  ],
-  documentation: "MARKDOWN",
-};
+import pages from '../responses/pages-responses';
 
 export default {
   mock: {
-    data,
+    data: pages.boron.data,
     init: jest.fn(),
     updateDataProperty: jest.fn(),
   },
-  data,
+  data: pages.boron.data,
 };

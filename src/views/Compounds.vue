@@ -6,6 +6,7 @@
       form-text="Page Title"
       page-type="compound"
       modal-title="Enter Compound Name"
+      :hide-category="true"
       :default-documentation=defaultDocumentation
     />
   </div>

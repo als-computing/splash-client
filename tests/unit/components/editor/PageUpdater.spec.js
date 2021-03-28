@@ -2,7 +2,6 @@ import PageUpdater from '@/components/editor/PageUpdater';
 import Vue from 'vue';
 import responses from '../../../responses/pages-responses';
 
-
 jest.mock('vue');
 Vue.prototype.$api = {
   get: jest.fn(),
@@ -28,13 +27,11 @@ describe('PageUpdater class construction', () => {
 });
 
 describe('PageUpdater no version argument', () => {
-
   beforeEach(() => {
     Vue.prototype.$api.get.mockClear();
     Vue.prototype.$api.put.mockClear();
   });
   const testUpdater = new PageUpdater(mockEndpoint, mockUid);
-
 
   it('initializes by sending the correct axios request', async () => {
     // I do JSON.parse(JSON.stringify(mockData)) to deep clone so that any edits
@@ -82,30 +79,46 @@ describe('PageUpdater no version argument', () => {
   });
 
   it('passes the correct args to axios, axios transforms the request correctly, and it updates data prop accordingly', async () => {
-    Vue.prototype.$api.put.mockReset();
+    const mockPutResponse = { data: { uid: 'testing_uid', splash_md: { date: 'TEST DATE' } } };
+    Vue.prototype.$api.put.mockResolvedValue(mockPutResponse);
 
-    await testUpdater.updateDataProperty('', 'metadata', [{ title: 'test', text: 'test' }]);
+    const { etag } = testUpdater.data.splash_md;
     // Deep copy
-    const expectedData = JSON.parse(JSON.stringify(mockResponse.data));
-    expectedData.metadata = [{ title: 'test', text: 'test' }];
+    const apiArg = JSON.parse(JSON.stringify(testUpdater.data));
+    apiArg.metadata = [{ title: 'test', text: 'test' }];
+    await testUpdater.updateDataProperty('', 'metadata', [{ title: 'test', text: 'test' }]);
 
     // Check to make sure the correct arguments are passed to axios
     expect(Vue.prototype.$api.put.mock.calls[0][0]).toEqual(`${mockEndpoint}/${mockUid}`);
-    expect(Vue.prototype.$api.put.mock.calls[0][1]).toEqual(expectedData);
+    // Check to make sure that the data property was passed to the api
+    expect(Vue.prototype.$api.put.mock.calls[0][1]).toBe(testUpdater.data);
+    // Check to make sure that the etag is included in the headers
+    expect(Vue.prototype.$api.put.mock.calls[0][2].headers).toEqual({ 'If-Match': etag });
 
     // Ensure that the function in axios's transform request array argument removes the appropriate keys
     // from the document
     const removeVersionAndUid = Vue.prototype.$api.put.mock.calls[0][2].transformRequest[0];
-    const cleanDoc = JSON.parse(removeVersionAndUid(expectedData));
-    const { uid, splash_md } = expectedData;
-    delete expectedData.uid;
-    delete expectedData.splash_md;
-    expect(cleanDoc).toEqual(expectedData);
+    const cleanDoc = JSON.parse(removeVersionAndUid(apiArg));
+    const { uid } = apiArg;
+    delete apiArg.uid;
+    delete apiArg.splash_md;
+    expect(cleanDoc).toEqual(apiArg);
 
-    // Restore expectedData and compare with the updated data prop
+    // Test to make sure that the final data prop matches what we expect
+    const expectedData = apiArg;
+    expectedData.splash_md = mockPutResponse.data.splash_md;
     expectedData.uid = uid;
-    expectedData.splash_md = splash_md;
     expect(testUpdater.data).toEqual(expectedData);
+  });
+  it('makes a request with the correct etag when it is passed as an argument', async () => {
+    const mockPutResponse = { data: { uid: 'testing_uid', splash_md: { date: 'TEST DATE' } } };
+    Vue.prototype.$api.put.mockResolvedValue(mockPutResponse);
+
+    const CUSTOM_ETAG = "I'M THE NEW ETAG";
+    await testUpdater.updateDataProperty('', 'metadata', [{ title: 'test', text: 'test' }], CUSTOM_ETAG);
+
+    // Check to make sure that the etag is included in the headers
+    expect(Vue.prototype.$api.put.mock.calls[0][2].headers).toEqual({ 'If-Match': CUSTOM_ETAG });
   });
 });
 

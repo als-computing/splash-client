@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <b-navbar toggleable="lg" type="dark" variant="dark">
+    <!--This v-if is here because using the router query we may want to hide the navbar
+    on some occasions.-->
+    <b-navbar toggleable="lg" type="dark" variant="dark" v-show="$route.query.hideNavbar !== 'true'">
       <b-navbar-brand to="/" v-if="!error">Splash</b-navbar-brand>
       <!-- The reason for the href is so that if there is an error it will actually reload
       when navigating to the splash home page rather than just changing the router-view, which is hidden at
@@ -15,7 +17,7 @@
           <b-navbar-nav>
             <!--
             <b-nav-item v-bind:to="'/'">Home</b-nav-item> -->
-            <b-nav-item v-bind:to="'/runs'">Runs</b-nav-item>
+            <b-nav-item v-bind:to="'/pages'">Pages</b-nav-item>
           </b-navbar-nav>
         </div>
       </b-collapse>

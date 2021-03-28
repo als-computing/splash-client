@@ -39,6 +39,7 @@ Vue.use({
     Vue.prototype.$compounds_url = 'pages/page_type/compound';
     Vue.prototype.$pages_url = 'pages';
     Vue.prototype.$runs_url = 'runs';
+    Vue.prototype.$users_url = 'users';
     Vue.prototype.$login_url = 'idtokensignin';
     Vue.prototype.$references_url = 'references';
     Vue.prototype.$doi_service_url = '';

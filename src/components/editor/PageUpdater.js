@@ -1,6 +1,13 @@
 /* eslint-disable no-underscore-dangle */
 import Vue from 'vue';
 
+function removeFromStringify(data) {
+  return JSON.stringify(data, (key, value) => {
+    if (key === 'splash_md') return undefined;
+    if (key === 'uid') return undefined;
+    return value;
+  });
+}
 export default class PageUpdater {
   constructor(endpoint, uid, version = undefined) {
     this.uid = uid;
@@ -26,7 +33,7 @@ export default class PageUpdater {
     throw Error('Not implemented');
   }
 
-  async updateDataProperty(path, property, newValue) {
+  async updateDataProperty(path, property, newValue, etag) {
     // The argument path should be a `string`, the argument `property` should also be a string, and
     // newValue should be what we want the new value of the specified property to be.
     // For example say I had a document like thus: {'data':{ 'sample': {'list':[]}}}
@@ -76,28 +83,25 @@ export default class PageUpdater {
     const oldValue = data[property];
     data[property] = newValue;
     try {
-      await this._updateDatabase();
+      const response = await this._updateDatabase(etag);
+      this.data.splash_md = response.data.splash_md;
     } catch (error) {
       data[property] = oldValue;
       throw error;
     }
   }
 
+  async _updateDatabase(etag) {
+    let etagVal = etag;
+    if (etag === undefined) etagVal = this.data.splash_md.etag;
+    const headers = { 'If-Match': etagVal };
 
-  async _updateDatabase() {
-    function removeFromStringify(data) {
-      return JSON.stringify(data, (key, value) => {
-        if (key === 'splash_md') return undefined;
-        if (key === 'uid') return undefined;
-        return value;
-      });
-    }
-
-    await Vue.prototype.$api.put(
+    return Vue.prototype.$api.put(
       `${this.endpoint}/${this.uid}`,
       this.data,
       {
         transformRequest: [removeFromStringify],
+        headers,
       },
     );
   }
