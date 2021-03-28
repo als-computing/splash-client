@@ -5,7 +5,7 @@
         <div v-if="!editing" align="left">
           <p>
             <span class="pointer" @click="edit()" v-if="readOnly !== true">
-              <u>[edit]</u>
+              <b-icon-pencil-square class="mx-1" />
             </span>
             <span
               class="text-muted"
@@ -68,7 +68,9 @@
               :disabled="saving === true"
               >Cancel</b-button
             >
-            <b-button @mousedown="insert_reference = true" :disabled="!focused || saving"
+            <b-button
+              @mousedown="insert_reference = true"
+              :disabled="!focused || saving"
               >Insert Reference</b-button
             >
             <b-modal v-model="insert_reference" ok-only>
@@ -136,12 +138,16 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 // import '@toast-ui/editor/dist/toastui-editor-viewer.css';
 import { Editor, Viewer } from '@toast-ui/vue-editor';
 import utils from '@/components/editor/utils';
+import { BIconPencilSquare } from 'bootstrap-vue';
+
+const { dataToParent } = utils;
 
 export default {
   components: {
     'add-references': AddReferences,
     Editor,
     Viewer,
+    BIconPencilSquare,
   },
   props: {
     documentation: String,
@@ -187,7 +193,10 @@ export default {
       justInsertedReferences: [],
       items: [],
       edited_documentation: '',
-      table_fields: [{ key: 'index', label: '' }, { key: 'citation', label: 'Citations' }],
+      table_fields: [
+        { key: 'index', label: '' },
+        { key: 'citation', label: 'Citations' },
+      ],
       editing: false,
       saving: false,
       refsLoading: false,
@@ -255,35 +264,22 @@ export default {
       this.justInsertedReferences = [];
       this.$emit('toggle-editing', false);
     },
-    async emitToParent(data) {
-      // This emits an object with the altered data, and
-      // a callback for the parent component to call with a boolean as the argument,
-      // so that this component can know whether not the data was saved succesfully
-      // if the data was succesfully saved then the code will execute as normal.
-      // if not then this function will throw an error
-      // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
-      return new Promise((resolve, reject) => this.$emit('dataToParent', {
-        data,
-        callback: (success) => {
-          if (success) {
-            resolve();
-          } else {
-            reject();
-          }
-        },
-      }));
-    },
+
     async emitEdit() {
       try {
         this.saving = true;
-        await this.emitToParent(this.edited_documentation);
+        await dataToParent({ thisObj: this, data: this.edited_documentation });
         this.removeFocus();
-        await this.extractReferences();
+        this.extractReferences();
         this.saving = false;
       } catch (error) {
         this.saving = false;
-        this.couldNotSave = true;
         console.log(error);
+        // In some cases, we only want the top level component to
+        // display the error message
+        if (error.displayMessage === false) return;
+
+        this.couldNotSave = true;
       }
     },
 

@@ -11,6 +11,7 @@
     <list-pages
       :page-type="pageType"
       v-if="error === false"
+      :hide-category="hideCategory"
       @errorConnecting="error = true"
     />
     <b-container>
@@ -33,6 +34,7 @@ export default {
     pageType: String,
     modalTitle: String,
     defaultDocumentation: String,
+    hideCategory: Boolean,
   },
   data() {
     return {

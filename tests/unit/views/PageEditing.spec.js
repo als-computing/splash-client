@@ -9,7 +9,6 @@ import mockPageUpdater from '../../moduleMocks/pageUpdaterMock';
 
 jest.mock('@/components/editor/PageUpdater', () => jest.fn().mockImplementation(() => (mockPageUpdater.mock)));
 
-
 const localVue = createLocalVue();
 
 localVue.use(BootstrapVue);
@@ -39,9 +38,12 @@ const documentationProps = {
 
 localVue.prototype.$api.get.mockResolvedValue({ data: { number: 4 } });
 
-const wrapper = mount(PageEditing,
+let wrapper = mount(PageEditing,
   {
     localVue,
+    stubs: {
+      'additional-references': true,
+    },
     mocks: {
       $route: {
         params: { uid: 'test_uid' },
@@ -80,9 +82,10 @@ describe('PageEditing View', () => {
     // expect(title.text()).toBe(mockData.title);
   });
 
-
-  async function testEmittedEvents(appWrapper, editor, testData, expectedPath, expectedKey) {
-    mockUpdater.updateDataProperty.mockRejectedValue(new Error('Test'));
+  async function testEmittedEvents(appWrapper, editor, expectedPath, expectedKey, testData, expectedEtag) {
+    let error = new Error('Test');
+    error.response = { status: 500, data: { err: 'something went wrong' } };
+    mockUpdater.updateDataProperty.mockRejectedValue(error);
     const callback = jest.fn();
 
     editor.vm.$emit('dataToParent', {
@@ -92,11 +95,13 @@ describe('PageEditing View', () => {
 
     await appWrapper.vm.$nextTick();
     await appWrapper.vm.$nextTick();
+    await appWrapper.vm.$nextTick();
+    await appWrapper.vm.$nextTick();
 
     expect(mockUpdater.updateDataProperty).toHaveBeenCalledWith(
-      expectedPath, expectedKey, testData,
+      expectedPath, expectedKey, testData, expectedEtag,
     );
-    expect(callback).toHaveBeenCalledWith(false);
+    expect(callback).toHaveBeenCalledWith({ displayMessage: true, success: false });
 
     mockUpdater.updateDataProperty.mockResolvedValue();
 
@@ -107,17 +112,47 @@ describe('PageEditing View', () => {
     await appWrapper.vm.$nextTick();
     await appWrapper.vm.$nextTick();
     expect(mockUpdater.updateDataProperty).toHaveBeenCalledWith(
-      expectedPath, expectedKey, testData,
+      expectedPath, expectedKey, testData, expectedEtag,
     );
-    expect(callback).toHaveBeenCalledWith(true);
-  }
+    expect(callback).toHaveBeenCalledWith({ success: true });
 
+    // Test that on 412 etag errors we pass the correct argument
+    error = new Error('412 axios error');
+    error.response = { status: 412, data: { err: 'etag_mismatch_error', etag: 'test_etag' } };
+    mockUpdater.updateDataProperty.mockRejectedValue(error);
+
+    editor.vm.$emit('dataToParent', {
+      data: testData,
+      callback,
+    });
+    await appWrapper.vm.$nextTick();
+    await appWrapper.vm.$nextTick();
+    expect(mockUpdater.updateDataProperty).toHaveBeenCalledWith(
+      expectedPath, expectedKey, testData, expectedEtag,
+    );
+    expect(callback).toHaveBeenCalledWith({ success: false, displayMessage: false });
+  }
 
   it('calls correct update methods on emitted events', async () => {
     const fieldsEditor = wrapper.findComponent(EditFields);
-    await testEmittedEvents(wrapper, fieldsEditor, [{ title: 'hello', text: 'hello' }], '', 'metadata');
-
+    await testEmittedEvents(wrapper, fieldsEditor, '', 'metadata', [{ title: 'hello', text: 'hello' }], undefined);
+    // We remount here, because testing the etag error will cause the wrapper to not call
+    // updateDataProperty automatically
+    wrapper = mount(PageEditing,
+      {
+        localVue,
+        stubs: {
+          'additional-references': true,
+        },
+        mocks: {
+          $route: {
+            params: { uid: 'test_uid' },
+            query: {},
+          },
+        },
+      });
+    await wrapper.vm.$nextTick();
     const contentEditor = wrapper.findComponent(EditContent);
-    await testEmittedEvents(wrapper, contentEditor, 'SAMPLE MARKDOWN', '', 'documentation');
+    await testEmittedEvents(wrapper, contentEditor, '', 'documentation', 'SAMPLE MARKDOWN', undefined);
   });
 });

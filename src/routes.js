@@ -11,6 +11,7 @@ import ListCatalogs from './views/runs/ListCatalogs.vue';
 import ListRuns from './views/runs/ListRuns.vue';
 import Run from './views/runs/Run.vue';
 import NotFound from './views/404.vue';
+import Page from './views/Page.vue';
 
 export default [
   {
@@ -67,6 +68,14 @@ export default [
     path: '/pages/:uid/v/:version?',
     name: 'page-versions',
     component: PageVersions,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/pages/:uid/view',
+    name: 'page-view',
+    component: Page,
     meta: {
       requiresAuth: true,
     },
