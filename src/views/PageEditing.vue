@@ -24,7 +24,7 @@
       >
       <div class="d-block"><h3>Someone changed this document while you were editing.</h3></div>
       <template #modal-footer="{ok}">
-        <b-button @click="openWindow(); ok();">Open updated document</b-button>
+        <b-button @click="openWindow(); ok();">View their changes</b-button>
       </template>
     </b-modal>
     <div v-if="ready === true">
@@ -36,9 +36,11 @@
             @toggle-editing="editing_title = $event"
             @dataToParent="updateDatabase('', 'title', arguments[0])"
             :read-only="editing_content || editing_references || editing_title"/>
-             <b-button :to="$route.path + '/v/'"
+             <b-button-group>
+               <b-button v-if="newEtag !== undefined" @click="openWindow(); ok();">View changes</b-button>
+               <b-button :to="$route.path + '/v/'"
               >View past versions</b-button
-            >
+            > </b-button-group>
           </b-col>
           <b-col lg="4" align-self="end">
             <meta-data :splash-md="pageDoc.data.splash_md" class="ml-lg-5 mt-3"/>
@@ -116,7 +118,7 @@ export default {
       editing_references: false,
       editing_title: false,
       couldNotSaveTitle: false,
-      openedWindow: undefined,
+      openedWindow: { closed: true },
       newEtag: undefined,
     };
   },
@@ -143,7 +145,7 @@ export default {
         );
         if (value === true) {
           this.updateDatabase(path, key, eventObj, this.newEtag);
-          this.openedWindow.close();
+          this.closeWindow();
         } else {
           eventObj.callback({ success: false, displayMessage: false });
         }
@@ -173,9 +175,12 @@ export default {
         eventObj.callback({ success: false, displayMessage: true });
       }
     },
+    closeWindow() {
+      this.openedWindow.close();
+    },
     openWindow() {
-      if (this.openedWindow !== undefined) {
-        this.openedWindow.close();
+      if (this.openedWindow.closed !== true) {
+        this.closeWindow();
       }
       this.openedWindow = window.open(
         `${this.$route.params.uid}/view?hideNavbar=true`,
