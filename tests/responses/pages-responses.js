@@ -3,12 +3,6 @@ export default {
     data: {
       title: 'Boron',
       page_type: 'dangerous',
-      metadata: [
-        {
-          title: 'contributors',
-          text: 'Matt Landsman, Lauren Nalley',
-        },
-      ],
       documentation: 'DANGEROUS MARKDOWN<script>alert(\'hahahahahah\')</script>',
       references: [],
       uid: 'test_uid',
@@ -37,12 +31,6 @@ export default {
       title: 'Title of Document',
       page_type: 'Type of Page',
       uid: 'test_uid',
-      metadata: [
-        {
-          title: 'Title of Field',
-          text: 'Value of Field',
-        },
-      ],
       documentation: 'Markdown goes here',
       references: [{ doi: '10.XX/XXXX', in_text: false }],
     },
@@ -61,7 +49,6 @@ export default {
       title: 'Document 2 Title',
       page_type: 'Type2 of page',
       uid: 'test_uid2',
-      metadata: [{ title: 'test', text: 'test' }],
       documentation: 'Test Markdown',
       references: [{ doi: '10.XX/XXXX', in_text: false }],
     },
