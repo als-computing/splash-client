@@ -32,15 +32,7 @@
         <b-jumbotron>
           <b-container fluid>
             <b-row>
-              <b-col lg="3">
-                <edit-fields
-                  :sections-array="pageDoc.data.metadata"
-                  :read-only="true"
-                  :key="'edit-content1' + version"
-                  empty-message="No fields in this version."
-                />
-              </b-col>
-              <b-col lg="9">
+              <b-col>
                 <edit-content
                   :documentation="pageDoc.data.documentation"
                   :read-only="true"
@@ -65,7 +57,6 @@ import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
 import AdditionalReferences from '@/components/editor/AdditionalReferences.vue';
 import MetaData from '@/components/editor/MetaData.vue';
-import EditFields from '../components/editor/EditFields.vue';
 
 export default {
   data() {
@@ -146,9 +137,7 @@ export default {
   },
   components: {
     'edit-content': EditContent,
-    EditFields,
     AdditionalReferences,
-    MetaData,
     MetaData,
   },
 };

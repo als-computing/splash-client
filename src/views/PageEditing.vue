@@ -50,25 +50,10 @@
       <b-jumbotron>
         <b-container fluid>
           <b-row>
-            <b-col lg="3">
-              <edit-fields
-                @toggle-editing="editing_fields = $event"
-                :sections-array="pageDoc.data.metadata"
-                :markdown="false"
-                empty-message="No fields found. Be the first to add some."
-                remove-button-text="Delete field"
-                add-button-text="Add field"
-                title-input-name="Name"
-                value-input-name="Value"
-                delete-confirmation-message="Are you sure you want to delete this field? This can't be undone."
-                @dataToParent="callOnDataEmit('', 'metadata', arguments[0])"
-                :read-only="editing_content || editing_references || editing_title"
-              />
-            </b-col>
-            <b-col lg="9">
+            <b-col>
               <edit-content
                 @toggle-editing="editing_content = $event"
-                :read-only="editing_fields || editing_references || editing_title"
+                :read-only="editing_references || editing_title"
                 :documentation="pageDoc.data.documentation"
                 @dataToParent="
                   callOnDataEmit('', 'documentation', arguments[0])
@@ -77,7 +62,7 @@
               <additional-references
                 @toggle-editing="editing_references = $event"
                 :references-array="pageDoc.data.references"
-                :read-only="editing_fields || editing_content || editing_title"
+                :read-only="editing_content || editing_title"
                 @dataToParent="callOnDataEmit('', 'references', arguments[0])"
               />
             </b-col>
@@ -92,7 +77,6 @@
 <script>
 import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
-import EditFields from '@/components/editor/EditFields.vue';
 import EditTitle from '@/components/editor/EditTitle.vue';
 import ErrorCard from '../components/ErrorCard.vue';
 import AdditionalReferences from '../components/editor/AdditionalReferences.vue';
@@ -103,7 +87,6 @@ export default {
     EditTitle,
     ErrorCard,
     EditContent,
-    EditFields,
     AdditionalReferences,
     MetaData,
   },
@@ -113,7 +96,6 @@ export default {
       couldNotRetrieve: false,
       showEtagErrModal: false,
       ready: false,
-      editing_fields: false,
       editing_content: false,
       editing_references: false,
       editing_title: false,

@@ -58,9 +58,9 @@ describe('PageUpdater no version argument', () => {
     await testFunctionErrors(TypeError, /^3rd positional argument must be a string, boolean, number, or object$/, 'bar', 'foo');
     await testFunctionErrors(TypeError, /^1st positional argument: title\.bar, must lead to an object, not a primitive$/, 'title.bar', 'foo', {});
     await testFunctionErrors(TypeError, /^1st positional argument: title, must lead to an object, not a primitive$/, 'title', 'foo', {});
-    await testFunctionErrors(TypeError, /^1st positional argument: metadata\.tree, leads to undefined or null property in data$/, 'metadata.tree', 'foo', {});
-    await testFunctionErrors(TypeError, /^1st positional argument: metadata\.__proto__, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'metadata.__proto__', 'foo', {});
-    await testFunctionErrors(TypeError, /^2nd positional argument: hasOwnProperty, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'metadata', 'hasOwnProperty', {});
+    await testFunctionErrors(TypeError, /^1st positional argument: references\.undefined_prop, leads to undefined or null property in data$/, 'references.undefined_prop', 'foo', {});
+    await testFunctionErrors(TypeError, /^1st positional argument: references\.__proto__, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'references.__proto__', 'foo', {});
+    await testFunctionErrors(TypeError, /^2nd positional argument: hasOwnProperty, leads to an inherited property in the data, it must lead to one of the object's own properties$/, 'references', 'hasOwnProperty', {});
     await testFunctionErrors(Error, /^Cannot update root level property `splash_md`$/, 'splash_md.h.l', 'bar', {});
     await testFunctionErrors(Error, /^Cannot update root level property `splash_md`$/, 'splash_md', 'bar', {});
     await testFunctionErrors(Error, /^Cannot update root level property `splash_md`$/, '', 'splash_md', {});
@@ -72,7 +72,7 @@ describe('PageUpdater no version argument', () => {
     Vue.prototype.$api.put.mockImplementation(async () => {
       throw new Error('Test Error');
     });
-    const update = async () => testUpdater.updateDataProperty('', 'metadata', []);
+    const update = async () => testUpdater.updateDataProperty('', 'references', []);
     await expect(update()).rejects.toThrowError(/^Test Error$/);
 
     expect(testUpdater.data).toEqual(mockResponse.data);
@@ -85,8 +85,8 @@ describe('PageUpdater no version argument', () => {
     const { etag } = testUpdater.data.splash_md;
     // Deep copy
     const apiArg = JSON.parse(JSON.stringify(testUpdater.data));
-    apiArg.metadata = [{ title: 'test', text: 'test' }];
-    await testUpdater.updateDataProperty('', 'metadata', [{ title: 'test', text: 'test' }]);
+    apiArg.references = [{ doi: 'test', in_test: false }];
+    await testUpdater.updateDataProperty('', 'references', [{ doi: 'test', in_test: false }]);
 
     // Check to make sure the correct arguments are passed to axios
     expect(Vue.prototype.$api.put.mock.calls[0][0]).toEqual(`${mockEndpoint}/${mockUid}`);
@@ -115,7 +115,7 @@ describe('PageUpdater no version argument', () => {
     Vue.prototype.$api.put.mockResolvedValue(mockPutResponse);
 
     const CUSTOM_ETAG = "I'M THE NEW ETAG";
-    await testUpdater.updateDataProperty('', 'metadata', [{ title: 'test', text: 'test' }], CUSTOM_ETAG);
+    await testUpdater.updateDataProperty('', 'references', [{ doi: 'test', in_test: false }], CUSTOM_ETAG);
 
     // Check to make sure that the etag is included in the headers
     expect(Vue.prototype.$api.put.mock.calls[0][2].headers).toEqual({ 'If-Match': CUSTOM_ETAG });
@@ -137,7 +137,7 @@ describe('Page Updater with the version argument', () => {
   });
 
   it('Throws an error when we attempt to update the document', () => {
-    const update = async () => testUpdater.updateDataProperty('', 'metadata', []);
+    const update = async () => testUpdater.updateDataProperty('', 'references', []);
     expect(update()).rejects.toThrowError(/^Cannot update a specific version of a document.$/);
   });
 });
