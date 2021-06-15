@@ -2,29 +2,18 @@
   <div>
     <div>
       <b-card-group deck>
-        <b-nav>
-          <b-nav-item v-bind:to="'/pages'">
-            <b-card>Pages </b-card>
-          </b-nav-item>
-        </b-nav>
-        <b-nav>
+         <b-nav>
           <b-nav-item v-bind:to="'/compounds'">
             <b-card>Compounds</b-card>
           </b-nav-item>
         </b-nav>
         <b-card-group deck>
           <b-nav>
-            <b-nav-item v-bind:to="'/runs'">
-              <b-card>Experiments </b-card>
+            <b-nav-item v-bind:to="'/'">
+              <b-card>Documentation </b-card>
             </b-nav-item>
           </b-nav>
         </b-card-group>
-
-        <!--<b-nav>
-              <b-nav-item v-bind:to="'/'">
-                <b-card>Techniques </b-card>
-              </b-nav-item>
-            </b-nav> -->
       </b-card-group>
     </div>
   </div>

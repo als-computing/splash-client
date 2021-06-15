@@ -29,7 +29,7 @@
             @focus="focused = true"
             @blur="focused = false"
           />
-          <b-container>
+          <!--<b-container>
             <b-row align-h="end">
               <b-button-group>
                 <b-button
@@ -46,7 +46,7 @@
                 >
               </b-button-group>
             </b-row>
-          </b-container>
+          </b-container>-->
 
           <b-button-toolbar>
             <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
@@ -207,7 +207,7 @@ export default {
       couldNotSave: false,
       insert_reference: false,
       focused: false,
-      curr_mode: 'wysiwyg',
+      // curr_mode: 'wysiwyg',
     };
   },
   mounted() {
@@ -230,10 +230,15 @@ export default {
     addCustomButtons() {
       const ui = this.$refs['markdown-input'].invoke('getUI');
       console.log(this.$refs);
-      this.$refs['markdown-input'].editor.eventManager.addEventType(TOGGLE_SUBSCRIPT_EVENT);
       const thisObj = this;
+      this.$refs['markdown-input'].editor.eventManager.addEventType(TOGGLE_SUBSCRIPT_EVENT);
       this.$refs['markdown-input'].editor.eventManager.listen(TOGGLE_SUBSCRIPT_EVENT, () => {
         thisObj.toggleSubScript();
+      });
+
+      this.$refs['markdown-input'].editor.eventManager.addEventType(TOGGLE_SUPERSCRIPT_EVENT);
+      this.$refs['markdown-input'].editor.eventManager.listen(TOGGLE_SUPERSCRIPT_EVENT, () => {
+        thisObj.toggleSuperScript();
       });
 
       const toolbar = ui.getToolbar();
@@ -260,7 +265,23 @@ export default {
       });
     },
     toggleSubScript() {
-      this.$refs['markdown-input'].editor.wwEditor.unwrapBlockTag((arg, arg2, arg3) =>{ console.log(arg, arg2, arg3); return true;});
+      this.toggleCustomStyle('sub');
+    },
+    toggleSuperScript() {
+      this.toggleCustomStyle('sup');
+    },
+    toggleCustomStyle(tag) {
+      const { editor } = this.$refs['markdown-input'];
+      // Squire is a lower level editor used by the tui
+      // Squire documentation: https://github.com/neilj/Squire/blob/master/README.md
+      const squire = editor.getSquire();
+
+      if (squire.hasFormat(tag)) {
+        squire.changeFormat(null, { tag }, null);
+      } else {
+        squire.changeFormat({ tag }, null, null);
+      }
+      editor.focus();
     },
     onLinkMouseout(event) {
       if (
@@ -290,7 +311,7 @@ export default {
         }
       }
     },
-    changeMode() {
+   /* changeMode() {
       const editor = this.$refs['markdown-input'];
       if (this.curr_mode === 'markdown') {
         this.curr_mode = 'wysiwyg';
@@ -298,8 +319,8 @@ export default {
       } else if (this.curr_mode === 'wysiwyg') {
         editor.invoke('changeMode', 'markdown');
         this.curr_mode = 'markdown';
-      }
-    },
+      } 
+    },*/
     onContentChange() {
       this.edited_documentation = this.$refs['markdown-input'].invoke('getMarkdown');
     },
@@ -372,7 +393,7 @@ export default {
       this.editing = true;
       await this.$nextTick();
       this.addCustomButtons();
-      this.curr_mode = 'wysiwyg';
+      //this.curr_mode = 'wysiwyg';
       this.$emit('toggle-editing', true);
     },
   },
