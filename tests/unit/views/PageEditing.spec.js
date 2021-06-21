@@ -3,7 +3,6 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import mockAxios from 'axios'; // This comes from the __mocks__ folder
 import PageEditing from '@/views/PageEditing.vue';
 import EditContent from '@/components/editor/EditContent.vue';
-import EditFields from '@/components/editor/EditFields.vue';
 import PageUpdater from '@/components/editor/PageUpdater';
 import mockPageUpdater from '../../moduleMocks/pageUpdaterMock';
 
@@ -21,16 +20,6 @@ localVue.use({
 
 const mockData = mockPageUpdater.data;
 const mockUpdater = mockPageUpdater.mock;
-
-const metadataProps = {
-  sectionsArray: mockData.metadata,
-  emptyMessage: 'No fields found. Be the first to add some.',
-  removeButtonText: 'Delete field',
-  addButtonText: 'Add field',
-  titleInputName: 'Name',
-  valueInputName: 'Value',
-  deleteConfirmationMessage: "Are you sure you want to delete this field? This can't be undone.",
-};
 
 const documentationProps = {
   documentation: mockData.documentation,
@@ -65,13 +54,7 @@ describe('PageEditing View', () => {
     expect(mockUpdater.init).toBeCalledTimes(1);
   });
 
-  it('passes correct props to edit-content and edit-field components', async () => {
-    const fieldsEditor = wrapper.findComponent(EditFields);
-    Object.keys(metadataProps).forEach((key) => {
-      if (typeof metadataProps[key] === 'object') expect(metadataProps[key]).toEqual(fieldsEditor.props(key));
-
-      else expect(metadataProps[key]).toBe(fieldsEditor.props(key));
-    });
+  it('passes correct props to edit-content component', async () => {
     const contentEditor = wrapper.findComponent(EditContent);
     Object.keys(documentationProps).forEach((key) => {
       if (typeof documentationProps[key] === 'object') expect(contentEditor.props(key)).toEqual(documentationProps[key]);
@@ -134,8 +117,6 @@ describe('PageEditing View', () => {
   }
 
   it('calls correct update methods on emitted events', async () => {
-    const fieldsEditor = wrapper.findComponent(EditFields);
-    await testEmittedEvents(wrapper, fieldsEditor, '', 'metadata', [{ title: 'hello', text: 'hello' }], undefined);
     // We remount here, because testing the etag error will cause the wrapper to not call
     // updateDataProperty automatically
     wrapper = mount(PageEditing,

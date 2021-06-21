@@ -66,7 +66,6 @@ export default {
           page_type: this.pageType,
           title: this.title,
           documentation: this.defaultDocumentation,
-          metadata: [],
           references: [],
         };
         const response = await this.$api.post(this.$pages_url, document);
