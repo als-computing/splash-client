@@ -51,7 +51,7 @@ describe('App.vue', () => {
     logonUser = { given_name: 'zaphod' };
     isLoggedIn = true;
     const localwrapper = mount(App, { store, localVue, router });
-    expect(localwrapper.find('#logout').element).toBeVisible();
+    expect(localwrapper.find('#logout').isVisible()).toBe(true);
     expect(localwrapper.find('#user_name').text()).toBe('zaphod');
   });
 });

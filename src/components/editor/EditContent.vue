@@ -29,7 +29,7 @@
             @focus="focused = true"
             @blur="focused = false"
           />
-          <b-container>
+          <!--<b-container>
             <b-row align-h="end">
               <b-button-group>
                 <b-button
@@ -46,7 +46,7 @@
                 >
               </b-button-group>
             </b-row>
-          </b-container>
+          </b-container>-->
 
           <b-button-toolbar>
             <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
@@ -142,6 +142,9 @@ import { BIconPencilSquare } from 'bootstrap-vue';
 
 const { dataToParent } = utils;
 
+const TOGGLE_SUBSCRIPT_EVENT = 'TOGGLE_SUBSCRIPT';
+const TOGGLE_SUPERSCRIPT_EVENT = 'TOGGLE_SUPERSCRIPT';
+
 export default {
   components: {
     'add-references': AddReferences,
@@ -156,6 +159,7 @@ export default {
       default: false,
     },
   },
+
   data() {
     return {
       editorOptions: {
@@ -203,20 +207,82 @@ export default {
       couldNotSave: false,
       insert_reference: false,
       focused: false,
-      curr_mode: 'wysiwyg',
+      // curr_mode: 'wysiwyg',
     };
   },
   mounted() {
+    console.log(this.documentation);
     this.edited_documentation = this.documentation;
+    console.log(this.edited_documentation);
     this.extractReferences();
+    this.$el.addEventListener(TOGGLE_SUBSCRIPT_EVENT, this.toggleSubScript);
+    this.$el.addEventListener(TOGGLE_SUPERSCRIPT_EVENT, this.toggleSuperScript);
     this.$el.addEventListener('mouseover', this.onLinkMouseover);
     this.$el.addEventListener('mouseout', this.onLinkMouseout);
   },
   destroyed() {
+    this.$el.removeEventListener(TOGGLE_SUBSCRIPT_EVENT, this.toggleSubScript);
+    this.$el.removeEventListener(TOGGLE_SUPERSCRIPT_EVENT, this.toggleSuperScript);
     this.$el.removeEventListener('mouseover', this.onLinkMouseover);
     this.$el.addEventListener('mouseout', this.onLinkMouseout);
   },
   methods: {
+    addCustomButtons() {
+      const ui = this.$refs['markdown-input'].invoke('getUI');
+      console.log(this.$refs);
+      const thisObj = this;
+      this.$refs['markdown-input'].editor.eventManager.addEventType(TOGGLE_SUBSCRIPT_EVENT);
+      this.$refs['markdown-input'].editor.eventManager.listen(TOGGLE_SUBSCRIPT_EVENT, () => {
+        thisObj.toggleSubScript();
+      });
+
+      this.$refs['markdown-input'].editor.eventManager.addEventType(TOGGLE_SUPERSCRIPT_EVENT);
+      this.$refs['markdown-input'].editor.eventManager.listen(TOGGLE_SUPERSCRIPT_EVENT, () => {
+        thisObj.toggleSuperScript();
+      });
+
+      const toolbar = ui.getToolbar();
+      console.log(toolbar);
+      toolbar.insertItem(20, {
+        type: 'button',
+        options: {
+          event: TOGGLE_SUBSCRIPT_EVENT,
+          tooltip: 'subscript',
+          text: 'xₙ',
+          className: 'first',
+          style: 'background:none;color:black;',
+        },
+      });
+      toolbar.insertItem(20, {
+        type: 'button',
+        options: {
+          event: TOGGLE_SUPERSCRIPT_EVENT,
+          tooltip: 'superscript',
+          text: 'xⁿ',
+          className: 'first',
+          style: 'background:none;color:black;',
+        },
+      });
+    },
+    toggleSubScript() {
+      this.toggleCustomStyle('sub');
+    },
+    toggleSuperScript() {
+      this.toggleCustomStyle('sup');
+    },
+    toggleCustomStyle(tag) {
+      const { editor } = this.$refs['markdown-input'];
+      // Squire is a lower level editor used by the tui
+      // Squire documentation: https://github.com/neilj/Squire/blob/master/README.md
+      const squire = editor.getSquire();
+
+      if (squire.hasFormat(tag)) {
+        squire.changeFormat(null, { tag }, null);
+      } else {
+        squire.changeFormat({ tag }, null, null);
+      }
+      editor.focus();
+    },
     onLinkMouseout(event) {
       if (
         event.target.tagName === 'A'
@@ -245,7 +311,7 @@ export default {
         }
       }
     },
-    changeMode() {
+   /* changeMode() {
       const editor = this.$refs['markdown-input'];
       if (this.curr_mode === 'markdown') {
         this.curr_mode = 'wysiwyg';
@@ -253,8 +319,8 @@ export default {
       } else if (this.curr_mode === 'wysiwyg') {
         editor.invoke('changeMode', 'markdown');
         this.curr_mode = 'markdown';
-      }
-    },
+      } 
+    },*/
     onContentChange() {
       this.edited_documentation = this.$refs['markdown-input'].invoke('getMarkdown');
     },
@@ -323,9 +389,11 @@ export default {
       this.refsLoading = false;
       this.items = items;
     },
-    edit() {
+    async edit() {
       this.editing = true;
-      this.curr_mode = 'wysiwyg';
+      await this.$nextTick();
+      this.addCustomButtons();
+      //this.curr_mode = 'wysiwyg';
       this.$emit('toggle-editing', true);
     },
   },

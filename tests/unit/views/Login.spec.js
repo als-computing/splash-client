@@ -46,17 +46,17 @@ describe('Login component', () => {
   function testCard(wrapperInst) {
     const card = wrapperInst.findComponent(bootstrap.BCard);
     expect(card.exists()).toBe(true);
-    expect(card.element).toBeVisible();
+    expect(card.isVisible()).toBe(true);
     expect(card.find('.card-title').text()).toBe('Welcome to Splash!');
     const bCardText = wrapperInst.findComponent(bootstrap.BCardText);
     expect(bCardText.exists()).toBe(true);
-    expect(bCardText.element).toBeVisible();
+    expect(bCardText.isVisible()).toBe(true);
   }
 
 
   it('renders the google button', async () => {
     const spinner = wrapper.findComponent(bootstrap.BSpinner);
-    expect(spinner.element).not.toBeVisible();
+    expect(spinner.isVisible()).toBe(false);
     testCard(wrapper);
     const buttonRender = window.gapi.signin2.render;
     expect(buttonRender).toHaveBeenCalledTimes(1);
@@ -66,7 +66,7 @@ describe('Login component', () => {
 
     const buttonElement = wrapper.find(`#${buttonId}`);
     expect(buttonElement.exists()).toBe(true);
-    expect(buttonElement.element).toBeVisible();
+    expect(buttonElement.isVisible()).toBe(true);
 
     const config = buttonRender.mock.calls[0][1];
     expect(typeof config).toBe('object');
@@ -87,7 +87,7 @@ describe('Login component', () => {
     const buttonId = buttonRender.mock.calls[0][0];
     const buttonElement = wrapper.find(`#${buttonId}`);
     expect(buttonElement.exists()).toBe(true);
-    expect(buttonElement.element).toBeVisible();
+    expect(buttonElement.isVisible()).toBe(true);
   });
 
   const mockGoogleUser = {
@@ -124,19 +124,19 @@ describe('Login component', () => {
     const buttonId = buttonRender.mock.calls[0][0];
     const buttonElement = wrapper.find(`#${buttonId}`);
     expect(buttonElement.exists());
-    expect(buttonElement.element).not.toBeVisible();
+    expect(buttonElement.isVisible()).toBe(false);
 
     const spinner = wrapper.findComponent(bootstrap.BSpinner);
     expect(spinner.exists()).toBe(true);
-    expect(spinner.element).toBeVisible();
+    expect(spinner.isVisible()).toBe(true);
     await jest.advanceTimersByTime(100);
     // ARGH WHY TWO nexTicks?????????!!!!! maybe it has something to do with the timer
     // being advanced?
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
 
-    expect(spinner.element).not.toBeVisible();
-    expect(buttonElement.element).toBeVisible();
+    expect(spinner.isVisible()).toBe(false);
+    expect(buttonElement.isVisible()).toBe(true);
 
     expect(wrapper.vm.$api.post).toHaveBeenCalledTimes(1);
     const url = wrapper.vm.$api.post.mock.calls[0][0];
@@ -156,15 +156,15 @@ describe('Login component', () => {
     const visibleModals = modals.wrappers.filter((modal) => {
       const body = modal.find('.modal-body');
       if (body.text() === message) {
-        expect(modal.find('.modal').element).toBeVisible();
+        expect(modal.find('.modal').isVisible()).toBe(true);
         return true;
       }
-      expect(modal.find('.modal').element).not.toBeVisible();
+      expect(modal.find('.modal').isVisible()).toBe(false);
       return false;
     });
     expect(visibleModals.length).toBe(1);
     const modal = visibleModals[0];
-    expect(modal.find('.modal').element).toBeVisible();
+    expect(modal.find('.modal').isVisible()).toBe(true);
     expect(modal.find('.modal-body').text()).toBe(message);
 
     const okButton = modal.find('.btn.btn-primary');
