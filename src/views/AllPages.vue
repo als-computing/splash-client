@@ -1,7 +1,6 @@
 <template>
   <div>
-  <h1>Pages</h1>
-    <pages-wrapper button-text="Create Uncategorized Page" form-text="Page Title" modal-title="Enter Page Title"/>
+    <pages-wrapper title="Pages" button-text="Create Uncategorized Page" form-text="Page Title" modal-title="Enter Page Title"/>
   </div>
 </template>
 
