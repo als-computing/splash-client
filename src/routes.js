@@ -40,14 +40,14 @@ export default [
       requiresAuth: true,
     },
   },
-  {
+  /* {
     path: '/pages',
     name: 'pages',
     component: AllPages,
     meta: {
       requiresAuth: true,
     },
-  },
+  }, */
   {
     path: '/compounds',
     name: 'compounds',

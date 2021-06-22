@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h1>Compounds</h1>
-    <pages-wrapper
+     <pages-wrapper
+     title="Compounds"
       button-text="Create Compound Page"
       form-text="Page Title"
       page-type="compound"
