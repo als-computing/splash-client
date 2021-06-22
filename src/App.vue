@@ -17,7 +17,7 @@
           <b-navbar-nav>
             <!--
             <b-nav-item v-bind:to="'/'">Home</b-nav-item> -->
-            <b-nav-item v-bind:to="'/pages'">Pages</b-nav-item>
+            <b-nav-item v-bind:to="'/compounds'">Compounds</b-nav-item>
           </b-navbar-nav>
         </div>
       </b-collapse>
