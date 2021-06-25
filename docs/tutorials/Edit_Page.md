@@ -1,4 +1,6 @@
-# Edit Existing Compound
+# Edit Existing Page
+
+For this example we will pretend that we are editing a Compound.
 
 1. Navigate to [mwet.lbl.gov](https://mwet.lbl.gov)
 2. Click on the "Compounds" card, or the "Compounds" link in the left of the black nav bar. Or navigate to [mwet.lbl.gov/compounds](https://mwet.lbl.gov/compounds)

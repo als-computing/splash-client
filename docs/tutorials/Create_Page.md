@@ -1,5 +1,5 @@
-# Create a new compound
-Let's say you want to create a new compound in the system.
+# Create a new page
+Let's say you want to create a new page in the system. For this example we'll pretend that we are creating a new compound.
 
 1. Navigate to [mwet.lbl.gov](https://mwet.lbl.gov)
 2. Click on the "Compounds" card, or the "Compounds" link in the left of the black nav bar.
