@@ -1,7 +1,4 @@
 # Edit page
-## Link 
-mwet.lbl.gov/pages/\<specific_uid_here\>
-
 ## Purpose
 This page displays a specific document and its corresponding references for the purpose of viewing and editing. 
 
