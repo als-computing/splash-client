@@ -20,8 +20,8 @@ module.exports = {
                 sidebarDepth: 1,    // optional, defaults to 1
                 children: [
                     '/tutorials/Login',
-                    '/tutorials/Create_Compound',
-                    '/tutorials/Edit_Compound',
+                    '/tutorials/Create_Page',
+                    '/tutorials/Edit_Page',
                     '/tutorials/Insert_Citation',
                     '/tutorials/Additional_References'
                 ]
