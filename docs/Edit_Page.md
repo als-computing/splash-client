@@ -1,4 +1,4 @@
-# Edit page
+# Pages
 ## Purpose
 This page displays a specific document and its corresponding references for the purpose of viewing and editing. 
 
