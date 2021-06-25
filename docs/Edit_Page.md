@@ -15,7 +15,7 @@ In the upper right corner you can see a card that will display the date created 
 This button will take you to the ["Versioned view"](#) of this page.
 
 ## The Document
-There will be a box that displays the actual content of the document. To edit the document, double click anywhere inside the box, or click on the pen icon in the upper left corner of the document. Hovering over any parenthetical references in the document should display a small pop up next to the cursor that will contain the APA citation of the corresponding reference.
+There will be a box that displays the actual content of the document. To edit the document, double click anywhere inside the box, or click on the pen icon in the upper left corner of the document. Hovering over any parenthetical references in the document should display a small pop up next to the cursor that will contain the APA citation of the corresponding reference. Clicking on any in-text citations will bring you down to 
     
  ## Editing the document
  * ### Editor toolbar:
@@ -25,7 +25,7 @@ There will be a box that displays the actual content of the document. To edit th
 * ### Save/Cancel:
     The "Save" button will be disabled unless some change has been made to the document. The "Cancel" button will discard all changes made to the document since the last edit. 
 
-## Inserting References
+## Inserting in-text citations
 This dialog box is used for inserting parenthetical citations into the text. It will insert these citations at where your cursor was located when you clicked the "Insert Reference" button. 
 
 You currently have two options. One, you can search the splash database itself for any references that may have been saved to it by other users. Secondly you can copy paste the DOI of the wanted reference into the "Create a Reference" field. This field will search a third party database for this specific reference. When you click "Create New," it will display the reference info with a "Create" button, that will save this reference to the splash database and insert it into the document. If this reference already exists in the splash database, you will be notified, it will display the citation and display an "Insert" button that will insert the citation into the document. Finally, if the DOI cannot be found in the third party database then the dialog box will inform you of that.

@@ -1,12 +1,12 @@
 # Edit Existing Compound
 
-1. Navigate to mwet.lbl.gov
-2. Click on the "Compounds" card, or the "Compounds" link in the left of the black nav bar. Or navigate to mwet.lbl.gov/compounds
+1. Navigate to [mwet.lbl.gov](https://mwet.lbl.gov)
+2. Click on the "Compounds" card, or the "Compounds" link in the left of the black nav bar. Or navigate to [mwet.lbl.gov/compounds](https://mwet.lbl.gov/compounds)
 3. Click on the row for the compound you want to edit in the table.
 4. Double click on the content box, or click on the pen icon in the upper left corner of the content box. If you want to edit the title, double click on it, or click the pen icon.
 5. After editing the content click "Save" to save your changes (this may require you to resolve conflicts as described later in this page). If you wish to discard your changes click cancel.
 
-# View and resolve conflicts
+## View and resolve conflicts
 
 Sometimes while you are editing a document, another user may also edit the document and then save their changes before you do. In this case, when you save your changes a dialog will pop up notifying you of this and it will display a button that says "View their changes."
 

@@ -9,4 +9,4 @@ Explanation: This page displays a list of all the compound pages in alphabetical
 4. The date it was last edited (MM/DD/YYYY)
 5. The full name of the user it was last edited by.
 
-In the upper right corner there is a button called "Create Compound Page" which will open up a pop up. In this pop up one would enter the title for the new document and then click "Create" which would bring the user to the ["Edit Page"](#/some_link_here).
+In the upper right corner there is a button called "Create Compound Page" which will open up a pop up. In this pop up one would enter the title for the new document and then click "Create" which would bring the user to the ["Edit Page"](/Edit_Page).
