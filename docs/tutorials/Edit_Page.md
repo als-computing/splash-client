@@ -3,7 +3,7 @@
 For this example we will pretend that we are editing a Compound.
 
 1. Navigate to [mwet.lbl.gov](https://mwet.lbl.gov)
-2. Click on the "Compounds" card, or the "Compounds" link in the left of the black nav bar. Or navigate to [mwet.lbl.gov/compounds](https://mwet.lbl.gov/compounds)
+2. Click on the "Compounds" card, or the "Compounds" link in the left of the black nav bar.
 3. Click on the row for the compound you want to edit in the table.
 4. Double click on the content box, or click on the pen icon in the upper left corner of the content box. If you want to edit the title, double click on it, or click the pen icon.
 5. After editing the content click "Save" to save your changes (this may require you to resolve conflicts as described later in this page). If you wish to discard your changes click cancel.

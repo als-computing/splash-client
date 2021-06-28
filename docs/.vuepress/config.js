@@ -1,6 +1,7 @@
 module.exports = {
     title: 'Splash Documentation',
     description: 'Documentation for the Splash server',
+    base: '/docs/',
     themeConfig: {
         sidebar: [
             {
@@ -11,6 +12,7 @@ module.exports = {
                 children: [
                     '/List_Pages',
                     '/Edit_Page',
+                    '/Versioned_View',
                     '/Compounds',
                 ]
             },
@@ -24,7 +26,8 @@ module.exports = {
                     '/tutorials/Create_Page',
                     '/tutorials/Edit_Page',
                     '/tutorials/Insert_Citation',
-                    '/tutorials/Additional_References'
+                    '/tutorials/Additional_References',
+                    '/tutorials/View_Versions'
                 ]
             },
         ]
