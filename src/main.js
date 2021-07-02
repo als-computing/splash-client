@@ -48,7 +48,7 @@ Vue.use({
 });
 
 
-function onGoogleError() {
+function onError() {
   new Vue({
     router,
     store,
@@ -92,7 +92,7 @@ async function onGoogleLoad() {
     );
   } catch (e) {
     console.log(e);
-    onGoogleError();
+    onError();
     return;
   }
   // only AFTER this has all been loaded
@@ -117,5 +117,5 @@ script.async = true;
 script.defer = true;
 
 script.onload = onGoogleLoad; // When the script loads we call this function
-script.onerror = onGoogleError; // When there's an error, call this function
+script.onerror = onError; // When there's an error, call this function
 document.head.appendChild(script); // Inject the script

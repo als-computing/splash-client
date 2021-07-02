@@ -9,7 +9,7 @@
         </b-nav>
         <b-card-group deck>
           <b-nav>
-            <b-nav-item v-bind:to="'/'">
+            <b-nav-item href='/docs/' target="_blank">
               <b-card>Documentation </b-card>
             </b-nav-item>
           </b-nav>
