@@ -52,7 +52,7 @@ export default {
   },
 
   localDateFromUtc(utcDate) {
-    const localDate = new Date(`${utcDate}.000Z`);
+    const localDate = new Date(`${utcDate}Z`);
     return localDate;
   },
 };
