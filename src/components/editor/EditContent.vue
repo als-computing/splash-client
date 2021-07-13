@@ -15,7 +15,7 @@
             >
           </p>
           <!--This parses the markdown and displays it-->
-          <viewer class="user-text" :initialValue="documentation" />
+          <viewer class="user-text" :initialValue="documentation" :options="viewerOptions" />
         </div>
         <!--This appears when we want to edit the documentation-->
         <div v-if="editing" align="left">
@@ -132,6 +132,7 @@
 
 <script>
 import AddReferences from '@/components/editor/AddReferences.vue';
+import DOMPurify from 'dompurify';
 
 import 'codemirror/lib/codemirror.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
@@ -162,9 +163,13 @@ export default {
 
   data() {
     return {
+      viewerOptions: {
+        customHTMLSanitizer: (html) => DOMPurify.sanitize(html),
+      },
       editorOptions: {
         usageStatistics: false,
         hideModeSwitch: true,
+        customHTMLSanitizer: (html) => DOMPurify.sanitize(html),
         // This array contains all default items in toolbar except for images
         toolbarItems: [
           'heading',
@@ -211,9 +216,7 @@ export default {
     };
   },
   mounted() {
-    console.log(this.documentation);
     this.edited_documentation = this.documentation;
-    console.log(this.edited_documentation);
     this.extractReferences();
     this.$el.addEventListener(TOGGLE_SUBSCRIPT_EVENT, this.toggleSubScript);
     this.$el.addEventListener(TOGGLE_SUPERSCRIPT_EVENT, this.toggleSuperScript);
@@ -311,7 +314,7 @@ export default {
         }
       }
     },
-   /* changeMode() {
+    /* changeMode() {
       const editor = this.$refs['markdown-input'];
       if (this.curr_mode === 'markdown') {
         this.curr_mode = 'wysiwyg';
@@ -319,8 +322,8 @@ export default {
       } else if (this.curr_mode === 'wysiwyg') {
         editor.invoke('changeMode', 'markdown');
         this.curr_mode = 'markdown';
-      } 
-    },*/
+      }
+    }, */
     onContentChange() {
       this.edited_documentation = this.$refs['markdown-input'].invoke('getMarkdown');
     },
@@ -393,7 +396,7 @@ export default {
       this.editing = true;
       await this.$nextTick();
       this.addCustomButtons();
-      //this.curr_mode = 'wysiwyg';
+      // this.curr_mode = 'wysiwyg';
       this.$emit('toggle-editing', true);
     },
   },
