@@ -9,7 +9,7 @@
         </b-nav>
         <b-card-group deck>
           <b-nav>
-            <b-nav-item href='/help/' target="_blank">
+            <b-nav-item href='/docs/' target="_blank">
               <b-card>Help</b-card>
             </b-nav-item>
           </b-nav>

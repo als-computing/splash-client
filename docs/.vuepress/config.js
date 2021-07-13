@@ -1,7 +1,7 @@
 module.exports = {
     title: 'Splash Documentation',
     description: 'Documentation for the Splash server',
-    base: '/help/',
+    base: '/docs/',
     themeConfig: {
         sidebar: [
             {

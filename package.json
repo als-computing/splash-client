@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vuepress build docs --dest ./public/help && vue-cli-service serve",
-    "build": "vuepress build docs --dest ./public/help && vue-cli-service build",
+    "serve": "vuepress build docs --dest ./public/docs && vue-cli-service serve",
+    "build": "vuepress build docs --dest ./public/docs && vue-cli-service build",
     "lint": "vue-cli-service lint",
     "test:clear-jest-cache": "node --inspect node_modules/.bin/jest --clearCache",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand",
     "test:unit": "vue-cli-service test:unit",
     "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs --dest ./public/help"
+    "docs:build": "vuepress build docs --dest ./public/docs"
   },
   "dependencies": {
     "@toast-ui/editor": "^2.5.2",
