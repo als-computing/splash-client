@@ -36,11 +36,7 @@
             @toggle-editing="editing_title = $event"
             @dataToParent="updateDatabase('', 'title', arguments[0])"
             :read-only="editing_content || editing_references || editing_title"/>
-             <b-button-group>
                <b-button v-if="newEtag !== undefined" @click="openWindow(); ok();">View changes</b-button>
-               <b-button :to="$route.path + '/v/'"
-              >View past versions</b-button
-            > </b-button-group>
           </b-col>
           <b-col lg="4" align-self="end">
             <meta-data :splash-md="pageDoc.data.splash_md" class="ml-lg-5 mt-3"/>

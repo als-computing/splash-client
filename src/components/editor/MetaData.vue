@@ -2,22 +2,17 @@
   <b-card>
     <div class="mx-auto">
       Created at:
-      {{
-        localDateFromUtc(
-          splashMd.create_date
-        ).toLocaleDateString()
-      }}
+      {{ localDateFromUtc(splashMd.create_date).toLocaleDateString() }}
     </div>
     <div class="mx-auto">Created by: {{ creatorName }}</div>
     <div class="mx-auto" v-if="splashMd.edit_record.length !== 0">
       Last edited at:
-      {{
-        localDateFromUtc(splashMd.last_edit).toLocaleDateString()
-      }}
+      {{ localDateFromUtc(splashMd.last_edit).toLocaleDateString() }}
     </div>
     <div class="mx-auto" v-if="splashMd.edit_record.length !== 0">
       Edited by: {{ editorName }}
     </div>
+    <b-button v-show="this.$route.params.version === undefined" :to="$route.path + '/v/'" :disabled="splashMd.edit_record.length == 0">View past versions</b-button>
   </b-card>
 </template>
 

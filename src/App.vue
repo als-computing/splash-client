@@ -18,7 +18,7 @@
             <!--
             <b-nav-item v-bind:to="'/'">Home</b-nav-item> -->
             <b-nav-item v-bind:to="'/compounds'">Compounds</b-nav-item>
-            <b-nav-item href='/docs/' target="_blank">Documentation</b-nav-item>
+            <b-nav-item href='/docs/' target="_blank">Help</b-nav-item>
           </b-navbar-nav>
         </div>
       </b-collapse>
