@@ -42,7 +42,7 @@
               class="search-button"
               size="sm"
               text="Button"
-              :disabled="!doiValid || createReferenceFlags.loading"
+              :disabled="doiValid === false || doiValid === null || createReferenceFlags.loading"
               @click="
                 resetFlags();
                 loader(getReferenceInfo, [referenceDoiToCreate]);
@@ -115,6 +115,7 @@ const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
   computed: {
     doiValid() {
+      if (this.referenceDoiToCreate === '') return null;
       return this.isDoiFormat(this.referenceDoiToCreate);
     },
   },
