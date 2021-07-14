@@ -42,7 +42,7 @@
               class="search-button"
               size="sm"
               text="Button"
-              :disabled="doiValid === false || doiValid === null || createReferenceFlags.loading"
+              :disabled="!doiValid || createReferenceFlags.loading"
               @click="
                 resetFlags();
                 loader(getReferenceInfo, [referenceDoiToCreate]);
