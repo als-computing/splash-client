@@ -115,6 +115,7 @@ const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
   computed: {
     doiValid() {
+      if (this.referenceDoiToCreate === '') return null;
       return this.isDoiFormat(this.referenceDoiToCreate);
     },
   },
