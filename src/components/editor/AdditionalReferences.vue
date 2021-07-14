@@ -26,14 +26,22 @@
         </template>
       </b-table>
     </b-overlay>
-    <b-button v-show="!readOnly" @mousedown="insert_reference = true"
+    <b-button v-show="!readOnly" :disabled="insert_reference" v-b-toggle.sidebar-add-refs
       >Add Additional Reference</b-button
     >
-    <b-modal v-model="insert_reference" ok-only>
+    <b-sidebar
+      id="sidebar-add-refs"
+      title="In-Text Citations"
+      width="375px"
+      v-model="insert_reference"
+      lazy
+      right
+      shadow
+    >
       <add-references
         @clickedRef="addReference(arguments[0], arguments[1], arguments[2])"
       />
-    </b-modal>
+    </b-sidebar>
   </div>
 </template>
 <script>
@@ -93,7 +101,6 @@ export default {
     },
     async addReference(inTextCitation, doi, html) {
       this.$emit('toggle-editing', true);
-      this.insert_reference = false;
       this.refsLoading = true;
       this.references.push({ doi, in_text: false });
       try {
