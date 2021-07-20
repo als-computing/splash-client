@@ -1,35 +1,46 @@
 <template>
   <div class="documentation_editor">
-    <b-card>
-      <div @dblclick="readOnly === false ? edit() : {}">
-        <div v-if="!editing" align="left">
-          <p>
-            <span class="pointer" @click="edit()" v-if="readOnly !== true">
-              <b-icon-pencil-square class="mx-1" />
-            </span>
-            <span
-              class="text-muted"
-              style="font-size: 0.8rem"
-              v-if="readOnly !== true"
-              >(or double click)</span
-            >
-          </p>
-          <!--This parses the markdown and displays it-->
-          <viewer class="user-text" :initialValue="documentation" />
-        </div>
-        <!--This appears when we want to edit the documentation-->
-        <div v-if="editing" align="left">
-          <editor
-            :initialValue="edited_documentation"
-            :options="editorOptions"
-            ref="markdown-input"
-            initialEditType="wysiwyg"
-            height="40vh"
-            @change="onContentChange"
-            @focus="focused = true"
-            @blur="focused = false"
-          />
-          <!--<b-container>
+    <b-container fluid>
+      <b-row>
+        <b-col>
+          <b-card>
+            <div @dblclick="readOnly === false ? edit() : {}">
+              <div v-if="!editing" align="left">
+                <p>
+                  <span
+                    class="pointer"
+                    @click="edit()"
+                    v-if="readOnly !== true"
+                  >
+                    <b-icon-pencil-square class="mx-1" />
+                  </span>
+                  <span
+                    class="text-muted"
+                    style="font-size: 0.8rem"
+                    v-if="readOnly !== true"
+                    >(or double click)</span
+                  >
+                </p>
+                <!--This displays markdown.-->
+                <viewer
+                  class="user-text"
+                  :initialValue="documentation"
+                  :options="viewerOptions"
+                />
+              </div>
+              <!--This appears for editing documentation-->
+              <div v-if="editing" align="left">
+                <editor
+                  :initialValue="edited_documentation"
+                  :options="editorOptions"
+                  ref="markdown-input"
+                  initialEditType="wysiwyg"
+                  height="40vh"
+                  @change="onContentChange"
+                  @focus="focused = true"
+                  @blur="focused = false"
+                />
+                <!--<b-container>
             <b-row align-h="end">
               <b-button-group>
                 <b-button
@@ -48,53 +59,95 @@
             </b-row>
           </b-container>-->
 
-          <b-button-toolbar>
-            <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
-            <b-button
-              variant="primary"
-              @click="emitEdit()"
-              :disabled="
-                edited_documentation === '' ||
-                edited_documentation === documentation ||
-                saving
-              "
-              >Save</b-button
-            >
+                <b-button-toolbar>
+                  <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
+                  <b-button
+                    variant="primary"
+                    @click="emitEdit()"
+                    :disabled="
+                      edited_documentation === '' ||
+                      edited_documentation === documentation ||
+                      saving
+                    "
+                    aria-controls="sidebar-in-text"
+                    :aria-expanded="insert_reference.toString()"
+                    >Save</b-button
+                  >
 
-            <!--The cancel button is disabled when the app is in the process of saving-->
-            <b-button
-              variant="warning"
-              @click="removeFocus()"
-              :disabled="saving === true"
-              >Cancel</b-button
+                  <!--The cancel button is disabled when the app is in the process of saving-->
+                  <b-button
+                    variant="warning"
+                    @click="removeFocus()"
+                    :disabled="saving === true"
+                    aria-controls="sidebar-in-text"
+                    :aria-expanded="insert_reference.toString()"
+                    >Cancel</b-button
+                  >
+                  <b-button
+                    v-b-toggle.sidebar-in-text
+                    :disabled="saving || insert_reference"
+                    >Insert Reference</b-button
+                  >
+                  <b-spinner v-show="saving === true" />
+                </b-button-toolbar>
+              </div>
+            </div>
+            <b-sidebar
+              id="sidebar-in-text"
+              title="In-Text Citations"
+              width="375px"
+              v-model="insert_reference"
+              lazy
+              right
+              shadow
             >
-            <b-button
-              @mousedown="insert_reference = true"
-              :disabled="!focused || saving"
-              >Insert Reference</b-button
-            >
-            <b-modal v-model="insert_reference" ok-only>
               <add-references
                 @clickedRef="
                   insertReference(arguments[0], arguments[1], arguments[2])
                 "
               />
-            </b-modal>
+            </b-sidebar>
 
-            <b-spinner v-show="saving === true" />
-          </b-button-toolbar>
-        </div>
-      </div>
-
-      <b-modal
-        v-model="couldNotSave"
-        v-b-modal.modal-center
-        ok-only
-        :static="true"
-        >We couldn't save. Check your internet connection and try again. If the
-        problem persists, contact the administrator.</b-modal
-      >
-    </b-card>
+            <b-modal
+              v-model="couldNotSave"
+              v-b-modal.modal-center
+              ok-only
+              :static="true"
+              >We couldn't save. Check your internet connection and try again.
+              If the problem persists, contact the administrator.</b-modal
+            >
+          </b-card>
+          <b-overlay :show="refsLoading" rounded="sm">
+            <b-table striped hover :items="items" :fields="table_fields">
+              <template #cell(index)="data"> {{ data.index + 1 }}. </template>
+              <template #cell(citation)="data">
+                <div align="left">
+                  <a :name="data.item.doi">
+                    <span
+                      :class="`${
+                        $route.hash === `#${data.item.doi}` ? 'active' : ''
+                      }`"
+                      v-if="items[data.index].error"
+                      >{{ data.value }}</span
+                    >
+                    <span
+                      v-else
+                      :class="`${
+                        $route.hash === `#${data.item.doi}`
+                          ? 'raw-html-active'
+                          : ''
+                      }`"
+                      v-html="data.value"
+                    ></span>
+                  </a>
+                </div>
+              </template>
+            </b-table>
+          </b-overlay>
+        </b-col>
+        <b-col lg="3" v-show="insert_reference"> </b-col>
+      </b-row>
+    </b-container>
     <b-popover
       v-if="showPopOver"
       :show="showPopOver"
@@ -102,36 +155,12 @@
       placement="top"
       ><div v-html="popOverHtml"
     /></b-popover>
-    <b-overlay :show="refsLoading" rounded="sm">
-      <b-table striped hover :items="items" :fields="table_fields">
-        <template #cell(index)="data"> {{ data.index + 1 }}. </template>
-        <template #cell(citation)="data">
-          <div align="left">
-            <a :name="data.item.doi">
-              <span
-                :class="`${
-                  $route.hash === `#${data.item.doi}` ? 'active' : ''
-                }`"
-                v-if="items[data.index].error"
-                >{{ data.value }}</span
-              >
-              <span
-                v-else
-                :class="`${
-                  $route.hash === `#${data.item.doi}` ? 'raw-html-active' : ''
-                }`"
-                v-html="data.value"
-              ></span>
-            </a>
-          </div>
-        </template>
-      </b-table>
-    </b-overlay>
   </div>
 </template>
 
 <script>
 import AddReferences from '@/components/editor/AddReferences.vue';
+import DOMPurify from 'dompurify';
 
 import 'codemirror/lib/codemirror.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
@@ -162,9 +191,13 @@ export default {
 
   data() {
     return {
+      viewerOptions: {
+        customHTMLSanitizer: (html) => DOMPurify.sanitize(html),
+      },
       editorOptions: {
         usageStatistics: false,
         hideModeSwitch: true,
+        customHTMLSanitizer: (html) => DOMPurify.sanitize(html),
         // This array contains all default items in toolbar except for images
         toolbarItems: [
           'heading',
@@ -211,9 +244,7 @@ export default {
     };
   },
   mounted() {
-    console.log(this.documentation);
     this.edited_documentation = this.documentation;
-    console.log(this.edited_documentation);
     this.extractReferences();
     this.$el.addEventListener(TOGGLE_SUBSCRIPT_EVENT, this.toggleSubScript);
     this.$el.addEventListener(TOGGLE_SUPERSCRIPT_EVENT, this.toggleSuperScript);
@@ -311,7 +342,7 @@ export default {
         }
       }
     },
-   /* changeMode() {
+    /* changeMode() {
       const editor = this.$refs['markdown-input'];
       if (this.curr_mode === 'markdown') {
         this.curr_mode = 'wysiwyg';
@@ -319,8 +350,8 @@ export default {
       } else if (this.curr_mode === 'wysiwyg') {
         editor.invoke('changeMode', 'markdown');
         this.curr_mode = 'markdown';
-      } 
-    },*/
+      }
+    }, */
     onContentChange() {
       this.edited_documentation = this.$refs['markdown-input'].invoke('getMarkdown');
     },
@@ -329,6 +360,7 @@ export default {
       this.edited_documentation = this.documentation;
       this.justInsertedReferences = [];
       this.$emit('toggle-editing', false);
+      this.insert_reference = false;
     },
 
     async emitEdit() {
@@ -338,6 +370,7 @@ export default {
         this.removeFocus();
         this.extractReferences();
         this.saving = false;
+        this.insert_reference = false;
       } catch (error) {
         this.saving = false;
         console.log(error);
@@ -353,7 +386,6 @@ export default {
       const editor = this.$refs['markdown-input'];
       editor.invoke('exec', 'AddLink', { linkText: text, url: `#${doi}` });
       this.justInsertedReferences.push({ doi, citation: citationHTML });
-      this.insert_reference = false;
     },
     isDoiFormat(string) {
       if (string.startsWith('10.') && string.includes('/')) {
@@ -393,7 +425,7 @@ export default {
       this.editing = true;
       await this.$nextTick();
       this.addCustomButtons();
-      //this.curr_mode = 'wysiwyg';
+      // this.curr_mode = 'wysiwyg';
       this.$emit('toggle-editing', true);
     },
   },
