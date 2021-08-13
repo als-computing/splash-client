@@ -8,11 +8,12 @@ function removeFromStringify(data) {
     return value;
   });
 }
+
+const ARCHIVE_REQ_BODY = { archive_action: 'archive' };
+
+const RESTORE_REQ_BODY = { archive_action: 'restore' };
 export default class PageUpdater {
   constructor(endpoint, uid, version = undefined) {
-    this.uid = uid;
-    this.endpoint = endpoint;
-
     if (!Number.isInteger(version) && version !== undefined) {
       throw new TypeError('4th parameter `version` must be an integer or undefined');
     }
@@ -20,13 +21,20 @@ export default class PageUpdater {
       throw new RangeError('4th parameter `version` must be positive');
     }
     this.version = version;
+    this.uid = uid;
+    this.endpoint = endpoint;
+    this._data = {};
   }
 
   async init() {
     const resp = await Vue.prototype.$api.get(
       `${this.endpoint}/${this.uid}${this.version !== undefined ? `?version=${this.version}` : ''}`,
     );
-    this.data = resp.data;
+    this._data = resp.data;
+  }
+
+  get data() {
+    return this._data;
   }
 
   async reRequestDocument() {
@@ -42,7 +50,7 @@ export default class PageUpdater {
     if (this.version !== undefined) {
       throw new Error('Cannot update a specific version of a document.');
     }
-    let { data } = this;
+    let { _data } = this;
     if (typeof path !== 'string') throw new TypeError('1st positional argument must be a string');
     if (typeof property !== 'string') throw new TypeError('2nd positional argument must be a string');
     if (newValue === null || newValue === undefined || typeof newValue === 'function') throw new TypeError('3rd positional argument must be a string, boolean, number, or object');
@@ -53,52 +61,69 @@ export default class PageUpdater {
     if (path !== '') {
       path.split('.').forEach((key) => {
         // Check to make sure we don't get an undefined or null property
-        if (data[key] === undefined || data[key] === null) {
+        if (_data[key] === undefined || _data[key] === null) {
           throw new TypeError(
             `1st positional argument: ${path}, leads to undefined or null property in data`,
           );
         }
         // Check to make sure we are getting one of the object's real properties
-        if (!Object.prototype.hasOwnProperty.call(data, key)) {
+        if (!Object.prototype.hasOwnProperty.call(_data, key)) {
           throw new TypeError(
             `1st positional argument: ${path}, leads to an inherited property in the data, it must lead to one of the object's own properties`,
           );
         }
         // Check to make sure that we get an object
-        if (typeof data[key] !== 'object') {
+        if (typeof _data[key] !== 'object') {
           throw new TypeError(
             `1st positional argument: ${path}, must lead to an object, not a primitive`,
           );
         }
 
-        data = data[key];
+        _data = _data[key];
       });
     }
     // Check to make sure that this second argument is not an inherited property
-    if (!Object.prototype.hasOwnProperty.call(data, property) && data[property] !== undefined) {
+    if (!Object.prototype.hasOwnProperty.call(_data, property) && _data[property] !== undefined) {
       throw new TypeError(
         `2nd positional argument: ${property}, leads to an inherited property in the data, it must lead to one of the object's own properties`,
       );
     }
-    const oldValue = data[property];
-    data[property] = newValue;
+    const oldValue = _data[property];
+    _data[property] = newValue;
     try {
       const response = await this._updateDatabase(etag);
-      this.data.splash_md = response.data.splash_md;
+      this._data.splash_md = response.data.splash_md;
     } catch (error) {
-      data[property] = oldValue;
+      _data[property] = oldValue;
       throw error;
     }
   }
 
+  async archiveAction(action, etag) {
+    if (action !== 'archive' && action !== 'restore') throw new Error("1st positional argument must match the string 'archive' or 'restore'");
+    let etagVal = etag;
+    if (etag === undefined) etagVal = this._data.splash_md.etag;
+    const headers = { 'If-Match': etagVal };
+
+    const response = await Vue.prototype.$api.patch(
+      `${this.endpoint}/${this.uid}`,
+      action === 'archive' ? ARCHIVE_REQ_BODY : RESTORE_REQ_BODY,
+      {
+        headers,
+      },
+    );
+
+    this._data.splash_md = response.data.splash_md;
+  }
+
   async _updateDatabase(etag) {
     let etagVal = etag;
-    if (etag === undefined) etagVal = this.data.splash_md.etag;
+    if (etag === undefined) etagVal = this._data.splash_md.etag;
     const headers = { 'If-Match': etagVal };
 
     return Vue.prototype.$api.put(
       `${this.endpoint}/${this.uid}`,
-      this.data,
+      this._data,
       {
         transformRequest: [removeFromStringify],
         headers,
