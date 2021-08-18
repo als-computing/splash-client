@@ -26,20 +26,23 @@
         </template>
       </b-table>
     </b-overlay>
-    <b-button v-show="!readOnly" :disabled="insert_reference" v-b-toggle.sidebar-add-refs
+    <b-button :disabled="insert_reference || readOnly" v-b-toggle.sidebar-add-refs
       >Add Additional Reference</b-button
     >
     <b-sidebar
       id="sidebar-add-refs"
-      title="In-Text Citations"
+      title="Additional References"
       width="375px"
       v-model="insert_reference"
+      :backdrop="true"
       lazy
       right
       shadow
     >
       <add-references
         @clickedRef="addReference(arguments[0], arguments[1], arguments[2])"
+        already-found-button-text='Add'
+
       />
     </b-sidebar>
   </div>

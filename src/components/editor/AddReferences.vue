@@ -47,7 +47,7 @@
                 resetFlags();
                 loader(getReferenceInfo, [referenceDoiToCreate]);
               "
-              >Create New</b-button
+              >Find DOI</b-button
             >
           </b-input-group-append>
         </b-input-group>
@@ -76,7 +76,7 @@
           <h5>This reference already exists:</h5>
           <span v-html="citationHTML"></span>
           <b-button @click="plusClickHandler(inTextCitation, referenceDoiToCreate, citationHTML)"
-            >Insert</b-button
+            >{{alreadyFoundButtonText}}</b-button
           >
         </div>
         <div v-if="createReferenceFlags.found">
@@ -113,6 +113,12 @@ import MongoSearch from '@/components/MongoSearch.vue';
 
 const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
+  props: {
+    alreadyFoundButtonText: {
+      type: String,
+      default: 'Insert',
+    },
+  },
   computed: {
     doiValid() {
       if (this.referenceDoiToCreate === '') return null;
@@ -121,7 +127,7 @@ export default {
   },
   data() {
     return {
-      fields: [{key: 'citation_html', label:'Citation'}, { key: 'insert', label: '' }],
+      fields: [{ key: 'citation_html', label: 'Citation' }, { key: 'insert', label: '' }],
       items: [],
       createReferenceFlags: {
         alreadyExists: false,
