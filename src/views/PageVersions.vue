@@ -25,7 +25,7 @@
               ></b-pagination-nav>
        </b-col>
        <b-col lg="4" align-self="end">
-         <meta-data :splash-md="pageDoc.data.splash_md" class="ml-lg-5"/>
+         <meta-data :splash-md="pageDoc.data.splash_md" :past-versions-btn='false' class="ml-lg-5"/>
           </b-col>
         </b-row>
      </b-container>

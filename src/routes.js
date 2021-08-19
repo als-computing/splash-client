@@ -1,4 +1,3 @@
-import PageEditing from './views/PageEditing.vue';
 import PageVersions from './views/PageVersions.vue';
 import AllPages from './views/AllPages.vue';
 import Compound from './views/Compounds.vue'
@@ -59,7 +58,7 @@ export default [
   {
     path: '/pages/:uid',
     name: 'page',
-    component: PageEditing,
+    component: Page,
     meta: {
       requiresAuth: true,
     },

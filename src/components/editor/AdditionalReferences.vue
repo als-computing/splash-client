@@ -26,7 +26,7 @@
         </template>
       </b-table>
     </b-overlay>
-    <b-button :disabled="insert_reference || readOnly" v-b-toggle.sidebar-add-refs
+    <b-button v-if='!readOnly' :disabled="insert_reference" v-b-toggle.sidebar-add-refs
       >Add Additional Reference</b-button
     >
     <b-sidebar

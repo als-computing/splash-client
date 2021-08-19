@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import ErrorCard from '../../components/ErrorCard.vue';
+import ErrorCard from '@/components/utils/ErrorCard.vue';
 
 export default {
   components: { ErrorCard },
