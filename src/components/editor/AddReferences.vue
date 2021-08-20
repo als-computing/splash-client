@@ -29,7 +29,7 @@
       <b-card title="Create a Reference" class="mt-4">
         <b-input-group>
           <b-form-input
-            placeholder="10.XXX/XXXXX"
+            placeholder="DOI: 10.XXX/XXXXX"
             v-model.trim="referenceDoiToCreate"
             class="form-control search-bar"
             type="text"
@@ -127,7 +127,7 @@ export default {
   },
   data() {
     return {
-      fields: [{ key: 'citation_html', label: 'Citation' }, { key: 'insert', label: '' }],
+      fields: [{key: 'citation_html', label: 'Citation' }, { key: 'insert', label: '' }],
       items: [],
       createReferenceFlags: {
         alreadyExists: false,
@@ -249,4 +249,5 @@ export default {
 .active {
   background-color: yellowgreen;
 }
+
 </style>

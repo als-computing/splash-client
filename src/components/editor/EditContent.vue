@@ -106,6 +106,14 @@
                   insertReference(arguments[0], arguments[1], arguments[2])
                 "
               />
+              <b-button variant="link" class="text-decoration-none small-text mt-2 mb-2" v-b-toggle.custom-reference-collapse>
+                Don't have a DOI or we can't find it? Create a custom reference.
+              </b-button>
+              <b-collapse id="custom-reference-collapse">
+                <custom-references/>
+              </b-collapse>
+
+
             </b-sidebar>
 
             <b-modal
@@ -161,13 +169,14 @@
 <script>
 import AddReferences from '@/components/editor/AddReferences.vue';
 import DOMPurify from 'dompurify';
+import CustomReferences from '@/components/editor/CustomReferences.vue';
 
 import 'codemirror/lib/codemirror.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
 // import '@toast-ui/editor/dist/toastui-editor-viewer.css';
 import { Editor, Viewer } from '@toast-ui/vue-editor';
 import utils from '@/components/editor/utils';
-import { BIconPencilSquare } from 'bootstrap-vue';
+import { BIconPencilSquare, BIconPlus } from 'bootstrap-vue';
 
 const { dataToParent } = utils;
 
@@ -176,6 +185,7 @@ const TOGGLE_SUPERSCRIPT_EVENT = 'TOGGLE_SUPERSCRIPT';
 
 export default {
   components: {
+    'custom-references': CustomReferences,
     'add-references': AddReferences,
     Editor,
     Viewer,
@@ -442,5 +452,8 @@ export default {
 /*This is necessary so that the style will apply to v-html*/
 .raw-html-active >>> div {
   background-color: lightblue;
+}
+.small-text {
+  font-size: 0.73em
 }
 </style>
