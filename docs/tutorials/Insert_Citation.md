@@ -6,7 +6,7 @@ Sometimes you will want an in-text citation in your document. We can automatical
 
 3. If the citation does not exist in the database, you can copy paste the DOI of the wanted reference into the "Create a Reference" field.
 
-4. Click "Create New" and this will search a third party database for this specific reference. It will display the reference info with a "Create" button, that will save this reference to the Splash database and insert it into the document.
+4. Click "Find DOI" and this will search a third party database for this specific reference. It will display the reference info with a "Create" button, that will save this reference to the Splash database and insert it into the document.
 
 5. If this reference already exists in the Splash database, you will be notified, it will display the citation and display an "Insert" button that will insert the citation into the document.
 

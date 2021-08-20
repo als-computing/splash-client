@@ -73,7 +73,7 @@
           Connection Error. Try clicking "Create New" again or reloading.
         </b-alert>
         <div v-if="createReferenceFlags.alreadyExists">
-          <h5>This reference already exists:</h5>
+          <h5>This reference is in the Splash database:</h5>
           <span v-html="citationHTML"></span>
           <b-button @click="plusClickHandler(inTextCitation, referenceDoiToCreate, citationHTML)"
             >{{alreadyFoundButtonText}}</b-button
@@ -87,7 +87,7 @@
               createReferenceFlags.creationError = false;
               loader(addNewReference, [referenceDoiToCreate]);
             "
-            >Create</b-button
+            >Create New</b-button
           >
           <b-alert
             v-model="createReferenceFlags.creationError"
@@ -177,6 +177,8 @@ export default {
       referenceObject.origin_url = this.referenceResponseObject.request.responseURL;
       try {
         await this.createReference(referenceObject);
+        this.createReferenceFlags.found = false;
+        this.createReferenceFlags.alreadyExists = true;
         this.plusClickHandler(this.inTextCitation, doi, this.citationHTML);
       } catch (e) {
         console.log(e);
