@@ -5,7 +5,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import axios from 'axios';
 // import { Plotly } from "vue-plotly"
-import { axisBottom } from 'd3';
 import App from './App.vue';
 import router from './router';
 import store from './store';
@@ -46,7 +45,6 @@ Vue.use({
     Vue.prototype.$elastic_index_url = 'run_start/_search';
   },
 });
-
 
 function onError() {
   new Vue({
@@ -105,8 +103,6 @@ async function onGoogleLoad() {
     render: (h) => h(App),
   }).$mount('#app');
 }
-
-
 
 // document.onload = getSettings();
 

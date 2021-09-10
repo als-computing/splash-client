@@ -60,7 +60,8 @@
           </b-container>-->
 
                 <b-button-toolbar>
-                  <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
+                  <!--The save button is disabled when the boxes are empty,
+                  are not changed, or if the app is in the process of saving-->
                   <b-button
                     variant="primary"
                     @click="emitEdit()"
@@ -95,7 +96,7 @@
             <b-sidebar
               id="sidebar-in-text"
               title="In-Text Citations"
-              width="375px"
+              width="490px"
               v-model="insert_reference"
               lazy
               right
@@ -106,13 +107,7 @@
                   insertReference(arguments[0], arguments[1], arguments[2])
                 "
               />
-              <b-button variant="link" class="text-decoration-none small-text mt-2 mb-2" v-b-toggle.custom-reference-collapse>
-                Don't have a DOI or we can't find it? Create a custom reference.
-              </b-button>
-              <b-collapse id="custom-reference-collapse">
-                <custom-references/>
-              </b-collapse>
-
+              <create-custom-reference @add-ref="insertReference(arguments[0], arguments[1], arguments[2])"/>
 
             </b-sidebar>
 
@@ -153,7 +148,7 @@
             </b-table>
           </b-overlay>
         </b-col>
-        <b-col lg="3" v-show="insert_reference"> </b-col>
+        <b-col lg="4" v-show="insert_reference"> </b-col>
       </b-row>
     </b-container>
     <b-popover
@@ -167,29 +162,28 @@
 </template>
 
 <script>
-import AddReferences from '@/components/editor/AddReferences.vue';
+import AddReferences from '@/components/references/AddReferences.vue';
 import DOMPurify from 'dompurify';
-import CustomReferences from '@/components/editor/CustomReferences.vue';
+import CreateCustomReference from '@/components/references/customReferences/CreateCustomReference.vue';
 
 import 'codemirror/lib/codemirror.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
 // import '@toast-ui/editor/dist/toastui-editor-viewer.css';
 import { Editor, Viewer } from '@toast-ui/vue-editor';
-import utils from '@/components/editor/utils';
-import { BIconPencilSquare, BIconPlus } from 'bootstrap-vue';
-
-const { dataToParent } = utils;
+import dataToParent from '@/components/utils/dataToParent';
+import refUtils from '@/components/references/utils';
+import { BIconPencilSquare } from 'bootstrap-vue';
 
 const TOGGLE_SUBSCRIPT_EVENT = 'TOGGLE_SUBSCRIPT';
 const TOGGLE_SUPERSCRIPT_EVENT = 'TOGGLE_SUPERSCRIPT';
 
 export default {
   components: {
-    'custom-references': CustomReferences,
     'add-references': AddReferences,
     Editor,
     Viewer,
     BIconPencilSquare,
+    CreateCustomReference,
   },
   props: {
     documentation: String,
@@ -425,7 +419,7 @@ export default {
           if (reference !== undefined && reference.error === false) {
             return reference;
           }
-          return utils.getRefOrCreateIfNotExists(doi);
+          return refUtils.getRefOrCreateIfNotExists(doi);
         }),
       );
       this.refsLoading = false;
@@ -452,8 +446,5 @@ export default {
 /*This is necessary so that the style will apply to v-html*/
 .raw-html-active >>> div {
   background-color: lightblue;
-}
-.small-text {
-  font-size: 0.73em
 }
 </style>

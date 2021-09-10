@@ -21,39 +21,43 @@
           <template #cell(insert)="data">
             <b-icon-plus
               class="pointer"
-              @click="plusClickHandler(items[data.index].inTextCitation, items[data.index].DOI, items[data.index].citation_html)"
+              @click="
+                plusClickHandler(
+                  items[data.index].inTextCitation,
+                  items[data.index].DOI,
+                  items[data.index].citation_html
+                )
+              "
             />
           </template>
         </b-table>
       </b-card>
       <b-card title="Create a Reference" class="mt-4">
-        <b-input-group>
-          <b-form-input
-            placeholder="DOI: 10.XXX/XXXXX"
-            v-model.trim="referenceDoiToCreate"
-            class="form-control search-bar"
-            type="text"
-            @input="resetFlags()"
-            :disabled="createReferenceFlags.loading"
-            :state="doiValid"
-          />
-          <b-input-group-append>
+        <doi-input
+          @input="
+            referenceDoiToCreate = $event;
+            resetFlags();
+          "
+          :disabled="createReferenceFlags.loading"
+        >
+          <template v-slot:button>
             <b-button
               class="search-button"
               size="sm"
               text="Button"
-              :disabled="!doiValid || createReferenceFlags.loading"
+              :disabled="
+                referenceDoiToCreate === null ||
+                referenceDoiToCreate === '' ||
+                createReferenceFlags.loading
+              "
               @click="
                 resetFlags();
                 loader(getReferenceInfo, [referenceDoiToCreate]);
               "
               >Find DOI</b-button
             >
-          </b-input-group-append>
-        </b-input-group>
-        <b-form-invalid-feedback :state="doiValid">
-          The DOI must be this format: 10.XXX/XXXXX
-        </b-form-invalid-feedback>
+          </template>
+        </doi-input>
         <b-alert
           v-model="createReferenceFlags.notFound"
           dismissible
@@ -70,13 +74,20 @@
           fade
           variant="warning"
         >
-          Connection Error. Try clicking "Create New" again or reloading.
+          Connection Error. Try clicking "Find DOI" again or reloading.
         </b-alert>
         <div v-if="createReferenceFlags.alreadyExists">
           <h5>This reference is in the Splash database:</h5>
           <span v-html="citationHTML"></span>
-          <b-button @click="plusClickHandler(inTextCitation, referenceDoiToCreate, citationHTML)"
-            >{{alreadyFoundButtonText}}</b-button
+          <b-button
+            @click="
+              plusClickHandler(
+                inTextCitation,
+                referenceDoiToCreate,
+                citationHTML
+              )
+            "
+            >{{ alreadyFoundButtonText }}</b-button
           >
         </div>
         <div v-if="createReferenceFlags.found">
@@ -100,18 +111,17 @@
             reloading the page.
           </b-alert>
         </div>
-        <b-spinner v-show="createReferenceFlags.loading" />
       </b-card>
     </div>
   </div>
 </template>
 
 <script>
-import Citation from 'citation-js';
 import { BIconPlus } from 'bootstrap-vue';
 import MongoSearch from '@/components/MongoSearch.vue';
+import DoiInput from '@/components/references/shared/DoiInput.vue';
+import utils from './utils';
 
-const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 export default {
   props: {
     alreadyFoundButtonText: {
@@ -119,15 +129,9 @@ export default {
       default: 'Insert',
     },
   },
-  computed: {
-    doiValid() {
-      if (this.referenceDoiToCreate === '') return null;
-      return this.isDoiFormat(this.referenceDoiToCreate);
-    },
-  },
   data() {
     return {
-      fields: [{key: 'citation_html', label: 'Citation' }, { key: 'insert', label: '' }],
+      fields: [{ key: 'citation_html', label: 'Citation' }, { key: 'insert', label: '' }],
       items: [],
       createReferenceFlags: {
         alreadyExists: false,
@@ -140,6 +144,7 @@ export default {
       referenceDoiToCreate: '',
       citationHTML: '',
       referenceResponseObject: {},
+      inTextCitation: '',
     };
   },
   methods: {
@@ -154,12 +159,6 @@ export default {
     async createReference(reference) {
       const response = await this.$api.post(`${this.$references_url}`, reference);
       return response;
-    },
-    isDoiFormat(string) {
-      if (string.startsWith('10.') && string.includes('/')) {
-        return true;
-      }
-      return false;
     },
     resetFlags() {
       Object.keys(this.createReferenceFlags).forEach((v) => {
@@ -189,9 +188,8 @@ export default {
       let response = {};
       try {
         response = await this.getSplashReference(doi);
-        const citation = new Citation(response.data);
-        this.inTextCitation = citation.format('citation');
-        this.citationHTML = citation.format('bibliography', CITE_FORMAT);
+        this.inTextCitation = utils.generateInTextCitation(response.data);
+        this.citationHTML = utils.generateHtmlCitation(response.data);
         this.createReferenceFlags.alreadyExists = true;
         return;
       } catch (e) {
@@ -203,9 +201,8 @@ export default {
       }
       try {
         response = await this.getDOIFromService(doi);
-        const citation = new Citation(response.data);
-        this.inTextCitation = citation.format('citation');
-        this.citationHTML = citation.format('bibliography', CITE_FORMAT);
+        this.inTextCitation = utils.generateInTextCitation(response.data);
+        this.citationHTML = utils.generateHtmlCitation(response.data);
         this.referenceResponseObject = response;
         this.createReferenceFlags.found = true;
       } catch (e) {
@@ -219,10 +216,9 @@ export default {
     },
     updateItems(references) {
       this.items = references.map((elem) => {
-        const citation = new Citation(elem);
         return {
-          inTextCitation: citation.format('citation'),
-          citation_html: citation.format('bibliography', CITE_FORMAT),
+          inTextCitation: utils.generateInTextCitation(elem),
+          citation_html: utils.generateHtmlCitation(elem),
           DOI: elem.DOI,
         };
       });
@@ -232,8 +228,9 @@ export default {
     },
   },
   components: {
-    'b-icon-plus': BIconPlus,
-    'mongo-search': MongoSearch,
+    BIconPlus,
+    MongoSearch,
+    DoiInput,
   },
 };
 </script>
@@ -249,5 +246,4 @@ export default {
 .active {
   background-color: yellowgreen;
 }
-
 </style>

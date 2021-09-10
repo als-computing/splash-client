@@ -92,7 +92,7 @@ import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
 import EditTitle from '@/components/editor/EditTitle.vue';
 import ErrorCard from '@/components/utils/ErrorCard.vue';
-import AdditionalReferences from '@/components/editor/AdditionalReferences.vue';
+import AdditionalReferences from '@/components/references/AdditionalReferences.vue';
 import MetaData from '@/components/editor/MetaData.vue';
 import ForceConfirmationModal from '@/components/utils/ForceConfirmationModal.vue';
 

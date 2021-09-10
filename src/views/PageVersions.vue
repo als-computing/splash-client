@@ -55,7 +55,7 @@
 <script>
 import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
-import AdditionalReferences from '@/components/editor/AdditionalReferences.vue';
+import AdditionalReferences from '@/components/references/AdditionalReferences.vue';
 import MetaData from '@/components/editor/MetaData.vue';
 
 export default {

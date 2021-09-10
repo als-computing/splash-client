@@ -12,7 +12,12 @@
     <div class="mx-auto" v-if="splashMd.edit_record.length !== 0">
       Edited by: {{ editorName }}
     </div>
-    <b-button v-show="pastVersionsBtn" :to="$route.path + '/v/'" :disabled="splashMd.edit_record.length == 0">View past versions</b-button>
+    <b-button
+      v-show="pastVersionsBtn"
+      :to="$route.path + '/v/'"
+      :disabled="splashMd.edit_record.length == 0"
+      >View past versions</b-button
+    >
   </b-card>
 </template>
 
@@ -70,15 +75,6 @@ export default {
       }
     },
 
-  },
-  watch: {
-    $props: {
-      handler() {
-        this.retrieveUserData();
-      },
-      deep: true,
-      immediate: true,
-    },
   },
 };
 </script>

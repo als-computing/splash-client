@@ -48,11 +48,11 @@
   </div>
 </template>
 <script>
-import AddReferences from '@/components/editor/AddReferences.vue';
-import utils from '@/components/editor/utils';
+import AddReferences from '@/components/references/AddReferences.vue';
 import { BIconX } from 'bootstrap-vue';
+import dataToParent from '@/components/utils/dataToParent';
+import utils from './utils';
 
-const { dataToParent } = utils;
 export default {
   props: { referencesArray: Array, readOnly: { type: Boolean, default: false } },
   components: {

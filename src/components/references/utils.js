@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Citation from 'citation-js';
+import DOMPurify from 'dompurify';
 
 async function getDOIFromService(doi) {
   const response = await Vue.prototype.$doi_service.get(`/${doi}`);
@@ -17,6 +18,35 @@ async function createReference(reference) {
 const CITE_FORMAT = { format: 'html', template: 'apa', lang: 'en-US' };
 
 export default {
+  getDOIFromService,
+  addRefObjectToSplash: createReference,
+
+  generateHtmlCitation(reference) {
+    return DOMPurify.sanitize(new Citation(reference).format('bibliography', CITE_FORMAT));
+  },
+
+  generateInTextCitation(reference) {
+    return DOMPurify.sanitize(new Citation(reference).format('citation'));
+  },
+  async checkDOIExists(doi) {
+    try {
+      return { response: (await getSplashReference(doi)), where: 'splash' };
+    } catch (e) {
+      console.log('caught');
+      if (e.response.status !== 404) {
+        throw e;
+      }
+    }
+    try {
+      return { response: (await getDOIFromService(doi)), where: 'service' };
+    } catch (e) {
+      if (e.response.status !== 404) {
+        throw e;
+      }
+    }
+    return false;
+  },
+
   async getRefOrCreateIfNotExists(doi) {
     let resp = await this.requestReference(doi);
     if (resp === 404) {
@@ -24,17 +54,18 @@ export default {
     }
     return resp;
   },
+
   async requestReference(doi) {
-  // This function will attempt to get the current doi from the splash database. If it succeeds it will return
-  // an object that looks like this: {doi: "10.XX/XX", citation:"<HTML FORMAT OF THE CITATION>", error: false}
-  // If it does not exist in the db (404 response) Then it will return the integer 404. For any other
-  // non 404 error it will return:
-  // { doi, citation: `Error connecting to server when getting: ${doi}. Try reloading the page.`, error: true, }
+    // This function will attempt to get the current doi from the splash database. If it succeeds it will return
+    // an object that looks like this: {doi: "10.XX/XX", citation:"<HTML FORMAT OF THE CITATION>", error: false}
+    // If it does not exist in the db (404 response) Then it will return the integer 404. For any other
+    // non 404 error it will return:
+    // { doi, citation: `Error connecting to server when getting: ${doi}. Try reloading the page.`, error: true, }
     try {
       const response = await getSplashReference(doi);
       return {
         doi,
-        citation: new Citation(response.data).format('bibliography', CITE_FORMAT),
+        citation: this.generateHtmlCitation(response.data),
         error: false,
       };
     } catch (e) {
@@ -97,7 +128,7 @@ export default {
       await createReference(response.data);
       return {
         doi,
-        citation: new Citation(response.data).format('bibliography', CITE_FORMAT),
+        citation: this.generateHtmlCitation(response.data),
         error: false,
       };
     } catch (e) {
@@ -108,25 +139,5 @@ export default {
         error: true,
       };
     }
-  },
-  async dataToParent({ thisObj, data } = {}) {
-    // This emits an object with the altered data, and
-    // a callback for the parent component to call with a boolean as the argument,
-    // so that this component can know whether not the data was saved succesfully
-    // if the data was succesfully saved then the code will execute as normal.
-    // if not then this function will throw an error
-    // Partly inspired by how this programmer awaits a settimeout https://stackoverflow.com/a/51939030/8903570
-    return new Promise((resolve, reject) => thisObj.$emit('dataToParent', {
-      data,
-      callback: ({ success, displayMessage } = {}) => {
-        if (success) {
-          resolve();
-        } else {
-          const e = new Error();
-          e.displayMessage = displayMessage;
-          reject(e);
-        }
-      },
-    }));
   },
 };
