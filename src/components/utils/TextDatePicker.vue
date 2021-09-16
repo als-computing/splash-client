@@ -1,6 +1,6 @@
 <!--Based off of: https://bootstrap-vue.org/docs/components/form-datepicker#button-only-mode-->
 <template>
-  <div class='text-left'>
+  <div>
     <b-form-group
       :state="valid"
       invalid-feedback="Invalid Date."

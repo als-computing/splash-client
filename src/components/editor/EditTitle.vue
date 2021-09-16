@@ -93,7 +93,6 @@ export default {
       } catch (error) {
         this.saving = false;
         this.couldNotSave = true;
-        console.log(error);
       }
     },
   },

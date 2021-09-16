@@ -81,7 +81,6 @@ export default {
           this.organizeData(response.data);
         })
         .catch((e) => {
-          console.log(e);
         });
 
       this.$nextTick().then(() => {

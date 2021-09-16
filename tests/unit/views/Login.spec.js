@@ -7,7 +7,6 @@ import * as bootstrap from 'bootstrap-vue';
 import mockAxios from 'axios';
 import responses from '../../responses/login-responses';
 
-
 const localVue = createLocalVue();
 localVue.use(VueRouter);
 localVue.use(BootstrapVue);
@@ -34,7 +33,6 @@ describe('Login component', () => {
     },
   });
 
-
   beforeEach(async () => {
     wrapper.vm.$store.dispatch.mockClear();
     wrapper.vm.$api.post.mockClear();
@@ -52,7 +50,6 @@ describe('Login component', () => {
     expect(bCardText.exists()).toBe(true);
     expect(bCardText.isVisible()).toBe(true);
   }
-
 
   it('renders the google button', async () => {
     const spinner = wrapper.findComponent(bootstrap.BSpinner);

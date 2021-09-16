@@ -59,7 +59,6 @@ export default {
       const ENDPOINT = this.$elastic_index_url;
       queries.AUTOCOMPLETE.suggest.text = this.displayedSearchInput;
       this.$search.post(ENDPOINT, queries.AUTOCOMPLETE).then((res) => {
-        // console.log(res)
         this.destroySuggestions();
         res.data.suggest.researcherNameSuggestions[0].options.forEach((element) => {
           this.suggestions.push(element.text.toLowerCase());
@@ -113,9 +112,8 @@ export default {
         });
         this.cutSuggestions();
         return Promise.resolve();
-      }).catch((err) => {
-        console.log(err);
-        console.log(err.response);
+      }).catch(() => {
+        console.log('error searching');
       }); // TODO: make catch statement better
     },
     cutSuggestions() {

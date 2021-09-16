@@ -1,5 +1,4 @@
 <template>
-  <b-card>
     <b-container>
       <b-form @submit="onSubmit">
         <author-input @input='citation.author = $event' :disabled='disabled' />
@@ -64,13 +63,12 @@
         <b-row>
           <b-col>
         <b-button class='mt-3' type="submit" variant="primary" :disabled="!citationValid || disabled"
-          >Create</b-button
+          >Load citation</b-button
         >
           </b-col>
         </b-row>
       </b-form>
     </b-container>
-  </b-card>
 </template>
 <script>
 import TextDatePicker from '@/components/utils/TextDatePicker.vue';

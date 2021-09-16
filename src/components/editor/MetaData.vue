@@ -59,7 +59,6 @@ export default {
         );
         this.creatorName = `${resp.data.given_name} ${resp.data.family_name}`;
       } catch (e) {
-        console.log(e);
         this.creatorName = 'ERROR';
       }
       if (this.splashMd.edit_record.length > 0) {
@@ -69,7 +68,6 @@ export default {
           );
           this.editorName = `${resp.data.given_name} ${resp.data.family_name}`;
         } catch (e) {
-          console.log(e);
           this.editorName = 'ERROR';
         }
       }

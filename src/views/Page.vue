@@ -147,7 +147,6 @@ export default {
         }
         this.ready = true;
       } catch (e) {
-        console.log(e);
         if (e.response.status === 404) {
           this.errorCard.notFound = true;
           return;
@@ -189,7 +188,6 @@ export default {
         // that the update was successful
         eventObj.callback({ success: true });
       } catch (error) {
-        console.log(error);
         if (error.response.status === 412 && error.response.data.err === 'etag_mismatch_error') {
           if (error.response.data.splash_md.archived === true) {
             eventObj.callback({ success: false, displayMessage: false });
@@ -219,7 +217,6 @@ export default {
         this.$router.replace('/compounds');
         return;
       } catch (error) {
-        console.log(error);
         if (error.response.status === 409) {
           this.modal.alreadyDeleted = true;
         } else if (error.response.status === 412) {

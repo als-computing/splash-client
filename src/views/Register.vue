@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <h4>Register</h4>
@@ -51,7 +50,7 @@ export default {
       };
       this.$store.dispatch('register', data)
         .then(() => this.$router.push('/'))
-        .catch((err) => console.log(err));
+        .catch((err) => console.log('error registering'));
     },
   },
 };

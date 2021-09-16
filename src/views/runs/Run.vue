@@ -30,7 +30,7 @@
                   </b-table>
                 </b-card>
               </b-col>
-              
+
           </b-row>
       </b-container>
 
@@ -40,6 +40,7 @@
 <script>
 import RunVisualizer from '@/components/RunVisualizer.vue';
 import utils from '@/utils';
+
 export default {
   data() {
     return {
@@ -60,10 +61,10 @@ export default {
         if (stringValue) {
           stringValue = stringValue.toString();
         }
-        metaArray.push({ name: e[0], value: stringValue});
+        metaArray.push({ name: e[0], value: stringValue });
       });
       utils.sortNameValueArray(metaArray);
-      this.metadata = metaArray
+      this.metadata = metaArray;
 
       const streamConfigResponse = await this.$api.get(
         `${this.$runs_url}/${this.$route.params.catalog}/${this.$route.params.uid}/stream/primary/configuration`,
@@ -79,15 +80,13 @@ export default {
       this.mounted = true;
     } catch (e) {
       this.somethingWentWrong = true;
-      console.log(e);
     }
-
   },
   methods: {
     convertToTitleCase: utils.convertToTitleCase,
   },
   components: {
-    "run-visualizer": RunVisualizer,
+    'run-visualizer': RunVisualizer,
   },
 };
 </script>

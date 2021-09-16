@@ -152,7 +152,6 @@ export default {
         try {
           response = await this.$api.get(this.$pages_url + query, config);
         } catch (e) {
-          console.log(e);
           this.$emit('errorConnecting');
           return 0;
         }
@@ -163,7 +162,6 @@ export default {
             config,
           );
         } catch (e) {
-          console.log(e);
           this.$emit('errorConnecting');
           return 0;
         }
@@ -178,7 +176,6 @@ export default {
             );
             createUser = resp.data;
           } catch (e) {
-            console.log(e);
             createUser = null;
           }
 
@@ -193,7 +190,6 @@ export default {
               );
               editUser = resp.data;
             } catch (e) {
-              console.log(e);
               createUser = null;
             }
           }

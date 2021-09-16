@@ -3,6 +3,16 @@
     <h6>Authors</h6>
     <div v-for="(author, index) in authors" :key="index">
       <b-input-group class="mb-2">
+        <b-input
+          placeholder="Last name"
+          @input="authors[index].family = arguments[0]"
+          :disabled="disabled"
+        />
+        <b-input
+          placeholder="First name"
+          @input="authors[index].given = arguments[0]"
+          :disabled="disabled"
+        />
         <b-button
           v-if="index === 0"
           @click="addAuthor"
@@ -23,16 +33,6 @@
         >
           <b-icon-x />
         </b-button>
-        <b-input
-          placeholder="Last name"
-          @input="authors[index].family = arguments[0]"
-          :disabled="disabled"
-        />
-        <b-input
-          placeholder="First name"
-          @input="authors[index].given = arguments[0]"
-          :disabled="disabled"
-        />
       </b-input-group>
       <b-form-invalid-feedback :state="validNames[index]">
         Last name and first name required

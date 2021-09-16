@@ -149,8 +149,7 @@ export default {
         if (this.searchResults.length === 0) this.noResults = true;
       } catch (error) {
         if ('request' in error && 'config' in error) {
-          console.log(error);
-          console.log(error.response);
+          console.log('Request error');
         } else {
           throw error;
         }

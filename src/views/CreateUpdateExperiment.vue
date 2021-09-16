@@ -32,7 +32,6 @@ export default {
   async submit() {
     const result = await axiosInst.post('experiments', this.experiment);
 
-
     this.$router.push(`/search?${this.foobar}`);
   },
 

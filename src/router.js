@@ -22,7 +22,7 @@ router.beforeEach((to, from, next) => {
       next('/login');
       return;
     } catch (error) {
-      console.error(error);
+      console.error('Could not redirect to /login route');
     }
   }
   next();

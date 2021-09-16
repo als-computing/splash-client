@@ -22,55 +22,63 @@
     <div v-if="createReferenceFlags.alreadyExists">
       <h5>{{ foundInSplashMsg }}</h5>
       <span v-html="citationHTML"></span>
-      <b-button
-        @click="
-          insertRefHandler(inTextCitation, DOI, citationHTML)
-        "
-        >{{ alreadyFoundButtonText }}</b-button
-      >
+      <b-button @click="insertRefHandler(inTextCitation, DOI, citationHTML)">{{
+        alreadyFoundButtonText
+      }}</b-button>
     </div>
     <div v-if="createReferenceFlags.found">
-      <h5>{{foundInServiceMsg}}</h5>
+      <h5>{{ foundInServiceMsg }}</h5>
       <span v-html="citationHTML"></span>
       <b-button
         @click="
           createReferenceFlags.creationError = false;
-          loader(addNewReference, [DOI]);
+          loader(addNewReferenceWithDOI, [DOI]);
         "
         >Create New</b-button
       >
-      <b-alert
-        v-model="createReferenceFlags.creationError"
-        dismissible
-        align="center"
-        fade
-        variant="warning"
-      >
-        Error creating reference. Try clicking "Create" again, or try reloading
-        the page.
-      </b-alert>
     </div>
+    <div v-if="createReferenceFlags.customReference">
+      <h5>Here is your reference. Does this look right?</h5>
+      <span v-html="citationHTML"></span>
+      <b-button
+        @click="
+          createReferenceFlags.creationError = false;
+          loader(addNewCustomReference, []);
+        "
+        >Create New</b-button
+      >
+    </div>
+    <b-alert
+      v-model="createReferenceFlags.creationError"
+      dismissible
+      align="center"
+      fade
+      variant="warning"
+    >
+      Error creating reference. Try clicking "Create New" again, or try reloading
+      the page.
+    </b-alert>
   </div>
 </template>
 
 <script>
-import utils from '../utils';
+import referenceUtils from '../referenceUtils';
 
 export default {
   props: {
+    customReference: Object,
+    DOI: String,
     alertNotFound: {
       type: Boolean,
       default: true,
     },
-    DOI: { type: String, required: true },
-
     alreadyFoundButtonText: {
       type: String,
       default: 'Insert',
     },
     connectionErrMsg: {
       type: String,
-      default: 'Connection Error. Try clicking "Find DOI" again or reloading.',
+      default: 'Connection Error. Try again or try reloading the page.',
     },
     foundInSplashMsg: {
       type: String,
@@ -92,6 +100,7 @@ export default {
         connectionError: false,
         creationError: false,
         loading: false,
+        customReference: false,
       },
       citationHTML: '',
       referenceResponseObject: {},
@@ -99,15 +108,11 @@ export default {
     };
   },
   mounted() {
+    if (this.customReference !== undefined) {
+      this.displayCustomReference();
+      return;
+    }
     this.loader(this.getReferenceInfo, [this.DOI]);
-  },
-  watch: {
-    DOI: {
-      handler() {
-        this.resetFlags();
-        this.loader(this.getReferenceInfo, [this.DOI]);
-      },
-    },
   },
   methods: {
     resetFlags() {
@@ -122,30 +127,46 @@ export default {
       this.createReferenceFlags.loading = false;
       this.$emit('not-loading');
     },
-    async addNewReference(doi) {
+
+    async addNewCustomReference() {
+      try {
+        const { uid } = (await referenceUtils.addRefObjectToSplash(this.customReference)).splash_md;
+        this.createReferenceFlags.customReference = false;
+        this.createReferenceFlags.alreadyExists = true;
+        this.insertRefHandler(this.inTextCitation, uid, this.citationHTML);
+      } catch (e) {
+        this.createReferenceFlags.creationError = true;
+      }
+    },
+
+    displayCustomReference() {
+      this.inTextCitation = referenceUtils.generateInTextCitation(this.customReference);
+      this.citationHTML = referenceUtils.generateHtmlCitation(this.customReference);
+      this.createReferenceFlags.customReference = true;
+    },
+    async addNewReferenceWithDOI(doi) {
       const referenceObject = this.referenceResponseObject.data;
       referenceObject.DOI = doi;
       referenceObject.origin_url = this.referenceResponseObject.request.responseURL;
       try {
-        await utils.addRefObjectToSplash(referenceObject);
+        await referenceUtils.addRefObjectToSplash(referenceObject);
         this.createReferenceFlags.found = false;
         this.createReferenceFlags.alreadyExists = true;
         this.insertRefHandler(this.inTextCitation, doi, this.citationHTML);
       } catch (e) {
-        console.log(e);
         this.createReferenceFlags.creationError = true;
       }
     },
     async getReferenceInfo(doi) {
       try {
-        const result = await utils.checkDOIExists(doi);
+        const result = await referenceUtils.checkDOIExists(doi);
         if (result === false) {
           this.createReferenceFlags.notFound = true;
           this.$emit('not-found');
           return;
         }
-        this.inTextCitation = utils.generateInTextCitation(result.response.data);
-        this.citationHTML = utils.generateHtmlCitation(result.response.data);
+        this.inTextCitation = referenceUtils.generateInTextCitation(result.response.data);
+        this.citationHTML = referenceUtils.generateHtmlCitation(result.response.data);
         if (result.where === 'service') {
           this.createReferenceFlags.found = true;
         } else {
@@ -156,8 +177,8 @@ export default {
         this.createReferenceFlags.connectionError = true;
       }
     },
-    insertRefHandler(inTextCitation, doi, html) {
-      this.$emit('insert-ref', inTextCitation, doi, html);
+    insertRefHandler(inTextCitation, uid, html) {
+      this.$emit('insert-ref', inTextCitation, uid, html);
     },
   },
 };

@@ -68,6 +68,9 @@ export default {
     // This makes sure that the original string matches the Date object's string. If it's not matching then this indicates
     // that the date was corrected.
   },
+  isOnlyDigits(value) {
+    return /^[0-9]+$/.test(value);
+  },
 };
 
 export function isDoiFormat(string) {

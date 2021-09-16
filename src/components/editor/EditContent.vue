@@ -125,10 +125,10 @@
               <template #cell(index)="data"> {{ data.index + 1 }}. </template>
               <template #cell(citation)="data">
                 <div align="left">
-                  <a :name="data.item.doi">
+                  <a :name="data.item.id">
                     <span
                       :class="`${
-                        $route.hash === `#${data.item.doi}` ? 'active' : ''
+                        $route.hash === `#${data.item.id}` ? 'active' : ''
                       }`"
                       v-if="items[data.index].error"
                       >{{ data.value }}</span
@@ -136,7 +136,7 @@
                     <span
                       v-else
                       :class="`${
-                        $route.hash === `#${data.item.doi}`
+                        $route.hash === `#${data.item.id}`
                           ? 'raw-html-active'
                           : ''
                       }`"
@@ -171,7 +171,7 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 // import '@toast-ui/editor/dist/toastui-editor-viewer.css';
 import { Editor, Viewer } from '@toast-ui/vue-editor';
 import dataToParent from '@/components/utils/dataToParent';
-import refUtils from '@/components/references/utils';
+import refUtils from '@/components/references/referenceUtils';
 import { BIconPencilSquare } from 'bootstrap-vue';
 
 const TOGGLE_SUBSCRIPT_EVENT = 'TOGGLE_SUBSCRIPT';
@@ -264,7 +264,6 @@ export default {
   methods: {
     addCustomButtons() {
       const ui = this.$refs['markdown-input'].invoke('getUI');
-      console.log(this.$refs);
       const thisObj = this;
       this.$refs['markdown-input'].editor.eventManager.addEventType(TOGGLE_SUBSCRIPT_EVENT);
       this.$refs['markdown-input'].editor.eventManager.listen(TOGGLE_SUBSCRIPT_EVENT, () => {
@@ -277,7 +276,6 @@ export default {
       });
 
       const toolbar = ui.getToolbar();
-      console.log(toolbar);
       toolbar.insertItem(20, {
         type: 'button',
         options: {
@@ -332,10 +330,10 @@ export default {
       if (event.target.tagName === 'A') {
         const url = event.target.attributes.href.nodeValue;
         if (url.startsWith('#10.')) {
-          const doi = url.substring(1);
-          let citationData = this.items.find((elem) => elem.doi === doi);
+          const id = url.substring(1);
+          let citationData = this.items.find((elem) => elem.id === id);
           if (citationData === undefined) {
-            citationData = this.justInsertedReferences.find((elem) => elem.doi === doi);
+            citationData = this.justInsertedReferences.find((elem) => elem.id === id);
           }
           if (citationData === undefined) {
             return;
@@ -377,7 +375,6 @@ export default {
         this.insert_reference = false;
       } catch (error) {
         this.saving = false;
-        console.log(error);
         // In some cases, we only want the top level component to
         // display the error message
         if (error.displayMessage === false) return;
@@ -386,40 +383,36 @@ export default {
       }
     },
 
-    async insertReference(text, doi, citationHTML) {
+    async insertReference(text, id, citationHTML) {
       const editor = this.$refs['markdown-input'];
-      editor.invoke('exec', 'AddLink', { linkText: text, url: `#${doi}` });
-      this.justInsertedReferences.push({ doi, citation: citationHTML });
+      editor.invoke('exec', 'AddLink', { linkText: text, url: `#${id}` });
+      this.justInsertedReferences.push({ id, citation: citationHTML });
     },
-    isDoiFormat(string) {
-      if (string.startsWith('10.') && string.includes('/')) {
-        return true;
-      }
-      return false;
-    },
-
     extractReferences() {
       const refsSet = new Set();
       // The regex here matches this pattern: [(citation goes here)](#url goes here)
       const matches = [...this.edited_documentation.matchAll(/\[\([^\s].*?\)\]\(#([^\s].*?)\)/g)];
       matches.forEach((match) => {
-        const doiRef = match[1];
-        if (!this.isDoiFormat(doiRef)) {
-          return;
-        }
-        refsSet.add(doiRef.trim());
+        const idRef = match[1];
+        refsSet.add(idRef.trim());
       });
       this.getReferenceCitations(refsSet);
     },
     async getReferenceCitations(referencesSet) {
       this.refsLoading = true;
       const items = await Promise.all(
-        [...referencesSet].map(async (doi) => {
-          const reference = this.items.find((elem) => elem.doi === doi);
+        [...referencesSet].map(async (id) => {
+          const reference = this.items.find((elem) => elem.id === id);
           if (reference !== undefined && reference.error === false) {
             return reference;
           }
-          return refUtils.getRefOrCreateIfNotExists(doi);
+          // This function can handle both dois and
+          // uids, in an older version of splash we used
+          // dois to represent references in the in-text
+          // citations. So we need to provide support for them.
+          // However, for any new in text citations we will only use uids
+          // to represent these references
+          return refUtils.requestReference(id);
         }),
       );
       this.refsLoading = false;

@@ -130,7 +130,6 @@ export default {
         this.ready = true;
         this.version = this.$route.params.version;
       } catch (e) {
-        console.log(e);
         this.couldNotRetrieve = true;
       }
     },

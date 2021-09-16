@@ -51,7 +51,7 @@
 import AddReferences from '@/components/references/AddReferences.vue';
 import { BIconX } from 'bootstrap-vue';
 import dataToParent from '@/components/utils/dataToParent';
-import utils from './utils';
+import referenceUtils from './referenceUtils';
 
 export default {
   props: { referencesArray: Array, readOnly: { type: Boolean, default: false } },
@@ -102,13 +102,13 @@ export default {
       }
       this.$emit('toggle-editing', false);
     },
-    async addReference(inTextCitation, doi, html) {
+    async addReference(inTextCitation, id, html) {
       this.$emit('toggle-editing', true);
       this.refsLoading = true;
-      this.references.push({ doi, in_text: false });
+      this.references.push({ id, in_text: false });
       try {
         await dataToParent({ thisObj: this, data: this.references });
-        this.items.push({ doi, citation: html, error: false });
+        this.items.push({ id, citation: html, error: false });
         this.refsLoading = false;
       } catch (e) {
         this.references.pop();
@@ -125,11 +125,11 @@ export default {
       this.refsLoading = true;
       const items = await Promise.all(
         this.references.map(async (refElem) => {
-          const reference = this.items.find((item) => item.doi === refElem.doi);
+          const reference = this.items.find((item) => item.id === refElem.id);
           if (reference !== undefined && reference.error === false) {
             return reference;
           }
-          return utils.getRefOrCreateIfNotExists(refElem.doi);
+          return referenceUtils.requestReference(refElem.id);
         }),
       );
       this.refsLoading = false;

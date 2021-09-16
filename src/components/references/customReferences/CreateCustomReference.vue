@@ -1,25 +1,44 @@
 <template>
   <div>
-    <b-button
-      variant="link"
-      class="text-decoration-none small-text mt-2 mb-2"
-      v-b-toggle.custom-reference-collapse
-    >
-      Don't have a DOI or we can't find it? Create a custom reference.
-    </b-button>
-    <b-collapse id="custom-reference-collapse">
-      <b-tabs @activate-tab="checkChangeTab">
-        <b-tab title="Journal Article" active>
-          <journal-citation-form @createRef="checkDOI" :disabled="loading" />
+    <h4 class="ml-3 mt-3 text-left" >Create a Reference</h4>
+    <b-card title="fffff" no-body>
+      <b-tabs @activate-tab="handleChangeTab" card>
+        <b-tab title="DOI" active align="left" lazy>
+          <doi-input
+            @input="
+              showDOIHandler = false;
+              DOIForHandler = $event;
+            "
+            :disabled="loading"
+          >
+            <template v-slot:button>
+              <b-button
+                class="search-button"
+                size="sm"
+                text="Button"
+                :disabled="
+                  loading ||
+                  DOIForHandler === undefined ||
+                  DOIForHandler === null
+                "
+                @click="reRenderDoiHandler"
+                >Find DOI</b-button
+              >
+            </template>
+          </doi-input>
+        </b-tab>
+        <b-tab title="Journal article">
+          <journal-citation-form
+            @createRef="handleCustomRefObj"
+            :disabled="loading"
+          />
         </b-tab>
 
-        <b-tab title="Website">
-          <b-card>
-            <b-input-group prepend="Author" class="mb-2">
-              <b-form-input placeholder="Last name"></b-form-input>
-              <b-form-input placeholder="First name"></b-form-input>
-            </b-input-group>
-          </b-card>
+        <b-tab title="Web page">
+          <website-citation-form
+            @createRef="handleCustomRefObj"
+            :disabled="loading"
+          />
         </b-tab>
       </b-tabs>
       <b-card align="left">
@@ -27,20 +46,33 @@
           @loading="loading = true"
           @not-loading="loading = false"
           @insert-ref="addRef"
+          @not-found="handleDOINotFound"
           v-if="showDOIHandler"
-          :DOI="DOIToHandle"
-          connectionErrMsg='Connection Error. Try clicking "Create" again or reloading.'
+          :DOI="DOIForHandler"
+          connectionErrMsg="Connection Error. Try again or try reloading the page."
+          foundInServiceMsg="The DOI for this reference was found in an external service:"
+          foundInSplashMsg="The DOI for this reference already exists in Splash:"
+        />
+
+        <reference-handler
+          @loading="loading = true"
+          @not-loading="loading = false"
+          @insert-ref="addRef"
+          v-if="showRefHandler"
+          :custom-reference="referenceForHandler"
+          connectionErrMsg="Connection Error. Try again or try reloading the page."
           foundInServiceMsg="The DOI for this reference was found in an external service:"
           foundInSplashMsg="The DOI for this reference already exists in Splash:"
         />
       </b-card>
-    </b-collapse>
+    </b-card>
   </div>
 </template>
 <script>
 import JournalCitationForm from './citationForms/JournalCitationForm.vue';
-import DOIHandler from '../shared/DOIHandler.vue';
-import utils from '../utils';
+import WebsiteCitationForm from './citationForms/WebsiteCitationForm.vue';
+import ReferenceAndDOIHandler from '../shared/ReferenceAndDOIHandler.vue';
+import DoiInput from '../shared/DoiInput.vue';
 
 export default {
   props: {
@@ -51,49 +83,67 @@ export default {
   },
   components: {
     JournalCitationForm,
-    'doi-handler': DOIHandler,
+    'doi-handler': ReferenceAndDOIHandler,
+    'reference-handler': ReferenceAndDOIHandler,
+    DoiInput,
+    WebsiteCitationForm,
   },
   data() {
     return {
-      DOIToHandle: '',
+      DOIForHandler: undefined,
+      referenceForHandler: undefined,
       showDOIHandler: false,
+      showRefHandler: false,
       loading: false,
-      reference: {},
       citationHTML: '',
     };
   },
   methods: {
-    handleConnErr() {
-
+    resetState() {
+      this.showDOIHandler = false;
+      this.showRefHandler = false;
+      this.referenceForHandler = undefined;
+      this.DOIForHandler = undefined;
+      this.citationHTML = '';
     },
-    checkChangeTab(newTabInd, prevTabInd, bvEvent) {
+    handleChangeTab(newTabInd, prevTabInd, bvEvent) {
       if (this.loading === true) {
         bvEvent.preventDefault();
+        return;
       }
+      this.resetState();
+    },
+
+    async handleCustomRefObj(reference) {
+      this.resetState();
+      this.referenceForHandler = reference;
+      if (reference.DOI !== undefined) {
+        this.DOIForHandler = reference.DOI;
+        this.reRenderDoiHandler();
+        return;
+      }
+      this.reRenderReferenceHandler();
+    },
+    handleDOINotFound() {
+      // Basically if we are only trying to create a reference
+      // using the find DOI feature then we don't have a custom reference to create
+      if (this.referenceForHandler === undefined) return;
+      this.loading = false;
+      this.showDOIHandler = false;
+      this.reRenderReferenceHandler();
+    },
+    async reRenderReferenceHandler() {
+      this.showRefHandler = false;
+      await this.$nextTick();
+      this.showRefHandler = true;
     },
     async reRenderDoiHandler() {
       this.showDOIHandler = false;
       await this.$nextTick();
       this.showDOIHandler = true;
     },
-    async checkDOI(reference) {
-      this.reference = reference;
-      if (reference.DOI !== undefined) {
-        this.DOIToHandle = this.reference.DOI;
-        await this.reRenderDoiHandler();
-        return;
-      }
-      await this.displayReference('user', reference);
-    },
-    async displayReference(where, reference) {
-      if (where === 'service') {
-        this.reference = reference;
-        this.citationHTML = utils.generateHtmlCitation(reference);
-        this.createReferenceFlags.found = true;
-      }
-    },
-    addRef(inTextCitation, doi, html) {
-      this.$emit('add-ref', inTextCitation, doi, html);
+    addRef(inTextCitation, uid, html) {
+      this.$emit('add-ref', inTextCitation, uid, html);
     },
   },
 };

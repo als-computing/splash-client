@@ -1,6 +1,6 @@
 import PageVersions from './views/PageVersions.vue';
 import AllPages from './views/AllPages.vue';
-import Compound from './views/Compounds.vue'
+import Compound from './views/Compounds.vue';
 import Experiments from './views/Experiments.vue';
 import Home from './views/Home.vue';
 import Login from './views/Login.vue';
