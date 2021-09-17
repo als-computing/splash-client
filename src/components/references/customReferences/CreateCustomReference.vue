@@ -30,6 +30,8 @@
         <b-tab title="Journal article">
           <journal-citation-form
             @createRef="handleCustomRefObj"
+            @reset="keys.journalKey += 1; resetState();"
+            :key="keys.journalKey"
             :disabled="loading"
           />
         </b-tab>
@@ -37,6 +39,17 @@
         <b-tab title="Web page">
           <website-citation-form
             @createRef="handleCustomRefObj"
+            @reset="keys.webpageKey += 1; resetState();"
+            :key="keys.webpageKey"
+            :disabled="loading"
+          />
+        </b-tab>
+
+        <b-tab title="Book">
+          <book-citation-form
+            @createRef="handleCustomRefObj"
+            @reset="keys.bookKey += 1; resetState();"
+            :key="keys.bookKey"
             :disabled="loading"
           />
         </b-tab>
@@ -47,8 +60,11 @@
           @not-loading="loading = false"
           @insert-ref="addRef"
           @not-found="handleDOINotFound"
+          @cancel="showDOIHandler = false"
+          @use-custom-ref="handleDOINotFound"
           v-if="showDOIHandler"
           :DOI="DOIForHandler"
+          :allow-custom-reference-with-existing-doi="allowCustomReferenceWithExistingDoi"
           connectionErrMsg="Connection Error. Try again or try reloading the page."
           foundInServiceMsg="The DOI for this reference was found in an external service:"
           foundInSplashMsg="The DOI for this reference already exists in Splash:"
@@ -58,6 +74,7 @@
           @loading="loading = true"
           @not-loading="loading = false"
           @insert-ref="addRef"
+          @cancel="showRefHandler = false"
           v-if="showRefHandler"
           :custom-reference="referenceForHandler"
           connectionErrMsg="Connection Error. Try again or try reloading the page."
@@ -72,6 +89,7 @@
 import JournalCitationForm from './citationForms/JournalCitationForm.vue';
 import WebsiteCitationForm from './citationForms/WebsiteCitationForm.vue';
 import ReferenceAndDOIHandler from '../shared/ReferenceAndDOIHandler.vue';
+import BookCitationForm from './citationForms/BookCitationForm.vue';
 import DoiInput from '../shared/DoiInput.vue';
 
 export default {
@@ -87,15 +105,22 @@ export default {
     'reference-handler': ReferenceAndDOIHandler,
     DoiInput,
     WebsiteCitationForm,
+    BookCitationForm,
   },
   data() {
     return {
+      keys: {
+        bookKey: 0,
+        journalKey: 0,
+        webpageKey: 0,
+      },
       DOIForHandler: undefined,
       referenceForHandler: undefined,
       showDOIHandler: false,
       showRefHandler: false,
       loading: false,
       citationHTML: '',
+      allowCustomReferenceWithExistingDoi: false,
     };
   },
   methods: {
@@ -105,6 +130,7 @@ export default {
       this.referenceForHandler = undefined;
       this.DOIForHandler = undefined;
       this.citationHTML = '';
+      this.allowCustomReferenceWithExistingDoi = false;
     },
     handleChangeTab(newTabInd, prevTabInd, bvEvent) {
       if (this.loading === true) {
@@ -113,9 +139,19 @@ export default {
       }
       this.resetState();
     },
-
     async handleCustomRefObj(reference) {
       this.resetState();
+      // If we're citing a chapter then we want to allow the user
+      // to associate their custom reference with an already existing DOI
+      if (reference.type === 'chapter') {
+        this.allowCustomReferenceWithExistingDoi = true;
+        this.passRefObj(reference);
+        return;
+      }
+      this.allowCustomReferenceWithExistingDoi = false;
+      this.passRefObj(reference);
+    },
+    passRefObj(reference) {
       this.referenceForHandler = reference;
       if (reference.DOI !== undefined) {
         this.DOIForHandler = reference.DOI;

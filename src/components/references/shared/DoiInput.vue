@@ -32,7 +32,8 @@ export default {
   computed: {
     doiValid() {
       if (this.doiInput === '') return null;
-      return this.isDoiFormat(this.doiInput);
+      if (this.isDoiFormat(this.doiInput)) return null;
+      return false;
     },
   },
   watch: {

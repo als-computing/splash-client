@@ -25,6 +25,13 @@
       <b-button @click="insertRefHandler(inTextCitation, DOI, citationHTML)">{{
         alreadyFoundButtonText
       }}</b-button>
+      <b-button
+        v-if="allowCustomReferenceWithExistingDoi"
+        @click="$emit('use-custom-ref')"
+        class="mx-1"
+        >Load my custom reference</b-button
+      >
+      <b-button @click="$emit('cancel')" variant="warning"> Cancel </b-button>
     </div>
     <div v-if="createReferenceFlags.found">
       <h5>{{ foundInServiceMsg }}</h5>
@@ -36,6 +43,13 @@
         "
         >Create New</b-button
       >
+      <b-button
+        v-if="allowCustomReferenceWithExistingDoi"
+        @click="$emit('use-custom-ref')"
+        class="mx-1"
+        >Load my custom reference</b-button
+      >
+      <b-button @click="$emit('cancel')" variant="warning"> Cancel </b-button>
     </div>
     <div v-if="createReferenceFlags.customReference">
       <h5>Here is your reference. Does this look right?</h5>
@@ -47,6 +61,7 @@
         "
         >Create New</b-button
       >
+      <b-button @click="$emit('cancel')" variant="warning"> Cancel </b-button>
     </div>
     <b-alert
       v-model="createReferenceFlags.creationError"
@@ -55,8 +70,8 @@
       fade
       variant="warning"
     >
-      Error creating reference. Try clicking "Create New" again, or try reloading
-      the page.
+      Error creating reference. Try clicking "Create New" again, or try
+      reloading the page.
     </b-alert>
   </div>
 </template>
@@ -66,6 +81,10 @@ import referenceUtils from '../referenceUtils';
 
 export default {
   props: {
+    allowCustomReferenceWithExistingDoi: {
+      type: Boolean,
+      default: false,
+    },
     customReference: Object,
     DOI: String,
     alertNotFound: {

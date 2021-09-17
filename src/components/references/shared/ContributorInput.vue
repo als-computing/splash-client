@@ -1,21 +1,21 @@
 <template>
   <b-card>
-    <h6>Authors</h6>
-    <div v-for="(author, index) in authors" :key="index">
+    <h6>{{ title }}</h6>
+    <div v-for="(contributor, index) in contributors" :key="index">
       <b-input-group class="mb-2">
         <b-input
           placeholder="Last name"
-          @input="authors[index].family = arguments[0]"
+          @input="contributors[index].family = arguments[0]"
           :disabled="disabled"
         />
         <b-input
           placeholder="First name"
-          @input="authors[index].given = arguments[0]"
+          @input="contributors[index].given = arguments[0]"
           :disabled="disabled"
         />
         <b-button
           v-if="index === 0"
-          @click="addAuthor"
+          @click="addContributor"
           variant="link"
           pill
           size="sm"
@@ -25,7 +25,7 @@
         </b-button>
         <b-button
           v-if="index !== 0"
-          @click="removeAuthor(index)"
+          @click="removeContributor(index)"
           variant="link"
           pill
           size="sm"
@@ -45,51 +45,12 @@
 import { BIconPlusCircleFill, BIconX } from 'bootstrap-vue';
 
 export default {
-  computed: {
-    validNames() {
-      return this.authors.map((elem) => {
-        if (elem.family.replace(/\s+/g, '') === '' || elem.given.replace(/\s+/g, '') === '') return false;
-        return true;
-      });
-    },
-    isAuthorListValid() {
-      return this.validNames.every((value) => value === true);
-    },
-  },
-  components: {
-    BIconPlusCircleFill,
-    BIconX,
-  },
-  methods: {
-    // Usually we need to create ids for each new author we make so we can have a unique key
-    // ( https://vuejs.org/v2/guide/list.html#v-for-with-a-Component) attached to
-    // each input in the v-for. But in this case, I think it's OK,
-    //  given that we are only appending and deleting elements.
-    /* getNewId() {
-      this.maxId += 1;
-      return this.maxId;
-    }, */
-    addAuthor() {
-      this.authors.push({ given: '', family: '' /* id: this.getNewId() */ });
-    },
-    removeAuthor(index) {
-      this.authors.splice(index, 1);
-    },
-  },
-  watch: {
-    authors: {
-      handler() {
-        if (this.isAuthorListValid === true) {
-          this.$emit('input', this.authors);
-        } else {
-          this.$emit('input', null);
-        }
-      },
-      immediate: true,
-      deep: true,
-    },
-  },
+
   props: {
+    title: {
+      type: String,
+      default: 'Authors',
+    },
     disabled: {
       type: Boolean,
       default: false,
@@ -98,8 +59,52 @@ export default {
   data() {
     return {
       // maxId: 0,
-      authors: [{ given: '', family: '' }],
+      contributors: [{ given: '', family: '' }],
     };
+  },
+  computed: {
+    validNames() {
+      return this.contributors.map((elem) => {
+        if (elem.family.replace(/\s+/g, '') === '' || elem.given.replace(/\s+/g, '') === '') return false;
+        return true;
+      });
+    },
+    isContributorListValid() {
+      return this.validNames.every((value) => value === true);
+    },
+  },
+  components: {
+    BIconPlusCircleFill,
+    BIconX,
+  },
+  methods: {
+    // Usually we need to create ids for each new contributor we make so we can have a unique key
+    // ( https://vuejs.org/v2/guide/list.html#v-for-with-a-Component) attached to
+    // each input in the v-for. But in this case, I think it's OK,
+    //  given that we are only appending and deleting elements.
+    /* getNewId() {
+      this.maxId += 1;
+      return this.maxId;
+    }, */
+    addContributor() {
+      this.contributors.push({ given: '', family: '' /* id: this.getNewId() */ });
+    },
+    removeContributor(index) {
+      this.contributors.splice(index, 1);
+    },
+  },
+  watch: {
+    contributors: {
+      handler() {
+        if (this.isContributorListValid === true) {
+          this.$emit('input', this.contributors);
+        } else {
+          this.$emit('input', null);
+        }
+      },
+      immediate: true,
+      deep: true,
+    },
   },
 };
 </script>

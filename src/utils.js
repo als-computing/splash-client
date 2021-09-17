@@ -1,6 +1,5 @@
 import marked from 'marked';
 import DOMPurify from 'dompurify';
-import Vue from 'vue';
 
 export default {
   // https://stackoverflow.com/questions/32441347/how-do-i-use-vue-js-debounce-filter
@@ -70,6 +69,15 @@ export default {
   },
   isOnlyDigits(value) {
     return /^[0-9]+$/.test(value);
+  },
+  isStrEmptyOrWhitespace(str) {
+    if (/\S/.test(str)) return false;
+    return true;
+  },
+  validPageRange(rangeStr) {
+    // This regex for validating page ranges was taken from here: https://stackoverflow.com/a/4468356
+    const regex = /^(\s*\d+\s*(-\s*\d+\s*)?)(,\s*\d+\s*(-\s*\d+\s*)?)*$/g;
+    return regex.test(rangeStr);
   },
 };
 

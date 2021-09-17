@@ -1,7 +1,7 @@
 <template>
   <b-container>
-    <b-form @submit="onSubmit">
-      <author-input @input="citation.author = $event" :disabled="disabled" />
+    <b-form @submit="onSubmit" @reset="$emit('reset')">
+      <contributor-input @input="citation.author = $event" :disabled="disabled" />
       <h6 class="m-1">Title</h6>
       <b-form-group>
         <b-form-input
@@ -43,6 +43,12 @@
             :disabled="!citationValid || disabled"
             >Load citation</b-button
           >
+           <b-button
+            class="mt-3"
+            type="reset"
+            variant="danger"
+            :disabled="disabled"
+            >Reset</b-button>
         </b-col>
       </b-row>
     </b-form>
@@ -50,12 +56,12 @@
 </template>
 <script>
 import TextDatePicker from '@/components/utils/TextDatePicker.vue';
-import AuthorInput from '../../shared/AuthorInput.vue';
+import ContributorInput from '../../shared/ContributorInput.vue';
 
 export default {
   components: {
     TextDatePicker,
-    AuthorInput,
+    ContributorInput,
 
   },
 

@@ -1,33 +1,35 @@
 <template>
   <b-container>
-    <b-form @submit="onSubmit">
-      <author-input @input="citation.author = $event" :disabled="disabled" />
+    <b-form @submit="onSubmit" @reset="$emit('reset')">
+      <contributor-input @input="citation.author = $event" :disabled="disabled" />
+      <b-form-checkbox
+        v-model="includeEditor"
+        :value="true"
+        :unchecked-value="false"
+        @change="handleIncludeEditorChange"
+        :disabled="disabled"
+      >
+        Add editors
+      </b-form-checkbox>
+      <contributor-input title="Editors" @input="citation.editor = $event" :disabled="disabled" v-if="includeEditor" />
       <h6 class="m-1">Book Title</h6>
       <b-form-group>
         <b-form-input
-          v-model="citation.title"
-          :state="validTitle"
+          v-model="citation[bookTitleKey]"
+          :state="validBookTitle"
           :disabled="disabled"
         />
-        <b-form-invalid-feedback :state="validTitle">
-          This is required.
-        </b-form-invalid-feedback>
-      </b-form-group>
-      <h6 class="m-1">Periodical Title</h6>
-      <b-form-group>
-        <b-form-input
-          v-model="citation['container-title']"
-          :state="validContainerTitle"
-          :disabled="disabled"
-        />
-        <b-form-invalid-feedback :state="validContainerTitle">
+        <b-form-invalid-feedback :state="validBookTitle">
           This is required.
         </b-form-invalid-feedback>
       </b-form-group>
       <b-row>
         <b-col>
           <h6 class="m-1">Year of Publication</h6>
-          <b-form v-model="citation.issued.raw"/>
+          <b-input v-model="citation.issued.raw" :state="validYear" :disabled="disabled" />
+          <b-form-invalid-feedback :state="validYear">
+            {{yearErrorMessage}}
+          </b-form-invalid-feedback>
         </b-col>
         <b-col>
           <h6 class="m-1">DOI</h6>
@@ -47,15 +49,39 @@
           </b-form-invalid-feedback>
         </b-col>
         <b-col>
-          <h6 class="m-1">Issue</h6>
+          <h6 class="m-1">Edition</h6>
           <b-form-input
-            :state="validIssue"
-            v-model="citation.issue"
+            :state="validEdition"
+            v-model="citation.edition"
             :disabled="disabled"
           />
-          <b-form-invalid-feedback :state="validIssue">
+          <b-form-invalid-feedback :state="validEdition">
             Must be a number.
           </b-form-invalid-feedback>
+        </b-col>
+      </b-row>
+      <b-form-checkbox
+        v-model="citation.type"
+        value="chapter"
+        unchecked-value="book"
+        @change="handleTypeChange"
+        :disabled="disabled"
+      >
+        Cite chapter
+      </b-form-checkbox>
+      <b-row v-if="citation.type === 'chapter'">
+        <b-col sm="8">
+          <h6 class="m-1">Chapter Title</h6>
+          <b-form-group>
+            <b-form-input
+              v-model="citation.title"
+              :state="validChapterTitle"
+              :disabled="disabled"
+            />
+            <b-form-invalid-feedback :state="validChapterTitle">
+              This is required.
+            </b-form-invalid-feedback>
+          </b-form-group>
         </b-col>
         <b-col>
           <h6 class="m-1">Pages</h6>
@@ -70,8 +96,6 @@
           </b-form-invalid-feedback>
         </b-col>
       </b-row>
-      <h6 class="m-1">URL</h6>
-      <b-form-input v-model="citation.URL" :disabled="disabled" />
       <b-row>
         <b-col>
           <b-button
@@ -81,6 +105,13 @@
             :disabled="!citationValid || disabled"
             >Load citation</b-button
           >
+          <b-button
+            class="mt-3"
+            type="reset"
+            variant="danger"
+            :disabled="disabled"
+            >Reset</b-button
+          >
         </b-col>
       </b-row>
     </b-form>
@@ -89,70 +120,53 @@
 <script>
 import DoiInput from '@/components/references/shared/DoiInput.vue';
 import utils from '@/utils';
-import AuthorInput from '../../shared/AuthorInput.vue';
+import ContributorInput from '../../shared/ContributorInput.vue';
 
 export default {
   components: {
     DoiInput,
-    AuthorInput,
+    ContributorInput,
 
   },
 
   computed: {
     citationValid() {
-      if (this.validTitle === false) return false;
-      if (this.validContainerTitle === false) return false;
+      if (this.validBookTitle === false) return false;
+      if (this.validChapterTitle === false) return false;
       if (this.validYear === false) return false;
       if (this.validPageRange === false) return false;
       if (this.validVolume === false) return false;
-      if (this.validIssue === false) return false;
+      if (this.validEdition === false) return false;
       if (this.validAuthorList === false) return false;
+      if (this.validEditorList === false) return false;
       if (this.validDoi === false) return false;
       return true;
     },
-    validTitle() {
-      // remove all whitespace before testing if it is empty
-      if (this.citation.title.replace(/\s+/g, '') === '') return false;
-      return null;
+    validBookTitle() {
+      if (this.citation.type === 'book') return this.ensureStrHasStuff(this.citation.title);
+      return this.ensureStrHasStuff(this.citation['container-title']);
     },
-    validContainerTitle() {
-      // remove all whitespace before testing if it is empty
-      if (this.citation['container-title'].replace(/\s+/g, '') === '') return false;
-      return null;
+    validChapterTitle() {
+      if (this.citation.type === 'book') return null;
+      return this.ensureStrHasStuff(this.citation.title);
     },
     validPageRange() {
-      // This regex for validating page ranges was taken from here: https://stackoverflow.com/a/4468356
-      const regex = /^(\s*\d+\s*(-\s*\d+\s*)?)(,\s*\d+\s*(-\s*\d+\s*)?)*$/g;
-      if (this.citation.page === '' || regex.test(this.citation.page)) return null;
+      if (this.citation.page === '' || utils.validPageRange(this.citation.page)) return null;
       return false;
     },
     validVolume() {
-      if (this.citation.volume === '') return null;
-      const onlyDigits = /^\d+$/;
-      if (onlyDigits.test(this.citation.volume) === true) return null;
-      return false;
+      return this.emptyOrIsNumber(this.citation.volume);
     },
-    validIssue() {
-      if (this.citation.issue === '') return null;
-      const onlyDigits = /^\d+$/;
-      if (onlyDigits.test(this.citation.issue) === true) return null;
-      return false;
-    },
-    validYear() {
-      if (!utils.isOnlyDigits(this.citation.issued.raw)) return false;
-      const currentYear = new Date().getFullYear();
-
-      // Sometimes publishers might push the date forward a year,
-      // https://rhollick.wordpress.com/2012/04/08/copyright-date/
-      const acceptablePublishingYear = currentYear + 1;
-
-      if (Number.isSafeInteger(parseInt(this.citation.raw, 10)) <= acceptablePublishingYear) {
-        return true;
-      }
-      return false;
+    validEdition() {
+      return this.emptyOrIsNumber(this.citation.edition);
     },
     validAuthorList() {
       if (this.citation.author === null) return false;
+      return null;
+    },
+    validEditorList() {
+      if (this.citation.editor === undefined && this.includeEditor === false) return null;
+      if (this.citation.editor === null) return false;
       return null;
     },
     validDoi() {
@@ -160,8 +174,38 @@ export default {
       return true;
     },
   },
+
+  watch: {
+    'citation.issued.raw': {
+      immediate: true,
+      handler() {
+        const year = this.citation.issued.raw;
+        if (!utils.isOnlyDigits(year) || !Number.isSafeInteger(parseInt(year, 10))) {
+          this.yearErrorMessage = 'Must be a number.';
+          this.validYear = false;
+          return;
+        }
+        const currentYear = new Date().getFullYear();
+
+        // Sometimes publishers might push the date forward a year,
+        // https://rhollick.wordpress.com/2012/04/08/copyright-date/
+        const acceptablePublishingYear = currentYear + 1;
+
+        if (parseInt(year, 10) <= acceptablePublishingYear) {
+          this.validYear = null;
+        } else {
+          this.yearErrorMessage = `Must be less than or equal to ${acceptablePublishingYear}.`;
+          this.validYear = false;
+        }
+      },
+    },
+  },
   data() {
     return {
+      yearErrorMessage: 'Must be a number.',
+      validYear: false,
+      includeEditor: false,
+      bookTitleKey: 'title',
       citation: {
         type: 'book',
         DOI: undefined,
@@ -170,9 +214,10 @@ export default {
           raw: undefined,
         },
         author: null,
-        volume: undefined,
-        edition: undefined,
-        'container-title': undefined,
+        editor: undefined,
+        volume: '',
+        edition: '',
+        'container-title': '',
         page: '',
       },
     };
@@ -184,6 +229,33 @@ export default {
     },
   },
   methods: {
+    handleIncludeEditorChange() {
+      if (this.includeEditor === false) { this.citation.editor = undefined; return; }
+      this.citation.editor = null;
+    },
+    handleTypeChange() {
+      console.log('Hello');
+      if (this.citation.type === 'chapter') {
+        this.citation['container-title'] = this.citation.title;
+        this.bookTitleKey = 'container-title';
+        this.citation.title = '';
+      }
+      if (this.citation.type === 'book') {
+        this.citation.title = this.citation['container-title'];
+        this.bookTitleKey = 'title';
+        this.citation['container-title'] = '';
+        this.citation.page = '';
+      }
+    },
+    emptyOrIsNumber(str) {
+      if (str === '') return null;
+      if (utils.isOnlyDigits(str) === true) return null;
+      return false;
+    },
+    ensureStrHasStuff(str) {
+      if (utils.isStrEmptyOrWhitespace(str)) return false;
+      return null;
+    },
     onSubmit(event) {
       event.preventDefault();
       this.$emit('createRef', JSON.parse(JSON.stringify(this.citation)));

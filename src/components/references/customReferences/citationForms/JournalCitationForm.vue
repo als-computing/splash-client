@@ -1,7 +1,7 @@
 <template>
     <b-container>
-      <b-form @submit="onSubmit">
-        <author-input @input='citation.author = $event' :disabled='disabled' />
+      <b-form @submit="onSubmit" @reset="$emit('reset')">
+        <contributor-input @input='citation.author = $event' :disabled='disabled' />
         <h6 class="m-1">Article Title</h6>
         <b-form-group>
           <b-form-input v-model="citation.title" :state="validArticleTitle" :disabled='disabled' />
@@ -65,6 +65,12 @@
         <b-button class='mt-3' type="submit" variant="primary" :disabled="!citationValid || disabled"
           >Load citation</b-button
         >
+         <b-button
+            class="mt-3"
+            type="reset"
+            variant="danger"
+            :disabled="disabled"
+            >Reset</b-button>
           </b-col>
         </b-row>
       </b-form>
@@ -73,13 +79,14 @@
 <script>
 import TextDatePicker from '@/components/utils/TextDatePicker.vue';
 import DoiInput from '@/components/references/shared/DoiInput.vue';
-import AuthorInput from '../../shared/AuthorInput.vue';
+import utils from '@/utils';
+import ContributorInput from '../../shared/ContributorInput.vue';
 
 export default {
   components: {
     TextDatePicker,
     DoiInput,
-    AuthorInput,
+    ContributorInput,
 
   },
 
@@ -106,9 +113,7 @@ export default {
       return null;
     },
     validPageRange() {
-      // This regex for validating page ranges was taken from here: https://stackoverflow.com/a/4468356
-      const regex = /^(\s*\d+\s*(-\s*\d+\s*)?)(,\s*\d+\s*(-\s*\d+\s*)?)*$/g;
-      if (this.citation.page === '' || regex.test(this.citation.page)) return null;
+      if (this.citation.page === '' || utils.validPageRange(this.citation.page)) return null;
       return false;
     },
     validVolume() {
