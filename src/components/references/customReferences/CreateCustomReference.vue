@@ -21,7 +21,7 @@
                   DOIForHandler === undefined ||
                   DOIForHandler === null
                 "
-                @click="reRenderDoiHandler"
+                @click="allowCustomReferenceWithExistingDoi = false; reRenderDoiHandler()"
                 >Find DOI</b-button
               >
             </template>
