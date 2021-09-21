@@ -125,10 +125,10 @@
               <template #cell(index)="data"> {{ data.index + 1 }}. </template>
               <template #cell(citation)="data">
                 <div align="left">
-                  <a :name="data.item.id">
+                  <a :name="data.item.uid">
                     <span
                       :class="`${
-                        $route.hash === `#${data.item.id}` ? 'active' : ''
+                        $route.hash === `#${data.item.uid}` ? 'active' : ''
                       }`"
                       v-if="items[data.index].error"
                       >{{ data.value }}</span
@@ -136,7 +136,7 @@
                     <span
                       v-else
                       :class="`${
-                        $route.hash === `#${data.item.id}`
+                        $route.hash === `#${data.item.uid}`
                           ? 'raw-html-active'
                           : ''
                       }`"
@@ -319,7 +319,7 @@ export default {
     onLinkMouseout(event) {
       if (
         event.target.tagName === 'A'
-        && event.target.attributes.href.nodeValue.startsWith('#10.')
+        && event.target.attributes.href.nodeValue.startsWith('#')
       ) {
         this.showPopOver = false;
         this.popOverTarget = undefined;
@@ -329,11 +329,11 @@ export default {
     onLinkMouseover(event) {
       if (event.target.tagName === 'A') {
         const url = event.target.attributes.href.nodeValue;
-        if (url.startsWith('#10.')) {
-          const id = url.substring(1);
-          let citationData = this.items.find((elem) => elem.id === id);
+        if (url.startsWith('#')) {
+          const uid = url.substring(1);
+          let citationData = this.items.find((elem) => elem.uid === uid);
           if (citationData === undefined) {
-            citationData = this.justInsertedReferences.find((elem) => elem.id === id);
+            citationData = this.justInsertedReferences.find((elem) => elem.uid === uid);
           }
           if (citationData === undefined) {
             return;
@@ -383,36 +383,30 @@ export default {
       }
     },
 
-    async insertReference(text, id, citationHTML) {
+    async insertReference(text, uid, citationHTML) {
       const editor = this.$refs['markdown-input'];
-      editor.invoke('exec', 'AddLink', { linkText: text, url: `#${id}` });
-      this.justInsertedReferences.push({ id, citation: citationHTML });
+      editor.invoke('exec', 'AddLink', { linkText: text, url: `#${uid}` });
+      this.justInsertedReferences.push({ uid, citation: citationHTML });
     },
     extractReferences() {
       const refsSet = new Set();
       // The regex here matches this pattern: [(citation goes here)](#url goes here)
       const matches = [...this.edited_documentation.matchAll(/\[\([^\s].*?\)\]\(#([^\s].*?)\)/g)];
       matches.forEach((match) => {
-        const idRef = match[1];
-        refsSet.add(idRef.trim());
+        const uidRef = match[1];
+        refsSet.add(uidRef.trim());
       });
       this.getReferenceCitations(refsSet);
     },
     async getReferenceCitations(referencesSet) {
       this.refsLoading = true;
       const items = await Promise.all(
-        [...referencesSet].map(async (id) => {
-          const reference = this.items.find((elem) => elem.id === id);
+        [...referencesSet].map(async (uid) => {
+          const reference = this.items.find((elem) => elem.uid === uid);
           if (reference !== undefined && reference.error === false) {
             return reference;
-          }
-          // This function can handle both dois and
-          // uids, in an older version of splash we used
-          // dois to represent references in the in-text
-          // citations. So we need to provide support for them.
-          // However, for any new in text citations we will only use uids
-          // to represent these references
-          return refUtils.requestReference(id);
+          } 
+          return refUtils.requestReference(uid);
         }),
       );
       this.refsLoading = false;

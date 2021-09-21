@@ -141,9 +141,9 @@ export default {
     },
     async handleCustomRefObj(reference) {
       this.resetState();
-      // If we're citing a chapter then we want to allow the user
+      // If we're citing a chapter or book then we want to allow the user
       // to associate their custom reference with an already existing DOI
-      if (reference.type === 'chapter') {
+      if (reference.type === 'chapter' || reference.type === 'book') {
         this.allowCustomReferenceWithExistingDoi = true;
         this.passRefObj(reference);
         return;

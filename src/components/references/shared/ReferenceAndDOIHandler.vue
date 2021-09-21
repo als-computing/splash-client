@@ -19,12 +19,9 @@
     >
       {{ connectionErrMsg }}
     </b-alert>
-    <div v-if="createReferenceFlags.alreadyExists">
+    <div v-if="createReferenceFlags.existsInSplash">
       <h5>{{ foundInSplashMsg }}</h5>
-      <span v-html="citationHTML"></span>
-      <b-button @click="insertRefHandler(inTextCitation, DOI, citationHTML)">{{
-        alreadyFoundButtonText
-      }}</b-button>
+      <splash-reference-list :reference-list="referenceResponseObject.data" @clickedRef="insertRef"/>
       <b-button
         v-if="allowCustomReferenceWithExistingDoi"
         @click="$emit('use-custom-ref')"
@@ -33,6 +30,7 @@
       >
       <b-button @click="$emit('cancel')" variant="warning"> Cancel </b-button>
     </div>
+
     <div v-if="createReferenceFlags.found">
       <h5>{{ foundInServiceMsg }}</h5>
       <span v-html="citationHTML"></span>
@@ -51,6 +49,20 @@
       >
       <b-button @click="$emit('cancel')" variant="warning"> Cancel </b-button>
     </div>
+
+    <div v-if="createReferenceFlags.justCreated">
+      <h5>Here is your reference.</h5>
+      <span v-html="citationHTML"></span>
+      <b-button
+        @click="
+          createReferenceFlags.creationError = false;
+          loader(addNewCustomReference, []);
+        "
+        >Insert</b-button
+      >
+      <b-button @click="$emit('cancel')" variant="warning"> Cancel </b-button>
+    </div>
+
     <div v-if="createReferenceFlags.customReference">
       <h5>Here is your reference. Does this look right?</h5>
       <span v-html="citationHTML"></span>
@@ -78,8 +90,12 @@
 
 <script>
 import referenceUtils from '../referenceUtils';
+import SplashReferenceList from './SplashReferenceList.vue';
 
 export default {
+  components: {
+    SplashReferenceList,
+  },
   props: {
     allowCustomReferenceWithExistingDoi: {
       type: Boolean,
@@ -113,13 +129,14 @@ export default {
       fields: [{ key: 'citation_html', label: 'Citation' }, { key: 'insert', label: '' }],
       items: [],
       createReferenceFlags: {
-        alreadyExists: false,
+        existsInSplash: false,
         notFound: false,
         found: false,
         connectionError: false,
         creationError: false,
         loading: false,
         customReference: false,
+        justCreated: false,
       },
       citationHTML: '',
       referenceResponseObject: {},
@@ -134,11 +151,11 @@ export default {
     this.loader(this.getReferenceInfo, [this.DOI]);
   },
   methods: {
-    resetFlags() {
+    /* resetFlags() {
       Object.keys(this.createReferenceFlags).forEach((v) => {
         this.createReferenceFlags[v] = false;
       });
-    },
+    }, */
     async loader(func, args) {
       this.createReferenceFlags.loading = true;
       this.$emit('loading');
@@ -149,11 +166,12 @@ export default {
 
     async addNewCustomReference() {
       try {
-        const { uid } = (await referenceUtils.addRefObjectToSplash(this.customReference)).splash_md;
+        const { uid } = (await referenceUtils.addRefObjectToSplash(this.customReference)).data;
         this.createReferenceFlags.customReference = false;
-        this.createReferenceFlags.alreadyExists = true;
-        this.insertRefHandler(this.inTextCitation, uid, this.citationHTML);
+        this.createReferenceFlags.justCreated = true;
+        this.insertRef(this.inTextCitation, uid, this.citationHTML);
       } catch (e) {
+        console.log(e);
         this.createReferenceFlags.creationError = true;
       }
     },
@@ -170,8 +188,8 @@ export default {
       try {
         await referenceUtils.addRefObjectToSplash(referenceObject);
         this.createReferenceFlags.found = false;
-        this.createReferenceFlags.alreadyExists = true;
-        this.insertRefHandler(this.inTextCitation, doi, this.citationHTML);
+        this.createReferenceFlags.justCreated = true;
+        this.insertRef(this.inTextCitation, doi, this.citationHTML);
       } catch (e) {
         this.createReferenceFlags.creationError = true;
       }
@@ -189,14 +207,14 @@ export default {
         if (result.where === 'service') {
           this.createReferenceFlags.found = true;
         } else {
-          this.createReferenceFlags.alreadyExists = true;
+          this.createReferenceFlags.existsInSplash = true;
         }
         this.referenceResponseObject = result.response;
       } catch (e) {
         this.createReferenceFlags.connectionError = true;
       }
     },
-    insertRefHandler(inTextCitation, uid, html) {
+    insertRef(inTextCitation, uid, html) {
       this.$emit('insert-ref', inTextCitation, uid, html);
     },
   },

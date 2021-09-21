@@ -102,13 +102,13 @@ export default {
       }
       this.$emit('toggle-editing', false);
     },
-    async addReference(inTextCitation, id, html) {
+    async addReference(inTextCitation, uid, html) {
       this.$emit('toggle-editing', true);
       this.refsLoading = true;
-      this.references.push({ id, in_text: false });
+      this.references.push({ uid, in_text: false });
       try {
         await dataToParent({ thisObj: this, data: this.references });
-        this.items.push({ id, citation: html, error: false });
+        this.items.push({ uid, citation: html, error: false });
         this.refsLoading = false;
       } catch (e) {
         this.references.pop();
@@ -125,11 +125,11 @@ export default {
       this.refsLoading = true;
       const items = await Promise.all(
         this.references.map(async (refElem) => {
-          const reference = this.items.find((item) => item.id === refElem.id);
+          const reference = this.items.find((item) => item.uid === refElem.uid);
           if (reference !== undefined && reference.error === false) {
             return reference;
           }
-          return referenceUtils.requestReference(refElem.id);
+          return referenceUtils.requestReference(refElem.uid);
         }),
       );
       this.refsLoading = false;

@@ -21,10 +21,10 @@ async function getSplashReferenceByUID(uid) {
   return response;
 }
 
-async function getSplashReference(id) {
+/* async function getSplashReference(id) {
   if (isDoiFormat(id)) return getSplashReferenceByDOI(id);
   return getSplashReferenceByUID(id);
-}
+} */
 
 async function createReference(reference) {
   const response = await Vue.prototype.$api.post(`${Vue.prototype.$references_url}`, reference);
@@ -46,7 +46,8 @@ export default {
   },
   async checkDOIExists(doi) {
     try {
-      return { response: (await getSplashReference(doi)), where: 'splash' };
+      const splashResult = await getSplashReferenceByDOI(doi);
+      if (splashResult.data.length !== 0) return { response: splashResult, where: 'splash' };
     } catch (e) {
       console.log('caught');
       if (e.response.status !== 404) {
@@ -63,30 +64,30 @@ export default {
     return false;
   },
 
-  async requestReference(id) {
+  async requestReference(uid) {
     // This function will attempt to get the current reference from the splash database. If it succeeds it will return
-    // an object that looks like this: {id: "XXXXXXX", citation:"<HTML FORMAT OF THE CITATION>", error: false}
+    // an object that looks like this: {uid: "XXXXXXX", citation:"<HTML FORMAT OF THE CITATION>", error: false}
     // If it does not exist in the db (404 response) Then it will return:
-    //  { id: 'XXXXXXX', citation: 'Could not find reference.', error: true,}
+    //  { uid: 'XXXXXXX', citation: 'Could not find reference.', error: true,}
     // For any other non 404 error it will return:
-    // { id, citation: `Error connecting to server when getting reference. Try reloading the page.`, error: true, }
+    // { uid: 'XXXXX', citation: `Error connecting to server when getting reference. Try reloading the page.`, error: true, }
     try {
-      const response = await getSplashReference(id);
+      const response = await getSplashReferenceByUID(uid);
       return {
-        id,
+        uid,
         citation: this.generateHtmlCitation(response.data),
         error: false,
       };
     } catch (e) {
       if (e.response === undefined || e.response.status !== 404) {
         return {
-          id,
+          uid,
           citation: 'Error connecting to server when getting reference. Try reloading the page.',
           error: true,
         };
       }
       return {
-        id,
+        uid,
         citation: 'Could not find reference.',
         error: true,
       };
