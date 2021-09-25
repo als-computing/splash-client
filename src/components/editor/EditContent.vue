@@ -93,24 +93,13 @@
                 </b-button-toolbar>
               </div>
             </div>
-            <b-sidebar
+            <reference-sidebar
               id="sidebar-in-text"
               title="In-Text Citations"
               width="490px"
               v-model="insert_reference"
-              lazy
-              right
-              shadow
-            >
-              <add-references
-                @clickedRef="
-                  insertReference(arguments[0], arguments[1], arguments[2])
-                "
-              />
-              <create-custom-reference @add-ref="insertReference(arguments[0], arguments[1], arguments[2])"/>
-
-            </b-sidebar>
-
+              @selected-ref="insertReference"
+            />
             <b-modal
               v-model="couldNotSave"
               v-b-modal.modal-center
@@ -162,10 +151,6 @@
 </template>
 
 <script>
-import AddReferences from '@/components/references/AddReferences.vue';
-import DOMPurify from 'dompurify';
-import CreateCustomReference from '@/components/references/customReferences/CreateCustomReference.vue';
-
 import 'codemirror/lib/codemirror.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
 // import '@toast-ui/editor/dist/toastui-editor-viewer.css';
@@ -173,17 +158,18 @@ import { Editor, Viewer } from '@toast-ui/vue-editor';
 import dataToParent from '@/components/utils/dataToParent';
 import refUtils from '@/components/references/referenceUtils';
 import { BIconPencilSquare } from 'bootstrap-vue';
+import DOMPurify from 'dompurify';
+import ReferenceSidebar from '../references/shared/ReferenceSidebar.vue';
 
 const TOGGLE_SUBSCRIPT_EVENT = 'TOGGLE_SUBSCRIPT';
 const TOGGLE_SUPERSCRIPT_EVENT = 'TOGGLE_SUPERSCRIPT';
 
 export default {
   components: {
-    'add-references': AddReferences,
     Editor,
     Viewer,
     BIconPencilSquare,
-    CreateCustomReference,
+    ReferenceSidebar,
   },
   props: {
     documentation: String,

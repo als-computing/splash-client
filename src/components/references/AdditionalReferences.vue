@@ -29,35 +29,30 @@
     <b-button v-if='!readOnly' :disabled="insert_reference" v-b-toggle.sidebar-add-refs
       >Add Additional Reference</b-button
     >
-    <b-sidebar
+    <reference-sidebar
       id="sidebar-add-refs"
       title="Additional References"
-      width="375px"
+      width="475px"
       v-model="insert_reference"
       :backdrop="true"
+      justCreatedButtonText="Add"
+      @selected-ref="addReference"
       lazy
       right
-      shadow
-    >
-      <add-references
-        @clickedRef="addReference(arguments[0], arguments[1], arguments[2])"
-        already-found-button-text='Add'
-
-      />
-    </b-sidebar>
+      shadow />
   </div>
 </template>
 <script>
-import AddReferences from '@/components/references/AddReferences.vue';
 import { BIconX } from 'bootstrap-vue';
 import dataToParent from '@/components/utils/dataToParent';
 import referenceUtils from './referenceUtils';
+import ReferenceSidebar from './shared/ReferenceSidebar.vue';
 
 export default {
   props: { referencesArray: Array, readOnly: { type: Boolean, default: false } },
   components: {
-    AddReferences,
     BIconX,
+    ReferenceSidebar,
   },
   data() {
     return {
@@ -106,6 +101,7 @@ export default {
       this.$emit('toggle-editing', true);
       this.refsLoading = true;
       this.references.push({ uid, in_text: false });
+      console.log(this.references);
       try {
         await dataToParent({ thisObj: this, data: this.references });
         this.items.push({ uid, citation: html, error: false });

@@ -21,7 +21,7 @@
                   DOIForHandler === undefined ||
                   DOIForHandler === null
                 "
-                @click="allowCustomReferenceWithExistingDoi = false; reRenderDoiHandler()"
+                @click="reRenderDoiHandler()"
                 >Find DOI</b-button
               >
             </template>
@@ -59,12 +59,9 @@
           @loading="loading = true"
           @not-loading="loading = false"
           @insert-ref="addRef"
-          @not-found="handleDOINotFound"
           @cancel="showDOIHandler = false"
-          @use-custom-ref="handleDOINotFound"
           v-if="showDOIHandler"
           :DOI="DOIForHandler"
-          :allow-custom-reference-with-existing-doi="allowCustomReferenceWithExistingDoi"
           connectionErrMsg="Connection Error. Try again or try reloading the page."
           foundInServiceMsg="The DOI for this reference was found in an external service:"
           foundInSplashMsg="The DOI for this reference already exists in Splash:"
@@ -75,11 +72,10 @@
           @not-loading="loading = false"
           @insert-ref="addRef"
           @cancel="showRefHandler = false"
+          :justCreatedButtonText="justCreatedButtonText"
           v-if="showRefHandler"
           :custom-reference="referenceForHandler"
           connectionErrMsg="Connection Error. Try again or try reloading the page."
-          foundInServiceMsg="The DOI for this reference was found in an external service:"
-          foundInSplashMsg="The DOI for this reference already exists in Splash:"
         />
       </b-card>
     </b-card>
@@ -94,7 +90,7 @@ import DoiInput from '../shared/DoiInput.vue';
 
 export default {
   props: {
-    alreadyFoundButtonText: {
+    justCreatedButtonText: {
       default: 'Insert',
       type: String,
     },
@@ -120,7 +116,6 @@ export default {
       showRefHandler: false,
       loading: false,
       citationHTML: '',
-      allowCustomReferenceWithExistingDoi: false,
     };
   },
   methods: {
@@ -141,31 +136,12 @@ export default {
     },
     async handleCustomRefObj(reference) {
       this.resetState();
-      // If we're citing a chapter or book then we want to allow the user
-      // to associate their custom reference with an already existing DOI
-      if (reference.type === 'chapter' || reference.type === 'book') {
-        this.allowCustomReferenceWithExistingDoi = true;
-        this.passRefObj(reference);
-        return;
-      }
-      this.allowCustomReferenceWithExistingDoi = false;
-      this.passRefObj(reference);
-    },
-    passRefObj(reference) {
       this.referenceForHandler = reference;
       if (reference.DOI !== undefined) {
         this.DOIForHandler = reference.DOI;
         this.reRenderDoiHandler();
         return;
       }
-      this.reRenderReferenceHandler();
-    },
-    handleDOINotFound() {
-      // Basically if we are only trying to create a reference
-      // using the find DOI feature then we don't have a custom reference to create
-      if (this.referenceForHandler === undefined) return;
-      this.loading = false;
-      this.showDOIHandler = false;
       this.reRenderReferenceHandler();
     },
     async reRenderReferenceHandler() {

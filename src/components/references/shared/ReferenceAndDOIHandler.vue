@@ -1,7 +1,6 @@
 <template>
   <div>
     <b-alert
-      v-if="alertNotFound"
       v-model="createReferenceFlags.notFound"
       dismissible
       align="center"
@@ -21,13 +20,10 @@
     </b-alert>
     <div v-if="createReferenceFlags.existsInSplash">
       <h5>{{ foundInSplashMsg }}</h5>
-      <splash-reference-list :reference-list="referenceResponseObject.data" @clickedRef="insertRef"/>
-      <b-button
-        v-if="allowCustomReferenceWithExistingDoi"
-        @click="$emit('use-custom-ref')"
-        class="mx-1"
-        >Load my custom reference</b-button
-      >
+      <splash-reference-list
+        :reference-list="referenceResponseObject.data"
+        @clickedRef="insertRef"
+      />
       <b-button @click="$emit('cancel')" variant="warning"> Cancel </b-button>
     </div>
 
@@ -41,12 +37,6 @@
         "
         >Create New</b-button
       >
-      <b-button
-        v-if="allowCustomReferenceWithExistingDoi"
-        @click="$emit('use-custom-ref')"
-        class="mx-1"
-        >Load my custom reference</b-button
-      >
       <b-button @click="$emit('cancel')" variant="warning"> Cancel </b-button>
     </div>
 
@@ -54,11 +44,8 @@
       <h5>Here is your reference.</h5>
       <span v-html="citationHTML"></span>
       <b-button
-        @click="
-          createReferenceFlags.creationError = false;
-          loader(addNewCustomReference, []);
-        "
-        >Insert</b-button
+        @click="insertRef(inTextCitation, referenceUid, citationHTML)"
+        >{{ justCreatedButtonText }}</b-button
       >
       <b-button @click="$emit('cancel')" variant="warning"> Cancel </b-button>
     </div>
@@ -97,17 +84,9 @@ export default {
     SplashReferenceList,
   },
   props: {
-    allowCustomReferenceWithExistingDoi: {
-      type: Boolean,
-      default: false,
-    },
     customReference: Object,
     DOI: String,
-    alertNotFound: {
-      type: Boolean,
-      default: true,
-    },
-    alreadyFoundButtonText: {
+    justCreatedButtonText: {
       type: String,
       default: 'Insert',
     },
@@ -117,7 +96,7 @@ export default {
     },
     foundInSplashMsg: {
       type: String,
-      default: 'This reference is in the Splash database:',
+      default: 'This DOI is in the Splash database:',
     },
     foundInServiceMsg: {
       type: String,
@@ -141,6 +120,7 @@ export default {
       citationHTML: '',
       referenceResponseObject: {},
       inTextCitation: '',
+      referenceUid: undefined,
     };
   },
   mounted() {
@@ -167,6 +147,7 @@ export default {
     async addNewCustomReference() {
       try {
         const { uid } = (await referenceUtils.addRefObjectToSplash(this.customReference)).data;
+        this.referenceUid = uid;
         this.createReferenceFlags.customReference = false;
         this.createReferenceFlags.justCreated = true;
         this.insertRef(this.inTextCitation, uid, this.citationHTML);
@@ -186,10 +167,11 @@ export default {
       referenceObject.DOI = doi;
       referenceObject.origin_url = this.referenceResponseObject.request.responseURL;
       try {
-        await referenceUtils.addRefObjectToSplash(referenceObject);
+        const { uid } = (await referenceUtils.addRefObjectToSplash(referenceObject)).data;
+        this.referenceUid = uid;
         this.createReferenceFlags.found = false;
         this.createReferenceFlags.justCreated = true;
-        this.insertRef(this.inTextCitation, doi, this.citationHTML);
+        this.insertRef(this.inTextCitation, uid, this.citationHTML);
       } catch (e) {
         this.createReferenceFlags.creationError = true;
       }
@@ -202,9 +184,9 @@ export default {
           this.$emit('not-found');
           return;
         }
-        this.inTextCitation = referenceUtils.generateInTextCitation(result.response.data);
-        this.citationHTML = referenceUtils.generateHtmlCitation(result.response.data);
         if (result.where === 'service') {
+          this.inTextCitation = referenceUtils.generateInTextCitation(result.response.data);
+          this.citationHTML = referenceUtils.generateHtmlCitation(result.response.data);
           this.createReferenceFlags.found = true;
         } else {
           this.createReferenceFlags.existsInSplash = true;

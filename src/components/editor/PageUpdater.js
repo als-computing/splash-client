@@ -2,11 +2,10 @@
 import Vue from 'vue';
 
 function removeFromStringify(data) {
-  return JSON.stringify(data, (key, value) => {
-    if (key === 'splash_md') return undefined;
-    if (key === 'uid') return undefined;
-    return value;
-  });
+  const dataCopy = JSON.parse(JSON.stringify(data));
+  delete dataCopy.uid;
+  delete dataCopy.splash_md;
+  return JSON.stringify(dataCopy);
 }
 
 const ARCHIVE_REQ_BODY = { archive_action: 'archive' };
