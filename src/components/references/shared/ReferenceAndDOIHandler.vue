@@ -152,7 +152,6 @@ export default {
         this.createReferenceFlags.justCreated = true;
         this.insertRef(this.inTextCitation, uid, this.citationHTML);
       } catch (e) {
-        console.log(e);
         this.createReferenceFlags.creationError = true;
       }
     },

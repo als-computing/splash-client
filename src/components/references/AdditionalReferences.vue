@@ -101,7 +101,6 @@ export default {
       this.$emit('toggle-editing', true);
       this.refsLoading = true;
       this.references.push({ uid, in_text: false });
-      console.log(this.references);
       try {
         await dataToParent({ thisObj: this, data: this.references });
         this.items.push({ uid, citation: html, error: false });

@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import Citation from 'citation-js';
 import DOMPurify from 'dompurify';
-import { isDoiFormat } from '@/utils';
 
 async function getDOIFromService(doi) {
   try {
