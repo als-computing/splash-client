@@ -137,11 +137,6 @@ export default {
     async handleCustomRefObj(reference) {
       this.resetState();
       this.referenceForHandler = reference;
-      if (reference.DOI !== undefined) {
-        this.DOIForHandler = reference.DOI;
-        this.reRenderDoiHandler();
-        return;
-      }
       this.reRenderReferenceHandler();
     },
     async reRenderReferenceHandler() {
