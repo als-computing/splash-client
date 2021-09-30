@@ -70,7 +70,6 @@
       </b-row>
     </b-container>
 
-
   </div>
 </template>
 
@@ -157,7 +156,6 @@ export default {
       }
     },
 
-
     async addRuns() {
       try {
         this.runsLoading = true;
@@ -167,22 +165,9 @@ export default {
         return response.data.length;
       } catch (error) {
         if (error.response) {
-          console.log(error.response.data);
-          console.log(error.response.status);
-          console.log(error.response.headers);
           if (error.response.status === 404) {
             this.catalogNotFound = true;
           }
-        } else if (error.request) {
-          // The request was made but no response was received
-          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-          // http.ClientRequest in node.js
-          console.log(error);
-          console.log(error.request);
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          console.log(error);
-          console.log('Error', error.message);
         }
       }
       this.runsLoading = false;
@@ -198,7 +183,6 @@ export default {
           });
         this.$set(this.thumbnails, uid, `data:image/jpg;base64,${Buffer.from(response.data, 'binary').toString('base64')}`);
       } catch (e) {
-        console.log(e);
         return '';
       }
     },
@@ -235,7 +219,6 @@ export default {
         const toDT = `${this.searchTo} ${this.searchToTime}`;
         query += `&toDT=${new Date(toDT).valueOf() / 1000}`;
       }
-      console.log(query);
       return query;
     },
   },

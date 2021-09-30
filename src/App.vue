@@ -52,7 +52,7 @@
 
 <script>
 // import SearchBar from './components/SearchBar.vue';
-import ErrorCard from '@/components/ErrorCard.vue';
+import ErrorCard from '@/components/utils/ErrorCard.vue';
 
 export default {
   props: {
@@ -93,25 +93,23 @@ export default {
     });
     this.$api.interceptors.response.use(
       undefined,
-      (err) =>
-        new Promise((resolve, reject) => {
-          if (
-            err.response &&
-            err.response.status === 401 &&
-            err.config &&
-            !err.config.__isRetryRequest
-          ) {
-            store.dispatch('login/logout').then(() => {
-              router.push('/login');
-            });
-          }
-          throw err;
-        }),
+      (err) => new Promise((resolve, reject) => {
+        if (
+          err.response
+            && err.response.status === 401
+            && err.config
+            && !err.config.__isRetryRequest
+        ) {
+          store.dispatch('login/logout').then(() => {
+            router.push('/login');
+          });
+        }
+        throw err;
+      }),
     );
   },
 };
 </script>
-
 
 <style>
 #app {

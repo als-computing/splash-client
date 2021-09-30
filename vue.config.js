@@ -25,9 +25,9 @@ module.exports = {
         ws: true,
         changeOrigin: true,
         pathRewrite: {
-          '^/elasticsearch': '/search'
-        }
-      }
+          '^/elasticsearch': '/search',
+        },
+      },
 
     },
   },

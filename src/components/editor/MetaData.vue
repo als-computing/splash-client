@@ -12,7 +12,12 @@
     <div class="mx-auto" v-if="splashMd.edit_record.length !== 0">
       Edited by: {{ editorName }}
     </div>
-    <b-button v-show="this.$route.params.version === undefined" :to="$route.path + '/v/'" :disabled="splashMd.edit_record.length == 0">View past versions</b-button>
+    <b-button
+      v-show="pastVersionsBtn"
+      :to="$route.path + '/v/'"
+      :disabled="splashMd.edit_record.length == 0"
+      >View past versions</b-button
+    >
   </b-card>
 </template>
 
@@ -22,6 +27,10 @@ import utils from '@/utils';
 export default {
   props: {
     splashMd: Object,
+    pastVersionsBtn: {
+      type: Boolean,
+      default: true,
+    },
   },
   data() {
     return {
@@ -50,7 +59,6 @@ export default {
         );
         this.creatorName = `${resp.data.given_name} ${resp.data.family_name}`;
       } catch (e) {
-        console.log(e);
         this.creatorName = 'ERROR';
       }
       if (this.splashMd.edit_record.length > 0) {
@@ -60,21 +68,11 @@ export default {
           );
           this.editorName = `${resp.data.given_name} ${resp.data.family_name}`;
         } catch (e) {
-          console.log(e);
           this.editorName = 'ERROR';
         }
       }
     },
 
-  },
-  watch: {
-    $props: {
-      handler() {
-        this.retrieveUserData();
-      },
-      deep: true,
-      immediate: true,
-    },
   },
 };
 </script>

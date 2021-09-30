@@ -1,6 +1,5 @@
 import marked from 'marked';
 import DOMPurify from 'dompurify';
-import Vue from 'vue';
 
 export default {
   // https://stackoverflow.com/questions/32441347/how-do-i-use-vue-js-debounce-filter
@@ -55,4 +54,41 @@ export default {
     const localDate = new Date(`${utcDate}Z`);
     return localDate;
   },
+
+  // Taken from: https://stackoverflow.com/questions/18758772/how-do-i-validate-a-date-in-this-format-yyyy-mm-dd-using-jquery/35413963
+  isValidDate(dateString) {
+    const regEx = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateString.match(regEx)) return false; // Invalid format
+    const d = new Date(dateString);
+    const dNum = d.getTime();
+    if (!dNum && dNum !== 0) return false; // NaN value, Invalid date
+    return d.toISOString().slice(0, 10) === dateString; // In some cases Chrome will 'correct' for invalid dates such as
+    // 2019-02-31 and turn it into 2019-03-03 (https://levelup.gitconnected.com/cross-browser-crazy-44e90d61b204).
+    // This makes sure that the original string matches the Date object's string. If it's not matching then this indicates
+    // that the date was corrected.
+  },
+  isOnlyDigits(value) {
+    return /^[0-9]+$/.test(value);
+  },
+  isStrEmptyOrWhitespace(str) {
+    if (/\S/.test(str)) return false;
+    return true;
+  },
+  validPageRange(rangeStr) {
+    // This regex for validating page ranges was taken from here: https://stackoverflow.com/a/4468356
+    const regex = /^(\s*\d+\s*(-\s*\d+\s*)?)(,\s*\d+\s*(-\s*\d+\s*)?)*$/g;
+    return regex.test(rangeStr);
+  },
 };
+
+export function isDoiFormat(string) {
+  let numForwSlashes = string.match(/\//g);
+  if (numForwSlashes === null) {
+    return false;
+  }
+  numForwSlashes = numForwSlashes.length;
+  if (string.startsWith('10.') && (string.slice(-1) !== '/' || numForwSlashes >= 2)) {
+    return true;
+  }
+  return false;
+}

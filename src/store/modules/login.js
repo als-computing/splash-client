@@ -4,14 +4,12 @@ import {
   AUTH_SUCCESS, AUTH_ERROR, LOGOUT,
 } from './login-mutation-types';
 
-let stored_user = localStorage.getItem('user')
-try{
-  stored_user = JSON.parse(stored_user)
+let stored_user = localStorage.getItem('user');
+try {
+  stored_user = JSON.parse(stored_user);
+} catch (err) {
+  stored_user = {};
 }
-catch(err){
-  stored_user = {}
-}
-  
 
 const state = () => ({
   status: '',
@@ -44,12 +42,12 @@ const mutations = {
 
 const actions = {
   logout({ commit }) {
-    console.log('hello');
     commit(LOGOUT);
     const auth2 = window.gapi.auth2.getAuthInstance();
     return auth2.signOut()
       .then(() => console.log('User signed out of google'))
-      .catch((error) => console.error(error));
+      .catch(() => console.error('could not sign out')); // TODO: We need to notify the user if there is an
+    // error in signing out
   },
   async sendOAuthToken({ commit }, token) {
     // Sends auth token to api server to be validated. If
@@ -80,7 +78,6 @@ const getters = {
   api_access_token: (state) => state.api_access_token,
   authStatus: (state) => state.status,
 };
-
 
 export default {
   namespaced: true,

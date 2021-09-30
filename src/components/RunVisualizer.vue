@@ -7,7 +7,7 @@
         variant="light"
         opacity="0.8"
         rounded="sm">
-          <b-img 
+          <b-img
           ref="image"
           alt= "image of scan"
           id="image"
@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import ImageAdjuster from "@/components/ImageAdjuster.vue";
+import ImageAdjuster from '@/components/ImageAdjuster.vue';
 
 export default {
   props: {
@@ -52,13 +52,10 @@ export default {
     },
   }),
 
-
-
   mounted() {
     this.validateRoute();
     this.getJpeg(this.$route);
   },
-
 
   methods: {
     validateRoute() {
@@ -94,12 +91,11 @@ export default {
       return n !== Infinity && String(n) === str && n >= 0;
     },
 
-
     async getJpeg($route) {
       this.setLoading();
       this.isMetaDataLoading = true;
       if ($route.params.catalog && $route.params.uid) {
-        let requestUrl = this.$runs_url.concat('/', $route.params.catalog, '/', $route.params.uid + "/thumb");
+        let requestUrl = this.$runs_url.concat('/', $route.params.catalog, '/', `${$route.params.uid}/thumb`);
         if (this.$route.query.frame) {
           requestUrl = requestUrl.concat('?frame=', this.$route.query.frame);
         }
@@ -136,7 +132,6 @@ export default {
         this.constructImage(response.data);
         this.isPlotLoaded = true;
       } catch (e) {
-        console.error(e);
       }
     },
 
@@ -145,7 +140,6 @@ export default {
       const BYTES_PER_ROW = 2048;
       let imageRow;
       let rowEnd;
-      // console.log(buffer.byteLength);
       for (let rowBegin = 0; rowBegin < buffer.byteLength; rowBegin += BYTES_PER_ROW) {
         rowEnd = rowBegin + BYTES_PER_ROW;
         // slices up to but not including row end
@@ -155,7 +149,7 @@ export default {
     }, */
   },
   components: {
-    "image-adjuster": ImageAdjuster
-  }
+    'image-adjuster': ImageAdjuster,
+  },
 };
 </script>

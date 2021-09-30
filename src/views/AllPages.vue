@@ -7,7 +7,6 @@
 <script>
 import PagesWrapper from '../components/pages/PagesWrapper.vue';
 
-
 export default {
   components: { PagesWrapper },
 
