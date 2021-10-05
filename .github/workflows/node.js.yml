@@ -41,8 +41,6 @@ jobs:
       permissions:
         contents: read
         packages: write
-      # Only run when we are pushing to the repo's master branch
-      if: ${{ github.event_name == 'push' }}
       steps:
         - name: Checkout repository
           uses: actions/checkout@v2
