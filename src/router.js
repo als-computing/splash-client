@@ -7,7 +7,7 @@ import store from './store';
 const router = new Router({
   routes,
   mode: 'history',
-  base: '/splash/',
+  base: '/' + process.env.SPLASH_ROOT + '/',
   store,
 });
 
