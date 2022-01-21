@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import { local } from 'd3';
 import {
   AUTH_SUCCESS, AUTH_ERROR, LOGOUT,
 } from './login-mutation-types';
