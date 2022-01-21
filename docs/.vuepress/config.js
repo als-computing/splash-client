@@ -1,7 +1,8 @@
 module.exports = {
+    
     title: 'Splash Documentation',
     description: 'Documentation for the Splash server',
-    base: '/docs/',
+    base: '/' + process.env.VUE_APP_SPLASH_BASE + '/docs/',
     themeConfig: {
         sidebar: [
             {
@@ -32,4 +33,15 @@ module.exports = {
             },
         ]
     },
+plugins: [
+    {
+        extendPageData($page) {
+            // 1. Add extra fields.
+            if (process.env.VUE_APP_SPLASH_BASE === undefined || process.env.VUE_APP_SPLASH_BASE === null){
+                throw Error('process.env.VUE_APP_SPLASH_BASE must be defined and non-null')
+            }
+            $page.VUE_APP_SPLASH_BASE = '/' + process.env.VUE_APP_SPLASH_BASE + '/'
+        },
+    }
+]
 }

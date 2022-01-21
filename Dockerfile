@@ -2,6 +2,7 @@
 
 # build stage
 FROM node:lts-alpine as build-stage
+ENV VUE_APP_SPLASH_BASE=splash
 WORKDIR /app
 COPY package*.json ./
 RUN npm update
@@ -11,7 +12,8 @@ RUN npm run build
 
 # production stage
 FROM nginx:stable-alpine as production-stage
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
+ENV VUE_APP_SPLASH_BASE=splash
+COPY --from=build-stage /app/dist /usr/share/nginx/html/${VUE_APP_SPLASH_BASE}
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

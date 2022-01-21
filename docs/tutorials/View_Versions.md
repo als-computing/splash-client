@@ -2,7 +2,7 @@
 
 For this example we will pretend that we are viewing the versions of a Compound page.
 
-1. Navigate to the <a href="/" target="_blank">home page</a>.
+1. Navigate to the <a :href="$page.VUE_APP_SPLASH_BASE" target="_blank">home page</a>.
 
 2. Click on the "Compounds" card, or the "Compounds" link in the left of the black nav bar.
 3. Click on the row for the compound you want to view in the table.
