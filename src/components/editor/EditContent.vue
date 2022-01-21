@@ -60,7 +60,8 @@
           </b-container>-->
 
                 <b-button-toolbar>
-                  <!--The save button is disabled when the boxes are empty, are not changed, or if the app is in the process of saving-->
+                  <!--The save button is disabled when the boxes are empty,
+                  are not changed, or if the app is in the process of saving-->
                   <b-button
                     variant="primary"
                     @click="emitEdit()"
@@ -92,22 +93,13 @@
                 </b-button-toolbar>
               </div>
             </div>
-            <b-sidebar
+            <reference-sidebar
               id="sidebar-in-text"
               title="In-Text Citations"
-              width="375px"
+              width="490px"
               v-model="insert_reference"
-              lazy
-              right
-              shadow
-            >
-              <add-references
-                @clickedRef="
-                  insertReference(arguments[0], arguments[1], arguments[2])
-                "
-              />
-            </b-sidebar>
-
+              @selected-ref="insertReference"
+            />
             <b-modal
               v-model="couldNotSave"
               v-b-modal.modal-center
@@ -122,10 +114,10 @@
               <template #cell(index)="data"> {{ data.index + 1 }}. </template>
               <template #cell(citation)="data">
                 <div align="left">
-                  <a :name="data.item.doi">
+                  <a :name="data.item.uid">
                     <span
                       :class="`${
-                        $route.hash === `#${data.item.doi}` ? 'active' : ''
+                        $route.hash === `#${data.item.uid}` ? 'active' : ''
                       }`"
                       v-if="items[data.index].error"
                       >{{ data.value }}</span
@@ -133,7 +125,7 @@
                     <span
                       v-else
                       :class="`${
-                        $route.hash === `#${data.item.doi}`
+                        $route.hash === `#${data.item.uid}`
                           ? 'raw-html-active'
                           : ''
                       }`"
@@ -145,7 +137,7 @@
             </b-table>
           </b-overlay>
         </b-col>
-        <b-col lg="3" v-show="insert_reference"> </b-col>
+        <b-col lg="4" v-show="insert_reference"> </b-col>
       </b-row>
     </b-container>
     <b-popover
@@ -159,27 +151,25 @@
 </template>
 
 <script>
-import AddReferences from '@/components/editor/AddReferences.vue';
-import DOMPurify from 'dompurify';
-
 import 'codemirror/lib/codemirror.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
 // import '@toast-ui/editor/dist/toastui-editor-viewer.css';
 import { Editor, Viewer } from '@toast-ui/vue-editor';
-import utils from '@/components/editor/utils';
+import dataToParent from '@/components/utils/dataToParent';
+import refUtils from '@/components/references/referenceUtils';
 import { BIconPencilSquare } from 'bootstrap-vue';
-
-const { dataToParent } = utils;
+import DOMPurify from 'dompurify';
+import ReferenceSidebar from '../references/shared/ReferenceSidebar.vue';
 
 const TOGGLE_SUBSCRIPT_EVENT = 'TOGGLE_SUBSCRIPT';
 const TOGGLE_SUPERSCRIPT_EVENT = 'TOGGLE_SUPERSCRIPT';
 
 export default {
   components: {
-    'add-references': AddReferences,
     Editor,
     Viewer,
     BIconPencilSquare,
+    ReferenceSidebar,
   },
   props: {
     documentation: String,
@@ -260,7 +250,6 @@ export default {
   methods: {
     addCustomButtons() {
       const ui = this.$refs['markdown-input'].invoke('getUI');
-      console.log(this.$refs);
       const thisObj = this;
       this.$refs['markdown-input'].editor.eventManager.addEventType(TOGGLE_SUBSCRIPT_EVENT);
       this.$refs['markdown-input'].editor.eventManager.listen(TOGGLE_SUBSCRIPT_EVENT, () => {
@@ -273,7 +262,6 @@ export default {
       });
 
       const toolbar = ui.getToolbar();
-      console.log(toolbar);
       toolbar.insertItem(20, {
         type: 'button',
         options: {
@@ -317,7 +305,7 @@ export default {
     onLinkMouseout(event) {
       if (
         event.target.tagName === 'A'
-        && event.target.attributes.href.nodeValue.startsWith('#10.')
+        && event.target.attributes.href.nodeValue.startsWith('#')
       ) {
         this.showPopOver = false;
         this.popOverTarget = undefined;
@@ -327,11 +315,11 @@ export default {
     onLinkMouseover(event) {
       if (event.target.tagName === 'A') {
         const url = event.target.attributes.href.nodeValue;
-        if (url.startsWith('#10.')) {
-          const doi = url.substring(1);
-          let citationData = this.items.find((elem) => elem.doi === doi);
+        if (url.startsWith('#')) {
+          const uid = url.substring(1);
+          let citationData = this.items.find((elem) => elem.uid === uid);
           if (citationData === undefined) {
-            citationData = this.justInsertedReferences.find((elem) => elem.doi === doi);
+            citationData = this.justInsertedReferences.find((elem) => elem.uid === uid);
           }
           if (citationData === undefined) {
             return;
@@ -373,7 +361,6 @@ export default {
         this.insert_reference = false;
       } catch (error) {
         this.saving = false;
-        console.log(error);
         // In some cases, we only want the top level component to
         // display the error message
         if (error.displayMessage === false) return;
@@ -382,40 +369,30 @@ export default {
       }
     },
 
-    async insertReference(text, doi, citationHTML) {
+    async insertReference(text, uid, citationHTML) {
       const editor = this.$refs['markdown-input'];
-      editor.invoke('exec', 'AddLink', { linkText: text, url: `#${doi}` });
-      this.justInsertedReferences.push({ doi, citation: citationHTML });
+      editor.invoke('exec', 'AddLink', { linkText: text, url: `#${uid}` });
+      this.justInsertedReferences.push({ uid, citation: citationHTML });
     },
-    isDoiFormat(string) {
-      if (string.startsWith('10.') && string.includes('/')) {
-        return true;
-      }
-      return false;
-    },
-
     extractReferences() {
       const refsSet = new Set();
       // The regex here matches this pattern: [(citation goes here)](#url goes here)
       const matches = [...this.edited_documentation.matchAll(/\[\([^\s].*?\)\]\(#([^\s].*?)\)/g)];
       matches.forEach((match) => {
-        const doiRef = match[1];
-        if (!this.isDoiFormat(doiRef)) {
-          return;
-        }
-        refsSet.add(doiRef.trim());
+        const uidRef = match[1];
+        refsSet.add(uidRef.trim());
       });
       this.getReferenceCitations(refsSet);
     },
     async getReferenceCitations(referencesSet) {
       this.refsLoading = true;
       const items = await Promise.all(
-        [...referencesSet].map(async (doi) => {
-          const reference = this.items.find((elem) => elem.doi === doi);
+        [...referencesSet].map(async (uid) => {
+          const reference = this.items.find((elem) => elem.uid === uid);
           if (reference !== undefined && reference.error === false) {
             return reference;
-          }
-          return utils.getRefOrCreateIfNotExists(doi);
+          } 
+          return refUtils.requestReference(uid);
         }),
       );
       this.refsLoading = false;

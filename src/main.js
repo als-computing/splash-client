@@ -5,7 +5,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import axios from 'axios';
 // import { Plotly } from "vue-plotly"
-import { axisBottom } from 'd3';
 import App from './App.vue';
 import router from './router';
 import store from './store';
@@ -18,10 +17,22 @@ const apiUrl = '/api/v1';
 let settings = null;
 const doiURL = 'https://dx.doi.org';
 
+async function getSettings() {
+  const response = await axios.get(`${apiUrl}/settings`, {
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+      Expires: '0',
+    },
+  });
+  if (response.data) {
+    settings = response.data;
+  }
+}
+
 Vue.use({
   async install(Vue) {
     await getSettings();
-    console.log(`google client id${settings.google_client_id}`);
     Vue.prototype.$settings = settings;
     const searchUrl = '/elasticsearch';
 
@@ -47,7 +58,6 @@ Vue.use({
   },
 });
 
-
 function onError() {
   new Vue({
     router,
@@ -56,18 +66,7 @@ function onError() {
   }).$mount('#app');
 }
 
-async function getSettings() {
-  const response = await axios.get(`${apiUrl}/settings`, {
-    headers: {
-      'Cache-Control': 'no-cache',
-      Pragma: 'no-cache',
-      Expires: '0',
-    },
-  });
-  if (response.data) {
-    settings = response.data;
-  }
-}
+
 
 async function onGoogleLoad() {
   // This function is called when the google auth library has loaded into
@@ -91,7 +90,7 @@ async function onGoogleLoad() {
       },
     );
   } catch (e) {
-    console.log(e);
+    console.log('Error loading google library.');
     onError();
     return;
   }
@@ -105,8 +104,6 @@ async function onGoogleLoad() {
     render: (h) => h(App),
   }).$mount('#app');
 }
-
-
 
 // document.onload = getSettings();
 

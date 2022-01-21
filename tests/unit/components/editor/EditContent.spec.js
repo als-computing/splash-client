@@ -7,7 +7,6 @@ import marked from 'marked';
 import DOMPurify from 'dompurify';
 import responses from '../../../responses/pages-responses';
 
-
 const localVue = createLocalVue();
 
 /* const noMarkdownPropsData = {
@@ -207,7 +206,6 @@ describe('EditContent component', () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
 
-
     let section = wrapper.find('.user-text');
     await section.trigger('dblclick');
 
@@ -243,7 +241,6 @@ describe('EditContent component', () => {
 
     section = wrapper.find('.user-text');
     await section.trigger('dblclick');
-
 
     deleteButton = await findButton(wrapper, propsData.removeButtonText, 0);
     await deleteButton.trigger('click');

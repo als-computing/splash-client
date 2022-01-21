@@ -1,7 +1,6 @@
-import PageEditing from './views/PageEditing.vue';
 import PageVersions from './views/PageVersions.vue';
 import AllPages from './views/AllPages.vue';
-import Compound from './views/Compounds.vue'
+import Compound from './views/Compounds.vue';
 import Experiments from './views/Experiments.vue';
 import Home from './views/Home.vue';
 import Login from './views/Login.vue';
@@ -59,7 +58,7 @@ export default [
   {
     path: '/pages/:uid',
     name: 'page',
-    component: PageEditing,
+    component: Page,
     meta: {
       requiresAuth: true,
     },

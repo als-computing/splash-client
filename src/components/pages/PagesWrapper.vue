@@ -27,8 +27,8 @@
   </div>
 </template>
 <script>
+import ErrorCard from '@/components/utils/ErrorCard.vue';
 import CreatePage from './CreatePage.vue';
-import ErrorCard from '../ErrorCard.vue';
 import ListPages from './ListPages.vue';
 
 export default {

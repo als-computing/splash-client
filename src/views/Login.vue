@@ -79,7 +79,6 @@ export default {
         // this.$store.commit('login/AUTH_ERROR', error);
         // localStorage.removeItem('api_access_token')
       } catch (error) {
-        console.error(error);
         if (error.response) {
           if (error.response.data.detail === 'user_not_found') {
             this.userNotRegisteredError = true;

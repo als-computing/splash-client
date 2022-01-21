@@ -7,20 +7,18 @@
       <!-- The reason for the href is so that if there is an error it will actually reload
       when navigating to the splash home page rather than just changing the router-view, which is hidden at
       the moment -->
-      <b-navbar-brand href="/" v-else>Splash</b-navbar-brand>
+      <b-navbar-brand to="/" v-else>Splash</b-navbar-brand>
       <!-- <router-link to="/about">About</router-link> -->
 
       <b-navbar-toggle target="nav_collapse" />
 
       <b-collapse is-nav id="nav_collapse">
-        <div v-if="!error">
           <b-navbar-nav>
             <!--
             <b-nav-item v-bind:to="'/'">Home</b-nav-item> -->
-            <b-nav-item v-bind:to="'/compounds'">Compounds</b-nav-item>
-            <b-nav-item href='/docs/' target="_blank">Help</b-nav-item>
+            <b-nav-item v-if="!error" v-bind:to="'/compounds'">Compounds</b-nav-item>
+            <b-nav-item to='/docs/' target="_blank">Help</b-nav-item>
           </b-navbar-nav>
-        </div>
       </b-collapse>
       <div v-if="!error">
         <b-nav-text class="mx-3" id="user_name">
@@ -52,7 +50,7 @@
 
 <script>
 // import SearchBar from './components/SearchBar.vue';
-import ErrorCard from '@/components/ErrorCard.vue';
+import ErrorCard from '@/components/utils/ErrorCard.vue';
 
 export default {
   props: {
@@ -93,25 +91,23 @@ export default {
     });
     this.$api.interceptors.response.use(
       undefined,
-      (err) =>
-        new Promise((resolve, reject) => {
-          if (
-            err.response &&
-            err.response.status === 401 &&
-            err.config &&
-            !err.config.__isRetryRequest
-          ) {
-            store.dispatch('login/logout').then(() => {
-              router.push('/login');
-            });
-          }
-          throw err;
-        }),
+      (err) => new Promise((resolve, reject) => {
+        if (
+          err.response
+            && err.response.status === 401
+            && err.config
+            && !err.config.__isRetryRequest
+        ) {
+          store.dispatch('login/logout').then(() => {
+            router.push('/login');
+          });
+        }
+        throw err;
+      }),
     );
   },
 };
 </script>
-
 
 <style>
 #app {

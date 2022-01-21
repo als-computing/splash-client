@@ -48,9 +48,7 @@
 
 <script>
 import { BIconPencilSquare } from 'bootstrap-vue';
-import utils from './utils';
-
-const { dataToParent } = utils;
+import dataToParent from '@/components/utils/dataToParent';
 
 export default {
   props: {
@@ -95,7 +93,6 @@ export default {
       } catch (error) {
         this.saving = false;
         this.couldNotSave = true;
-        console.log(error);
       }
     },
   },

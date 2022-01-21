@@ -118,7 +118,6 @@ export default {
   },
 };
 
-
 /* An explanation of the _source field:
 The _source field specifies the parts of the
 queries that we should return from elasticsearch.

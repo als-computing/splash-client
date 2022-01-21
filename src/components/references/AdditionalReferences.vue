@@ -26,35 +26,33 @@
         </template>
       </b-table>
     </b-overlay>
-    <b-button v-show="!readOnly" :disabled="insert_reference" v-b-toggle.sidebar-add-refs
+    <b-button v-if='!readOnly' :disabled="insert_reference" v-b-toggle.sidebar-add-refs
       >Add Additional Reference</b-button
     >
-    <b-sidebar
+    <reference-sidebar
       id="sidebar-add-refs"
-      title="In-Text Citations"
-      width="375px"
+      title="Additional References"
+      width="475px"
       v-model="insert_reference"
+      :backdrop="true"
+      justCreatedButtonText="Add"
+      @selected-ref="addReference"
       lazy
       right
-      shadow
-    >
-      <add-references
-        @clickedRef="addReference(arguments[0], arguments[1], arguments[2])"
-      />
-    </b-sidebar>
+      shadow />
   </div>
 </template>
 <script>
-import AddReferences from '@/components/editor/AddReferences.vue';
-import utils from '@/components/editor/utils';
 import { BIconX } from 'bootstrap-vue';
+import dataToParent from '@/components/utils/dataToParent';
+import referenceUtils from './referenceUtils';
+import ReferenceSidebar from './shared/ReferenceSidebar.vue';
 
-const { dataToParent } = utils;
 export default {
   props: { referencesArray: Array, readOnly: { type: Boolean, default: false } },
   components: {
-    AddReferences,
     BIconX,
+    ReferenceSidebar,
   },
   data() {
     return {
@@ -99,13 +97,13 @@ export default {
       }
       this.$emit('toggle-editing', false);
     },
-    async addReference(inTextCitation, doi, html) {
+    async addReference(inTextCitation, uid, html) {
       this.$emit('toggle-editing', true);
       this.refsLoading = true;
-      this.references.push({ doi, in_text: false });
+      this.references.push({ uid, in_text: false });
       try {
         await dataToParent({ thisObj: this, data: this.references });
-        this.items.push({ doi, citation: html, error: false });
+        this.items.push({ uid, citation: html, error: false });
         this.refsLoading = false;
       } catch (e) {
         this.references.pop();
@@ -122,11 +120,11 @@ export default {
       this.refsLoading = true;
       const items = await Promise.all(
         this.references.map(async (refElem) => {
-          const reference = this.items.find((item) => item.doi === refElem.doi);
+          const reference = this.items.find((item) => item.uid === refElem.uid);
           if (reference !== undefined && reference.error === false) {
             return reference;
           }
-          return utils.getRefOrCreateIfNotExists(refElem.doi);
+          return referenceUtils.requestReference(refElem.uid);
         }),
       );
       this.refsLoading = false;

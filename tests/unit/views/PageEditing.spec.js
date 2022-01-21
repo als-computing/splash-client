@@ -1,7 +1,7 @@
 import BootstrapVue from 'bootstrap-vue';
 import { mount, createLocalVue } from '@vue/test-utils';
 import mockAxios from 'axios'; // This comes from the __mocks__ folder
-import PageEditing from '@/views/PageEditing.vue';
+import Page from '@/views/Page.vue';
 import EditContent from '@/components/editor/EditContent.vue';
 import PageUpdater from '@/components/editor/PageUpdater';
 import mockPageUpdater from '../../moduleMocks/pageUpdaterMock';
@@ -27,7 +27,7 @@ const documentationProps = {
 
 localVue.prototype.$api.get.mockResolvedValue({ data: { number: 4 } });
 
-let wrapper = mount(PageEditing,
+let wrapper = mount(Page,
   {
     localVue,
     stubs: {
@@ -41,7 +41,7 @@ let wrapper = mount(PageEditing,
     },
   });
 
-describe('PageEditing View', () => {
+describe('Page View', () => {
   // it('retrieves number of versions', async () => {
   //  await wrapper.vm.$nextTick();
   //  await wrapper.vm.$nextTick();
@@ -101,7 +101,7 @@ describe('PageEditing View', () => {
 
     // Test that on 412 etag errors we pass the correct argument
     error = new Error('412 axios error');
-    error.response = { status: 412, data: { err: 'etag_mismatch_error', etag: 'test_etag' } };
+    error.response = { status: 412, data: { err: 'etag_mismatch_error', etag: 'test_etag', splash_md: { archived: false } } };
     mockUpdater.updateDataProperty.mockRejectedValue(error);
 
     editor.vm.$emit('dataToParent', {
@@ -119,7 +119,7 @@ describe('PageEditing View', () => {
   it('calls correct update methods on emitted events', async () => {
     // We remount here, because testing the etag error will cause the wrapper to not call
     // updateDataProperty automatically
-    wrapper = mount(PageEditing,
+    wrapper = mount(Page,
       {
         localVue,
         stubs: {

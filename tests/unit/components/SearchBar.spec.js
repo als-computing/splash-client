@@ -5,7 +5,6 @@ import mockAxios from 'axios'; // This comes from the __mocks__ folder
 import SearchBar from '@/components/SearchBar.vue';
 import responses from '../../responses/search-responses';
 
-
 const localVue = createLocalVue();
 
 localVue.use(BootstrapVue);

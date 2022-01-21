@@ -7,6 +7,7 @@ import store from './store';
 const router = new Router({
   routes,
   mode: 'history',
+  base: `/${process.env.VUE_APP_SPLASH_BASE}/`,
   store,
 });
 
@@ -22,7 +23,7 @@ router.beforeEach((to, from, next) => {
       next('/login');
       return;
     } catch (error) {
-      console.error(error);
+      console.error('Could not redirect to /login route');
     }
   }
   next();

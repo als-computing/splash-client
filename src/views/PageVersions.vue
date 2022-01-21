@@ -25,7 +25,7 @@
               ></b-pagination-nav>
        </b-col>
        <b-col lg="4" align-self="end">
-         <meta-data :splash-md="pageDoc.data.splash_md" class="ml-lg-5"/>
+         <meta-data :splash-md="pageDoc.data.splash_md" :past-versions-btn='false' class="ml-lg-5"/>
           </b-col>
         </b-row>
      </b-container>
@@ -55,7 +55,7 @@
 <script>
 import PageUpdater from '@/components/editor/PageUpdater';
 import EditContent from '@/components/editor/EditContent.vue';
-import AdditionalReferences from '@/components/editor/AdditionalReferences.vue';
+import AdditionalReferences from '@/components/references/AdditionalReferences.vue';
 import MetaData from '@/components/editor/MetaData.vue';
 
 export default {
@@ -130,7 +130,6 @@ export default {
         this.ready = true;
         this.version = this.$route.params.version;
       } catch (e) {
-        console.log(e);
         this.couldNotRetrieve = true;
       }
     },

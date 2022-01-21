@@ -1,7 +1,6 @@
 <template>
   <div class="run-data">
 
-
     <div class="container">
         <line-chart  v-if="loaded"
             :chartdata="chartdata"
@@ -55,28 +54,10 @@ export default {
         }];
         this.loaded = true;
       } catch (e) {
-        console.log(e);
+        console.log('Could not retrieve run');
       }
     },
   },
-  // mounted(){
-  //     console.log(this.experiment)
-  //     try{
-  //         this.loaded = false
-  //         const response = await this.$api.get(this.$runs_url + "/" + this.experiment.run)
-  //         const chartdata = {}
-  //         this.metadata = response.data.metadata
-  //         this.label = 'time'
-  //         this.chartdata.datasets = [{fill: false, label: this.metadata.start.sample_name, borderColor: 'rgba(0, 0, 0, 1)', data: response.data.data}]
-  //         this.loaded = true
-
-
-  //     }
-  //     catch (e){
-  //         console.error(e)
-  //     }
-
-  // },
 
   components: {
     LineChart,
