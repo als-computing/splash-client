@@ -1,4 +1,5 @@
 const LicensePlugin = require('webpack-license-plugin');
+
 // https://github.com/codepunkt/webpack-license-plugin
 // https://cli.vuejs.org/guide/webpack.html
 module.exports = {
@@ -6,7 +7,7 @@ module.exports = {
     plugins: [new LicensePlugin()],
     devtool: 'source-map',
   },
-
+  publicPath: `/${process.env.VUE_APP_SPLASH_BASE}/`,
   devServer: {
     allowedHosts: [
       'teocali',

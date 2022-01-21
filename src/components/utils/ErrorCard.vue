@@ -3,7 +3,7 @@
     <h3>
       {{ errorMsg }}
       <span v-if="showReloadText"
-        >Try <a :href="$route.fullPath">reloading</a> the page. If this does not
+        >Try <a :href="window.location.href">reloading</a> the page. If this does not
         work, contact the Splash team.</span
       >
       <span v-if="showReturnToMsg"> Return to <b-link :to='returnLink'>{{returnLinkText}}</b-link>.</span>
@@ -12,6 +12,9 @@
 </template>
 <script>
 export default {
+  data() {
+    return { window };
+  },
   props: {
     errorMsg: {
       type: String,

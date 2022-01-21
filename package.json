@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vuepress build docs --dest ./public/docs && vue-cli-service serve",
-    "build": "vuepress build docs --dest ./public/docs && vue-cli-service build",
+    "serve": "VUE_APP_SPLASH_BASE=$(grep VUE_APP_SPLASH_BASE .env | cut -d '=' -f2) vuepress build docs --dest ./public/$(grep VUE_APP_SPLASH_BASE .env | cut -d '=' -f2)/docs && vue-cli-service serve",
+    "build": "npm run docs:build && vue-cli-service build && rm -rf ./public/docs",
     "lint": "vue-cli-service lint",
     "test:clear-jest-cache": "node --inspect node_modules/.bin/jest --clearCache",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand",

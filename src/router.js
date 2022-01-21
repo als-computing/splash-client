@@ -7,6 +7,7 @@ import store from './store';
 const router = new Router({
   routes,
   mode: 'history',
+  base: `/${process.env.VUE_APP_SPLASH_BASE}/`,
   store,
 });
 
