@@ -15,7 +15,8 @@ env:
 
 jobs:
   build:
-
+    env:
+      VUE_APP_SPLASH_BASE: splash
     runs-on: ubuntu-latest
 
     strategy:
